@@ -10,13 +10,9 @@ import SignInModal from "@/components/SignInModal";
 import SignUpModal from "@/components/SignUpModal";
 import BlockedUserModal from "@/components/BlockedUserModal";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
-export default function LandingPage() {
-  const { user, loading } = useAuth();
-  const [isSignInOpen, setIsSignInOpen] = useState(false);
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
-  const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
+function AuthErrorWatcher({ setIsBlockedModalOpen }: { setIsBlockedModalOpen: (val: boolean) => void }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -34,10 +30,22 @@ export default function LandingPage() {
         console.error("Error parsing auth error params:", e);
       }
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, setIsBlockedModalOpen]);
+
+  return null;
+}
+
+export default function LandingPage() {
+  const { user, loading } = useAuth();
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30 font-sans">
+      <Suspense fallback={null}>
+        <AuthErrorWatcher setIsBlockedModalOpen={setIsBlockedModalOpen} />
+      </Suspense>
 
       {/* Background Ambience */}
       <div className="fixed inset-0 z-0 pointer-events-none">
