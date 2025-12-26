@@ -77,27 +77,27 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-md glass-panel rounded-2xl p-8 shadow-2xl border border-white/10 animate-in fade-in zoom-in-95 duration-300">
+            <div className="relative w-full max-w-md glass-panel rounded-2xl p-8 shadow-2xl border border-border animate-in fade-in zoom-in-95 duration-300">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                    className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-all"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-                    <p className="text-zinc-400 text-sm">Join SonicFlow and start creating</p>
+                    <h2 className="text-3xl font-bold text-foreground mb-2">Create Account</h2>
+                    <p className="text-muted-foreground text-sm">Join SonicFlow and start creating</p>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Name Field */}
                     <div className="space-y-2">
-                        <label htmlFor="name" className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                            <User className="w-4 h-4 text-indigo-400" />
+                        <label htmlFor="name" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                            <User className="w-4 h-4 text-indigo-500" />
                             Full Name
                         </label>
                         <input
@@ -107,14 +107,14 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                             onChange={(e) => setName(e.target.value)}
                             placeholder="John Doe"
                             required
-                            className="w-full bg-zinc-900/50 border border-zinc-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-zinc-500"
+                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
                         />
                     </div>
 
                     {/* Email Field */}
                     <div className="space-y-2">
-                        <label htmlFor="signup-email" className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-indigo-400" />
+                        <label htmlFor="signup-email" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-indigo-500" />
                             Email Address
                         </label>
                         <input
@@ -124,14 +124,14 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
                             required
-                            className="w-full bg-zinc-900/50 border border-zinc-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-zinc-500"
+                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
                         />
                     </div>
 
                     {/* Password Field */}
                     <div className="space-y-2">
-                        <label htmlFor="signup-password" className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-indigo-400" />
+                        <label htmlFor="signup-password" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                            <Lock className="w-4 h-4 text-indigo-500" />
                             Password
                         </label>
                         <div className="relative">
@@ -143,12 +143,12 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                 placeholder="••••••••"
                                 required
                                 minLength={8}
-                                className="w-full bg-zinc-900/50 border border-zinc-700/50 text-white rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-zinc-500"
+                                className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
                             >
                                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
@@ -157,8 +157,8 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
 
                     {/* Confirm Password Field */}
                     <div className="space-y-2">
-                        <label htmlFor="confirm-password" className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-indigo-400" />
+                        <label htmlFor="confirm-password" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                            <Lock className="w-4 h-4 text-indigo-500" />
                             Confirm Password
                         </label>
                         <div className="relative">
@@ -170,12 +170,12 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                 placeholder="••••••••"
                                 required
                                 minLength={8}
-                                className="w-full bg-zinc-900/50 border border-zinc-700/50 text-white rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-zinc-500"
+                                className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
                             >
                                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
@@ -208,17 +208,17 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
 
                 <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/10"></div>
+                        <div className="w-full border-t border-border"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-zinc-900 text-zinc-500">Or continue with</span>
+                        <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
                     </div>
                 </div>
 
                 <button
                     onClick={handleGoogleLogin}
                     type="button"
-                    className="w-full bg-white text-zinc-900 hover:bg-zinc-100 py-3.5 rounded-xl font-semibold transition-colors flex items-center justify-center gap-3"
+                    className="w-full bg-foreground text-background hover:opacity-90 py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-3 shadow-md"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path
@@ -242,24 +242,24 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                 </button>
 
                 {/* Terms */}
-                <p className="text-center text-xs text-zinc-500 mt-4">
+                <p className="text-center text-xs text-muted-foreground mt-4">
                     By signing up, you agree to our{" "}
-                    <button className="text-indigo-400 hover:text-indigo-300 transition-colors">
+                    <button className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition-colors">
                         Terms of Service
                     </button>
                     {" "}and{" "}
-                    <button className="text-indigo-400 hover:text-indigo-300 transition-colors">
+                    <button className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition-colors">
                         Privacy Policy
                     </button>
                 </p>
 
                 {/* Sign In Link */}
-                <p className="text-center text-sm text-zinc-500 mt-6">
+                <p className="text-center text-sm text-muted-foreground mt-6">
                     Already have an account?{" "}
                     <button
                         type="button"
                         onClick={onSwitchToSignIn}
-                        className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+                        className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 font-medium transition-colors"
                     >
                         Sign in
                     </button>

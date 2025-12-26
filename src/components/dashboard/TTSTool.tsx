@@ -6,6 +6,7 @@ import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, Mic,
 import VoiceSelectionModal from "./VoiceSelectionModal";
 import { getInworldVoices, getCommunityVoices, synthesizeInworldSpeech } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
+import { useVoices } from "@/context/VoiceContext";
 
 interface VoiceOption {
     id: string;
@@ -14,6 +15,9 @@ interface VoiceOption {
     nativeVoice?: SpeechSynthesisVoice;
     inworldId?: string;
     isCommunity?: boolean;
+    gender?: string;
+    likedBy?: string[];
+    creator?: string;
 }
 
 interface HistoryItem {
@@ -31,6 +35,7 @@ interface HistoryItem {
 
 export default function TTSTool() {
     const { user, refreshUser } = useAuth();
+    const { officialVoices, communityVoices, loading: voicesLoading } = useVoices();
     const searchParams = useSearchParams();
     const voiceParam = searchParams.get('voice');
 
@@ -59,71 +64,33 @@ export default function TTSTool() {
     const [generationHistory, setGenerationHistory] = useState<HistoryItem[]>([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    // Initialize Speech Synthesis and Load Voices
+    // Use context voices to update local formatted voices
     useEffect(() => {
-        const fetchVoices = async () => {
-            let combinedVoices: VoiceOption[] = [];
-
-            // 1. Get Inworld Voices
-            try {
-                const [official, community] = await Promise.all([
-                    getInworldVoices(),
-                    getCommunityVoices()
-                ]);
-
-                const inworldList = [...official, ...community];
-                if (Array.isArray(inworldList)) {
-                    const inworldOptions: VoiceOption[] = inworldList
-                        .filter((v: any) => {
-                            // If it's a community voice
-                            if (v.isCommunity) {
-                                // Show if it's public OR if the current user is the creator
-                                return v.isPublic || (user?.name && v.creator === user.name);
-                            }
-                            // Always show official voices
-                            return true;
-                        })
-                        .map((v: any) => {
-                            const gender = v.gender || (v.tags?.includes('male') ? 'Male' : v.tags?.includes('female') ? 'Female' : 'Neutral');
-                            const displayName = v.displayName || v.baseName || v.voiceId;
-                            return {
-                                id: v.voiceId,
-                                name: `${displayName} (${gender})`,
-                                source: 'inworld',
-                                inworldId: v.voiceId,
-                                isCommunity: v.isCommunity || v.voiceId.includes('__')
-                            };
-                        });
-                    inworldOptions.sort((a, b) => a.name.localeCompare(b.name));
-                    combinedVoices = [...combinedVoices, ...inworldOptions];
+        const inworldList = [...officialVoices, ...communityVoices];
+        const formattedVoices: VoiceOption[] = inworldList
+            .filter((v: any) => {
+                if (v.isCommunity) {
+                    return v.isPublic || (user?.name && v.creator === user.name);
                 }
-            } catch (e) {
-                console.error("Failed to load Inworld voices", e);
-            }
+                return true;
+            })
+            .map((v: any) => {
+                const displayName = v.displayName || v.baseName || v.voiceId;
+                return {
+                    id: v.voiceId,
+                    name: displayName,
+                    source: 'inworld',
+                    inworldId: v.voiceId,
+                    isCommunity: v.isCommunity || v.voiceId.includes('__'),
+                    gender: v.gender?.toUpperCase(),
+                    likedBy: v.likedBy || [],
+                    creator: v.creator
+                };
+            });
 
-            // 2. Get Browser Voices
-            if (typeof window !== "undefined") {
-                synth.current = window.speechSynthesis;
-                const browserVoices = synth.current?.getVoices() || [];
-                const browserOptions: VoiceOption[] = browserVoices.map(v => ({
-                    id: v.voiceURI,
-                    name: `${v.name} (Local)`,
-                    source: 'browser',
-                    nativeVoice: v
-                }));
-                browserOptions.sort((a, b) => a.name.localeCompare(b.name));
-                combinedVoices = [...combinedVoices, ...browserOptions];
-            }
-
-            setVoices(combinedVoices);
-        };
-
-        fetchVoices();
-
-        if (typeof window !== "undefined" && window.speechSynthesis) {
-            window.speechSynthesis.onvoiceschanged = fetchVoices;
-        }
-    }, []);
+        formattedVoices.sort((a, b) => a.name.localeCompare(b.name));
+        setVoices(formattedVoices);
+    }, [officialVoices, communityVoices, user]);
 
     // Load History from LocalStorage
     useEffect(() => {
@@ -344,13 +311,13 @@ export default function TTSTool() {
             <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10 h-full">
 
                 {/* Left Side: Main Card */}
-                <div className="lg:col-span-8 xl:col-span-9 w-full glass-panel rounded-3xl overflow-hidden shadow-xl border border-zinc-200 dark:border-white/5 flex flex-col h-[calc(100vh-140px)] min-h-[600px]">
+                <div className="lg:col-span-8 xl:col-span-9 w-full glass-panel rounded-3xl overflow-hidden shadow-xl border border-border dark:border-white/5 flex flex-col h-[calc(100vh-140px)] min-h-[600px]">
 
                     {/* Editor Area */}
                     <div className="flex flex-col md:flex-row flex-1">
 
                         {/* Left: Input */}
-                        <div className="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-zinc-200 dark:border-white/5 relative group bg-zinc-50/50 dark:bg-zinc-900/40">
+                        <div className="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative group bg-zinc-50/50 dark:bg-zinc-900/40">
                             {(() => {
                                 const charLimit = (user?.prefs as any)?.plan === "Pro User" ? 5000 : 500;
                                 return (
@@ -379,7 +346,7 @@ export default function TTSTool() {
                         </div>
 
                         {/* Right: Controls */}
-                        <div className="w-full md:w-80 bg-white/50 dark:bg-zinc-900/60 p-6 md:p-8 flex flex-col gap-6 backdrop-blur-md border-l border-zinc-200 dark:border-white/5">
+                        <div className="w-full md:w-80 bg-white/50 dark:bg-zinc-900/60 p-6 md:p-8 flex flex-col gap-6 backdrop-blur-md border-l border-border dark:border-white/5">
 
                             {/* Voice Select */}
                             <div className="space-y-3">
@@ -390,7 +357,7 @@ export default function TTSTool() {
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsVoiceModalOpen(true)}
-                                        className="w-full flex items-center justify-between bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-200 text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all shadow-sm dark:shadow-lg text-left"
+                                        className="w-full flex items-center justify-between bg-white dark:bg-zinc-800/80 border border-border dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-200 text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all shadow-sm dark:shadow-lg text-left"
                                     >
                                         <span className="truncate">{selectedVoice?.name || "Select a voice..."}</span>
                                         <ChevronDown className="w-4 h-4 text-zinc-500 ml-2 shrink-0" />
@@ -402,6 +369,8 @@ export default function TTSTool() {
                                         onSelectVoice={(voice) => setSelectedVoice(voice)}
                                         voices={voices}
                                         currentVoiceId={selectedVoice?.id}
+                                        userId={user?.$id}
+                                        userName={user?.name}
                                     />
                                 </div>
                             </div>
@@ -478,7 +447,7 @@ export default function TTSTool() {
                     </div>
 
                     {/* Modern Audio Player Footer */}
-                    <div className="h-20 bg-white/90 dark:bg-zinc-950/80 border-t border-zinc-200 dark:border-white/5 flex items-center px-4 md:px-8 gap-6 backdrop-blur-md">
+                    <div className="h-20 bg-white/90 dark:bg-zinc-950/80 border-t border-border dark:border-white/5 flex items-center px-4 md:px-8 gap-6 backdrop-blur-md">
                         {audioUrl ? (
                             <>
                                 {/* Playback Controls */}
@@ -533,7 +502,7 @@ export default function TTSTool() {
                                     {/* Download Button inside Player */}
                                     <button
                                         onClick={handleDownload}
-                                        className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-colors text-xs font-medium uppercase tracking-wide border border-zinc-200 dark:border-white/5"
+                                        className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-colors text-xs font-medium uppercase tracking-wide border border-border dark:border-white/5"
                                         title="Download Audio"
                                     >
                                         <Download className="w-3.5 h-3.5" />
@@ -553,7 +522,7 @@ export default function TTSTool() {
                 {/* Right Side: Generation History */}
                 <div className="lg:col-span-4 xl:col-span-3 h-[calc(100vh-140px)] min-h-[600px] flex flex-col">
                     <div className="glass-panel rounded-3xl p-0 flex-1 flex flex-col border border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-900/30 overflow-hidden">
-                        <div className="p-4 flex items-center justify-between gap-2 text-indigo-600 dark:text-indigo-200 border-b border-zinc-200 dark:border-white/5 bg-white/80 dark:bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
+                        <div className="p-4 flex items-center justify-between gap-2 text-indigo-600 dark:text-indigo-200 border-b border-border dark:border-white/5 bg-white/80 dark:bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
                             <div className="flex items-center gap-2">
                                 <History className="w-4 h-4" />
                                 <h2 className="font-semibold tracking-wide text-sm">Recent History</h2>
@@ -571,7 +540,7 @@ export default function TTSTool() {
                                 </div>
                             ) : (
                                 generationHistory.map((item) => (
-                                    <div key={item.id} className="group relative p-4 bg-white dark:bg-zinc-900/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none hover:border-indigo-500/30 transition-all">
+                                    <div key={item.id} className="group relative p-4 bg-white dark:bg-zinc-900/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-xl border border-border dark:border-white/5 shadow-sm dark:shadow-none hover:border-indigo-500/30 transition-all">
                                         {/* Header: Timestamp & Voice */}
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex items-center gap-2 overflow-hidden">

@@ -23,12 +23,12 @@ export default function DashboardLayout({
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-white flex items-center justify-center">
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4 animate-fade-in">
                     <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 animate-pulse">
                         <Loader2 className="w-6 h-6 text-white animate-spin" />
                     </div>
-                    <p className="text-zinc-500 font-medium">Loading Studio...</p>
+                    <p className="text-muted-foreground font-medium">Loading Studio...</p>
                 </div>
             </div>
         );
@@ -39,7 +39,7 @@ export default function DashboardLayout({
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-white selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-indigo-500/30">
             <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 pointer-events-none" />
 
             <Sidebar />

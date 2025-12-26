@@ -38,7 +38,7 @@ export default function Header() {
     const isExpired = !!(user?.prefs as any)?.lastPurchaseDate && billingCycleEnd !== null && billingCycleEnd < new Date();
 
     return (
-        <header className="h-20 border-b border-zinc-200 dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-md flex items-center justify-between px-6 md:px-8 sticky top-0 z-40 transition-colors duration-300">
+        <header className="h-20 border-b border-border dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-md flex items-center justify-between px-6 md:px-8 sticky top-0 z-40 transition-colors duration-300">
             <Link href="/dashboard" className="lg:hidden flex items-center gap-3 hover:opacity-80 transition-opacity">
                 {/* Mobile placeholder */}
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
@@ -60,7 +60,8 @@ export default function Header() {
                 </h2>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 md:gap-6">
+
                 {/* Credits Counter */}
                 <div className="hidden md:flex flex-col items-end gap-1.5 mr-2">
                     <div className="flex items-center gap-2">
@@ -118,7 +119,7 @@ export default function Header() {
 
                     {/* Dropdown Menu */}
                     {dropdownOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200 dark:border-white/10 rounded-xl shadow-2xl py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right ring-1 ring-zinc-200 dark:ring-white/5">
+                        <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900/95 backdrop-blur-xl border border-border dark:border-white/10 rounded-xl shadow-2xl py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right ring-1 ring-border dark:ring-white/5">
                             <div className="px-4 py-3 border-b border-zinc-100 dark:border-white/5 mb-1 md:hidden">
                                 <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">{user?.name || "Guest"}</p>
                                 <p className="text-xs text-zinc-500 truncate">{user?.email}</p>

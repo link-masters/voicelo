@@ -162,12 +162,12 @@ function PricingContent() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30 font-sans">
+        <div className="min-h-screen text-foreground selection:bg-indigo-500/30 font-sans">
             {/* Background Effects */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px]" />
-                <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-indigo-500/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-zinc-50 dark:bg-purple-500/10 rounded-full blur-[120px]" />
+                <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03] dark:opacity-20" />
             </div>
 
             <Header />
@@ -176,7 +176,7 @@ function PricingContent() {
                 <div className="max-w-7xl mx-auto px-6">
                     {/* Header Section */}
                     <div className="text-center mb-20 space-y-4 animate-fade-in-up">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-indigo-400 text-xs font-bold tracking-wider uppercase">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-border text-indigo-600 dark:text-indigo-400 text-xs font-bold tracking-wider uppercase">
                             <Star className="w-3 h-3 fill-current" />
                             Pricing Plans
                         </div>
@@ -188,11 +188,11 @@ function PricingContent() {
                                 </div>
                             </div>
                         )}
-                        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight">
+                        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground">
                             Simple, Transparent <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400">Credit Packages</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-400">Credit Packages</span>
                         </h1>
-                        <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                             Choose the perfect credit package for your monthly creative needs. Professional tools with transparent, predictable pricing.
                         </p>
                     </div>
@@ -205,15 +205,15 @@ function PricingContent() {
                             </div>
                         ) : plans.length === 0 ? (
                             <div className="w-full text-center py-20">
-                                <p className="text-zinc-500">No plans available at the moment.</p>
+                                <p className="text-muted-foreground">No plans available at the moment.</p>
                             </div>
                         ) : (
                             plans.map((plan, index) => (
                                 <div
                                     key={plan.name}
-                                    className={`group relative p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:translate-y-[-8px] animate-fade-in-up ${plan.popular
-                                        ? "border-indigo-500/50 shadow-2xl shadow-indigo-500/10"
-                                        : "border-white/5 hover:border-white/10"
+                                    className={`group relative p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-card/50 dark:bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:translate-y-[-8px] animate-fade-in-up ${plan.popular
+                                        ? "border-indigo-600/30 dark:border-indigo-500/50 shadow-2xl shadow-indigo-500/10"
+                                        : "border-border hover:border-border/80"
                                         }`}
                                     style={{ animationDelay: `${index * 100}ms` }}
                                 >
@@ -238,8 +238,8 @@ function PricingContent() {
                                             </div>
                                         )}
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-5xl font-extrabold">{plan.price}</span>
-                                            {plan.variantId !== "free" && <span className="text-zinc-500 text-lg">/ mo</span>}
+                                            <span className="text-5xl font-extrabold text-foreground">{plan.price}</span>
+                                            {plan.variantId !== "free" && <span className="text-muted-foreground text-lg">/ mo</span>}
                                             {plan.originalPrice && (
                                                 <span className="text-zinc-500 text-xl font-medium line-through decoration-zinc-600/50 ml-2">
                                                     {plan.originalPrice}
@@ -247,11 +247,11 @@ function PricingContent() {
                                             )}
                                         </div>
                                         {plan.variantId !== "free" && (
-                                            <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-2 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">30-day billing cycle</span>
+                                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-2 px-2 py-0.5 rounded-full bg-secondary/50 border border-border">30-day billing cycle</span>
                                         )}
                                     </div>
 
-                                    <p className="text-zinc-400 mb-8 text-sm leading-relaxed text-center">
+                                    <p className="text-muted-foreground mb-8 text-sm leading-relaxed text-center">
                                         {plan.description}
                                     </p>
 
@@ -261,7 +261,7 @@ function PricingContent() {
                                                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
                                                     <Check className="w-3 h-3 text-emerald-500" />
                                                 </div>
-                                                <span className="text-zinc-300 text-sm">{feature}</span>
+                                                <span className="text-muted-foreground text-sm">{feature}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -270,10 +270,10 @@ function PricingContent() {
                                         onClick={() => plan.variantId !== "free" && handleSubscribe(plan.variantId, plan.discountCode)}
                                         disabled={loading !== null || plan.variantId === "free"}
                                         className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group/btn ${plan.variantId === "free"
-                                            ? "bg-zinc-900 text-zinc-500 border border-zinc-800 cursor-not-allowed"
+                                            ? "bg-secondary text-muted-foreground border border-border cursor-not-allowed"
                                             : plan.popular
                                                 ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30"
-                                                : "bg-white/5 hover:bg-white/10 text-white border border-white/5 hover:border-white/10"
+                                                : "bg-secondary/50 hover:bg-secondary text-foreground border border-border"
                                             }`}
                                     >
                                         {loading === plan.variantId ? (
@@ -291,7 +291,7 @@ function PricingContent() {
                     </div>
 
                     {/* FAQ or Trust Section */}
-                    <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-indigo-500/5 border border-indigo-500/10 text-center space-y-6 animate-fade-in-up delay-300">
+                    <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-indigo-500/5 border border-border text-center space-y-6 animate-fade-in-up delay-300">
                         <div className="flex justify-center -space-x-3">
                             {[1, 2, 3, 4, 5].map((i) => (
                                 <div key={i} className="w-12 h-12 rounded-full border-4 border-black bg-zinc-800 flex items-center justify-center overflow-hidden">
@@ -299,8 +299,8 @@ function PricingContent() {
                                 </div>
                             ))}
                         </div>
-                        <h2 className="text-3xl font-bold">Trusted by 10,000+ creators</h2>
-                        <p className="text-zinc-400">
+                        <h2 className="text-3xl font-bold text-foreground">Trusted by 10,000+ creators</h2>
+                        <p className="text-muted-foreground">
                             Join our community of developers, podcasters, and filmmakers who use SonicFlow to bring their text to life.
                             Questions? Our team is here to help.
                         </p>
@@ -319,7 +319,7 @@ function PricingContent() {
 export default function PricingPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <Loader2 className="w-12 h-12 animate-spin text-indigo-500" />
             </div>
         }>

@@ -42,17 +42,17 @@ export default function LandingPage() {
   const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30 font-sans">
+    <div className="min-h-screen text-foreground selection:bg-indigo-500/30 font-sans">
       <Suspense fallback={null}>
         <AuthErrorWatcher setIsBlockedModalOpen={setIsBlockedModalOpen} />
       </Suspense>
 
       {/* Background Ambience */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px]" />
-        <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-purple-500/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] bg-blue-500/10 rounded-full blur-[100px]" />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-indigo-500/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-zinc-50 dark:bg-purple-500/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] bg-slate-50 dark:bg-blue-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03] dark:opacity-20" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -62,17 +62,17 @@ export default function LandingPage() {
 
         {/* Hero Section */}
         <section className="flex-1 flex flex-col items-center justify-center px-6 pt-32 pb-32 text-center max-w-5xl mx-auto space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-sm animate-fade-in-down">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/80 text-muted-foreground text-sm animate-fade-in-down">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span>Now with Neural V2 Engine</span>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight text-white leading-tight animate-fade-in-up">
+          <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight text-foreground leading-tight animate-fade-in-up">
             Voice Synthesis <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400">Reimagined</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-400">Reimagined</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-100">
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-100">
             Create lifelike speech from text in seconds. The most advanced in-browser text-to-speech engine for creators, developers, and visionaries.
           </p>
 
@@ -95,14 +95,14 @@ export default function LandingPage() {
               </button>
             )}
 
-            <button className="px-8 py-4 rounded-full bg-transparent border border-white/20 text-white font-medium text-lg hover:bg-white/5 transition-colors">
+            <button className="px-8 py-4 rounded-full bg-transparent border border-border text-foreground font-medium text-lg hover:bg-secondary/50 transition-colors">
               View Documentation
             </button>
           </div>
         </section>
 
         {/* Features Grid */}
-        <section id="features" className="py-24 bg-zinc-900/30 border-t border-white/5">
+        <section id="features" className="py-24 bg-secondary/20 dark:bg-zinc-900/30 border-t border-border">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid md:grid-cols-3 gap-8">
               {[
@@ -122,12 +122,12 @@ export default function LandingPage() {
                   desc: "Your data stays on your device. Zero server latency, maximum security."
                 }
               ].map((feature, i) => (
-                <div key={i} className="p-8 rounded-3xl bg-black/40 border border-white/5 hover:border-indigo-500/30 transition-colors group">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-900/20 flex items-center justify-center mb-6 text-indigo-400 group-hover:scale-110 transition-transform">
+                <div key={i} className="p-8 rounded-3xl bg-card/50 dark:bg-black/40 border border-border hover:border-indigo-500/30 transition-colors group">
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 dark:bg-indigo-900/20 flex items-center justify-center mb-6 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
                     <feature.icon className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl font-bold mb-3">{feature.title}</h3>
-                  <p className="text-zinc-400 leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {feature.desc}
                   </p>
                 </div>
@@ -142,15 +142,15 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto px-6 relative z-10 text-center space-y-8">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
               Ready to give your text <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">a human voice?</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400">a human voice?</span>
             </h2>
-            <p className="text-zinc-400 text-lg max-w-xl mx-auto">
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
               Choose the credit pack that fits your needs. No subscriptions, no hidden fees. Just high-quality AI voices at your fingertips.
             </p>
             <div className="pt-4">
               <Link
                 href="/pricing"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-foreground text-background font-bold text-lg hover:opacity-90 transition-all hover:scale-105"
               >
                 View Pricing Plans
                 <ArrowRight className="w-5 h-5" />

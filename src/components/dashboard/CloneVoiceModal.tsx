@@ -146,10 +146,10 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="relative w-full max-w-xl bg-white dark:bg-zinc-950 border border-border dark:border-white/10 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-8 border-b border-zinc-100 dark:border-white/5">
+                <div className="flex items-center justify-between p-8 border-b border-border dark:border-white/5">
                     <div>
                         <h2 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
                             <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
@@ -183,7 +183,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                 onDragOver={handleDragOver}
                                 onDrop={handleDrop}
                                 onClick={() => fileInputRef.current?.click()}
-                                className="group relative border-2 border-dashed border-zinc-200 dark:border-white/10 rounded-[32px] p-12 flex flex-col items-center justify-center text-center hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all cursor-pointer"
+                                className="group relative border-2 border-dashed border-border dark:border-white/10 rounded-[32px] p-12 flex flex-col items-center justify-center text-center hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all cursor-pointer"
                             >
                                 <input
                                     type="file"
@@ -219,7 +219,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                         placeholder="e.g. My Custom Voice"
                                         value={formData.displayName}
                                         onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
                                     />
                                 </div>
 
@@ -229,7 +229,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                         <select
                                             value={formData.langCode}
                                             onChange={(e) => setFormData(prev => ({ ...prev, langCode: e.target.value }))}
-                                            className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                                            className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
                                         >
                                             {LANGUAGES.map(lang => (
                                                 <option key={lang.code} value={lang.code}>{lang.label}</option>
@@ -246,11 +246,11 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                         rows={3}
                                         value={formData.description}
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium resize-none"
+                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium resize-none"
                                     />
                                 </div>
 
-                                <div className="p-4 bg-zinc-50 dark:bg-white/5 rounded-2xl border border-zinc-200 dark:border-white/10 flex items-center justify-between">
+                                <div className="p-4 bg-zinc-50 dark:bg-white/5 rounded-2xl border border-border dark:border-white/10 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
                                             <Music className="w-5 h-5 text-indigo-500" />
@@ -273,7 +273,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                 </div>
 
                 {/* Footer */}
-                <div className="p-8 bg-zinc-50 dark:bg-white/2 border-t border-zinc-100 dark:border-white/5 flex items-center justify-between">
+                <div className="p-8 bg-zinc-50 dark:bg-white/2 border-t border-border dark:border-white/5 flex items-center justify-between">
                     <button
                         onClick={onClose}
                         disabled={isSubmitting}

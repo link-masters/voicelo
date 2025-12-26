@@ -18,8 +18,8 @@ export default function Sidebar() {
     const isActive = (path: string) => pathname === path;
 
     return (
-        <aside className="w-64 bg-white dark:bg-black/40 backdrop-blur-xl border-r border-zinc-200 dark:border-white/10 h-screen fixed left-0 top-0 hidden lg:flex flex-col z-50 transition-colors duration-300">
-            <div className="p-6 h-20 flex items-center border-b border-zinc-200 dark:border-white/5">
+        <aside className="w-64 bg-background dark:bg-black/40 backdrop-blur-xl border-r border-border dark:border-white/10 h-screen fixed left-0 top-0 hidden lg:flex flex-col z-50 transition-colors duration-300">
+            <div className="p-6 h-20 flex items-center border-b border-border dark:border-white/5">
                 <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                     <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                         <Mic className="w-5 h-5 text-white" />
@@ -39,7 +39,7 @@ export default function Sidebar() {
                     <Link
                         href="/dashboard"
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard')
-                            ? 'bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 shadow-sm'
+                            ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                             }`}
                     >
@@ -58,7 +58,7 @@ export default function Sidebar() {
                     <Link
                         href="/dashboard/text-to-speech"
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/text-to-speech')
-                            ? 'bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 shadow-sm'
+                            ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                             }`}
                     >
@@ -81,7 +81,7 @@ export default function Sidebar() {
                             href="/dashboard/voice-clone"
                             onClick={() => setIsCloneMenuOpen(true)}
                             className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-all ${isActive('/dashboard/voice-clone')
-                                ? 'bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 shadow-sm'
+                                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                 }`}
                         >
@@ -143,7 +143,7 @@ export default function Sidebar() {
                     <Link
                         href="/dashboard/influencer-program"
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/influencer-program')
-                            ? 'bg-indigo-50 dark:bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 shadow-sm'
+                            ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                             }`}
                     >
@@ -152,7 +152,7 @@ export default function Sidebar() {
                     </Link>
                 </div>
 
-                <div className="pt-6 border-t border-zinc-200 dark:border-white/5">
+                <div className="pt-6 border-t border-border dark:border-white/5">
                     <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 font-medium transition-all group">
                         <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                         <span>Settings</span>
@@ -160,7 +160,7 @@ export default function Sidebar() {
                 </div>
             </nav>
 
-            <div className="p-4 border-t border-zinc-200 dark:border-white/5 bg-gray-50/50 dark:bg-black/20 space-y-1 shrink-0">
+            <div className="p-4 border-t border-border dark:border-white/5 bg-secondary/50 dark:bg-black/20 space-y-1 shrink-0">
                 <div className="px-4 mb-2">
                     <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
                         Preferences

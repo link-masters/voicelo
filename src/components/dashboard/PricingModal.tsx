@@ -167,7 +167,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                 onClick={onClose}
             ></div>
 
-            <div className="relative w-full max-w-5xl bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-zinc-200 dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+            <div className="relative w-full max-w-5xl bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
                 <div className="p-8 md:p-12">
                     <div className="text-center mb-12">
                         <h2 className="text-4xl font-bold text-zinc-900 dark:text-white mb-4">Choose Your Plan</h2>
@@ -197,7 +197,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                     key={plan.name}
                                     className={`relative group p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-white dark:bg-zinc-900 border transition-all duration-500 hover:scale-[1.02] ${plan.popular
                                         ? "border-indigo-500 dark:border-indigo-500/50 shadow-2xl shadow-indigo-500/10"
-                                        : "border-zinc-100 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10"
+                                        : "border-border dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10"
                                         }`}
                                 >
                                     {plan.popular && (
@@ -252,7 +252,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                         onClick={() => plan.variantId !== "free" && handleSubscribe(plan.variantId, plan.discountCode)}
                                         disabled={loading !== null || plan.variantId === "free"}
                                         className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${plan.variantId === "free"
-                                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-zinc-200 dark:border-zinc-700"
+                                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-border dark:border-zinc-700"
                                             : plan.popular
                                                 ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25"
                                                 : "bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white"

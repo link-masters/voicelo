@@ -15,6 +15,7 @@ const APPWRITE_VOICES_TABLE_ID = process.env.NEXT_PUBLIC_APPWRITE_VOICES_TABLE_I
 
 import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "@/lib/appwrite-server";
+import { OFFICIAL_VOICE_METADATA } from "@/config/voiceMetadata";
 
 const getAuthHeader = () => {
     if (INWORLD_AUTH_TOKEN) {
@@ -33,7 +34,7 @@ export async function getInworldVoices() {
             headers: {
                 'Authorization': getAuthHeader(),
             },
-            next: { revalidate: 3600 }
+            next: { revalidate: 3600 } // Cache for 1 hour
         });
 
         if (!response.ok) {
@@ -45,8 +46,17 @@ export async function getInworldVoices() {
         const data = await response.json();
         const voices = data.voices || [];
 
-        // Return only Official Voices
-        return voices.filter((v: any) => !v.voiceId.includes('__') && !v.description?.includes('[SHARED_BY:'));
+        // Return only Official Voices and manually inject gender from config
+        return voices
+            .filter((v: any) => !v.voiceId.includes('__') && !v.description?.includes('[SHARED_BY:'))
+            .map((v: any) => {
+                const meta = OFFICIAL_VOICE_METADATA[v.voiceId];
+                return {
+                    ...v,
+                    gender: meta?.gender || 'NEUTRAL',
+                    tags: [] // Clear tags as requested
+                };
+            });
     } catch (error) {
         console.error('getInworldVoices error:', error);
         return [];
@@ -362,7 +372,7 @@ export async function saveCommunityVoice(voiceData: {
         throw error;
     }
 }
-export async function toggleCommunityVoiceLike(voiceId: string, userId: string) {
+export async function toggleCommunityVoiceLike(voiceId: string, userId: string, metadata?: { displayName: string, isCommunity: boolean, gender?: string }) {
     try {
         const { databases } = createAdminClient();
         const response = await databases.listDocuments(
@@ -380,11 +390,9 @@ export async function toggleCommunityVoiceLike(voiceId: string, userId: string) 
             let increment;
 
             if (hasLiked) {
-                // Remove like
                 newLikedBy = likedBy.filter(id => id !== userId);
                 increment = -1;
             } else {
-                // Add like
                 newLikedBy = [...likedBy, userId];
                 increment = 1;
             }
@@ -396,6 +404,25 @@ export async function toggleCommunityVoiceLike(voiceId: string, userId: string) 
                 {
                     likes: Math.max(0, (doc.likes || 0) + increment),
                     likedBy: newLikedBy
+                }
+            );
+        } else if (metadata) {
+            // If voice doesn't exist (Official Voice liked for the first time)
+            return await databases.createDocument(
+                APPWRITE_DATABASE_ID,
+                APPWRITE_VOICES_TABLE_ID,
+                ID.unique(),
+                {
+                    voiceId: voiceId,
+                    name: metadata.displayName,
+                    description: `Official Inworld voice: ${metadata.displayName}`,
+                    creatorName: 'Inworld AI',
+                    creatorId: 'system',
+                    langCode: 'EN_US',
+                    gender: metadata.gender || 'NEUTRAL',
+                    likes: 1,
+                    likedBy: [userId],
+                    isPublic: true // Always public for global lookup
                 }
             );
         }

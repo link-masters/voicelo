@@ -3,13 +3,15 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Mic, ArrowRight } from "lucide-react";
+import { Menu, X, Mic, ArrowRight, Sun, Moon } from "lucide-react";
 import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Header() {
     const { user, loading } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [signInModalOpen, setSignInModalOpen] = useState(false);
@@ -37,7 +39,7 @@ export default function Header() {
         <>
             <nav
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled
-                    ? "bg-black/80 backdrop-blur-md border-white/10 py-4"
+                    ? "bg-background/80 backdrop-blur-md border-border py-4 shadow-sm"
                     : "bg-transparent border-transparent py-6"
                     }`}
             >
@@ -47,7 +49,7 @@ export default function Header() {
                         <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
                             <Mic className="w-6 h-6 text-white" />
                         </div>
-                        <span className="font-bold text-2xl tracking-tight text-white">SonicFlow</span>
+                        <span className="font-bold text-2xl tracking-tight text-foreground">SonicFlow</span>
                     </Link>
 
                     {/* Desktop Nav */}
@@ -56,7 +58,7 @@ export default function Header() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+                                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                             >
                                 {link.name}
                             </Link>
@@ -64,14 +66,23 @@ export default function Header() {
                     </div>
 
                     {/* Auth Actions */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-foreground transition-all hover:scale-105"
+                            aria-label="Toggle theme"
+                        >
+                            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                        </button>
+
                         {loading ? (
-                            <div className="w-24 h-10 rounded-full bg-white/5 animate-pulse" />
+                            <div className="w-24 h-10 rounded-full bg-secondary animate-pulse" />
                         ) : user ? (
                             <div className="hidden md:flex items-center gap-4">
                                 <Link
                                     href="/dashboard"
-                                    className="px-6 py-2.5 rounded-full bg-white text-black font-semibold hover:bg-zinc-200 transition-colors flex items-center gap-2 group"
+                                    className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-all flex items-center gap-2 group shadow-lg shadow-primary/20"
                                 >
                                     Dashboard
                                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -88,7 +99,7 @@ export default function Header() {
 
                         {/* Mobile Menu Toggle */}
                         <button
-                            className="md:hidden p-2 text-zinc-400 hover:text-white"
+                            className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         >
                             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -98,22 +109,22 @@ export default function Header() {
 
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-white/10 md:hidden p-6 flex flex-col gap-6 animate-in slide-in-from-top-5">
+                    <div className="absolute top-full left-0 right-0 bg-background/95 backdrop-blur-xl border-b border-border md:hidden p-6 flex flex-col gap-6 animate-in slide-in-from-top-5 shadow-2xl">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-lg font-medium text-zinc-400 hover:text-white"
+                                className="text-lg font-medium text-muted-foreground hover:text-foreground"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 {link.name}
                             </Link>
                         ))}
-                        <div className="pt-4 border-t border-white/5">
+                        <div className="pt-4 border-t border-border">
                             {user ? (
                                 <Link
                                     href="/dashboard"
-                                    className="w-full bg-white text-black py-4 rounded-xl font-bold flex items-center justify-center gap-2"
+                                    className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-bold flex items-center justify-center gap-2"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
                                     Dashboard

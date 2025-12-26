@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "../context/ThemeContext";
+import { VoiceProvider } from "../context/VoiceContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,11 +23,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <AuthProvider>
-          <ThemeProvider>
-            <main className="flex-1 flex flex-col">
-              {children}
-            </main>
-          </ThemeProvider>
+          <VoiceProvider>
+            <ThemeProvider>
+              <main className="flex-1 flex flex-col">
+                {children}
+              </main>
+            </ThemeProvider>
+          </VoiceProvider>
         </AuthProvider>
       </body>
     </html>

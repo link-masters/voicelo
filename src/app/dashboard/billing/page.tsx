@@ -32,7 +32,7 @@ export default function BillingPage() {
 
             {/* Subscription Info Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
                     <div className="flex items-center gap-2 text-zinc-500 text-sm font-medium">
                         <Shield className="w-4 h-4 text-indigo-500" /> Current Plan
                     </div>
@@ -42,14 +42,14 @@ export default function BillingPage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
                     <div className="flex items-center gap-2 text-zinc-500 text-sm font-medium">
                         <Zap className="w-4 h-4 text-indigo-400 fill-indigo-400" /> Available Credits
                     </div>
                     <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{creditsTotal.toLocaleString()}</span>
                 </div>
 
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
                     <div className="flex items-center justify-between text-zinc-500 text-sm font-medium">
                         <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-zinc-400" /> Cycle End
@@ -71,7 +71,7 @@ export default function BillingPage() {
                     </span>
                 </div>
 
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 shadow-sm flex flex-col gap-3 items-center justify-center">
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3 items-center justify-center">
                     <button
                         onClick={() => setIsPricingModalOpen(true)}
                         className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 text-sm"
@@ -89,7 +89,7 @@ export default function BillingPage() {
                     </h2>
                 </div>
 
-                <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
+                <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-border dark:border-white/5 overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

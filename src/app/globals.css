@@ -10,14 +10,14 @@
     --card-foreground: #09090b;
     --primary: #8b5cf6;
     --primary-foreground: #fff;
-    --secondary: #f4f4f5;
+    --secondary: #fafafa;
     --secondary-foreground: #18181b;
-    --muted: #f4f4f5;
+    --muted: #f5f5f5;
     --muted-foreground: #71717a;
-    --accent: #f4f4f5;
+    --accent: #fafafa;
     --accent-foreground: #18181b;
-    --border: #e4e4e7;
-    --input: #e4e4e7;
+    --border: #cbd5e1;
+    --input: #cbd5e1;
     --ring: #8b5cf6;
     --destructive: #ef4444;
     --destructive-foreground: #fafafa;
@@ -57,10 +57,10 @@
     @apply bg-background text-foreground;
     min-height: 100vh;
     font-family: inherit;
-    /* Simple light background or subtle gradient for light mode */
-    background-image: radial-gradient(at 0% 0%, hsla(253, 16%, 95%, 1) 0, transparent 50%),
-      radial-gradient(at 50% 0%, hsla(225, 39%, 90%, 1) 0, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(339, 49%, 90%, 1) 0, transparent 50%);
+    /* Clean white background with subtle depth */
+    background-image: radial-gradient(at 0% 0%, #ffffff 0, transparent 50%),
+      radial-gradient(at 50% 0%, #fafafa 0, transparent 50%),
+      radial-gradient(at 100% 0%, #fcfcfc 0, transparent 50%);
     background-attachment: fixed;
     overflow-x: hidden;
   }
@@ -105,10 +105,10 @@
 
   .glass-panel {
     background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(228, 228, 231, 0.8);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1.5px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
   }
 
   .dark .glass-panel {

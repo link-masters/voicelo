@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Search, Mic, Speaker, Globe } from "lucide-react";
+import { X, Search, Mic, Speaker, Globe, Zap, User, Heart } from "lucide-react";
 
 interface VoiceOption {
     id: string;
@@ -9,6 +9,10 @@ interface VoiceOption {
     nativeVoice?: SpeechSynthesisVoice;
     inworldId?: string;
     isCommunity?: boolean;
+    gender?: string;
+    likedBy?: string[];
+    creator?: string;
+    isFavorite?: boolean;
 }
 
 interface VoiceSelectionModalProps {
@@ -17,10 +21,12 @@ interface VoiceSelectionModalProps {
     onSelectVoice: (voice: VoiceOption) => void;
     voices: VoiceOption[];
     currentVoiceId?: string;
+    userId?: string;
+    userName?: string;
 }
 
-export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, voices, currentVoiceId }: VoiceSelectionModalProps) {
-    const [activeTab, setActiveTab] = useState<'default' | 'custom'>('default');
+export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, voices, currentVoiceId, userId, userName }: VoiceSelectionModalProps) {
+    const [activeTab, setActiveTab] = useState<'default' | 'my-voices' | 'favorites'>('default');
     const [searchTerm, setSearchTerm] = useState("");
     const [mounted, setMounted] = useState(false);
 
@@ -30,11 +36,24 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
 
     if (!isOpen || !mounted) return null;
 
-    // Filter voices based on tabs
-    const defaultVoices = voices.filter(v => v.source === 'inworld' && !v.isCommunity && !v.id.includes('__'));
-    const customVoices = voices.filter(v => v.source === 'browser' || (v.source === 'inworld' && (v.isCommunity || v.id.includes('__'))));
+    // Filter voices based on categories
+    const defaultVoices = voices.filter(v => v.source === 'inworld' && !v.isCommunity);
 
-    const displayVoices = activeTab === 'default' ? defaultVoices : customVoices;
+    // My Voices: Voices created by the user (clones)
+    const myVoices = voices.filter(v =>
+        v.isCommunity && userName && v.creator === userName
+    );
+
+    // Favorites: Voices bookmarked/liked by the user
+    const favoriteVoices = voices.filter(v =>
+        userId && v.likedBy?.includes(userId)
+    );
+
+    const displayVoices = activeTab === 'default'
+        ? defaultVoices
+        : activeTab === 'my-voices'
+            ? myVoices
+            : favoriteVoices;
 
     const filteredVoices = displayVoices.filter(v =>
         v.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -69,25 +88,40 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                 <div className="flex items-center px-6 pt-6 gap-6 border-b border-zinc-200 dark:border-white/5">
                     <button
                         onClick={() => setActiveTab('default')}
-                        className={`pb-3 text-sm font-semibold transition-all relative ${activeTab === 'default'
+                        className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'default'
                             ? 'text-indigo-600 dark:text-indigo-400'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                             }`}
                     >
+                        <Zap className={`w-4 h-4 ${activeTab === 'default' ? 'fill-indigo-600/20' : ''}`} />
                         Default Voices
                         {activeTab === 'default' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
                         )}
                     </button>
                     <button
-                        onClick={() => setActiveTab('custom')}
-                        className={`pb-3 text-sm font-semibold transition-all relative ${activeTab === 'custom'
+                        onClick={() => setActiveTab('my-voices')}
+                        className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'my-voices'
                             ? 'text-indigo-600 dark:text-indigo-400'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                             }`}
                     >
-                        Custom Voices
-                        {activeTab === 'custom' && (
+                        <User className={`w-4 h-4 ${activeTab === 'my-voices' ? 'fill-indigo-600/20' : ''}`} />
+                        My Voices
+                        {activeTab === 'my-voices' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('favorites')}
+                        className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'favorites'
+                            ? 'text-indigo-600 dark:text-indigo-400'
+                            : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+                            }`}
+                    >
+                        <Heart className={`w-4 h-4 ${activeTab === 'favorites' ? 'fill-indigo-600/20' : ''}`} />
+                        Favorites
+                        {activeTab === 'favorites' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
                         )}
                     </button>
@@ -99,7 +133,7 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                         <input
                             type="text"
-                            placeholder={`Search ${activeTab === 'default' ? 'default' : 'custom'} voices...`}
+                            placeholder={`Search ${activeTab === 'default' ? 'default' : activeTab === 'my-voices' ? 'my cloned' : 'favorite'} voices...`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
@@ -132,24 +166,33 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                                         ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
                                         : 'bg-zinc-100 dark:bg-zinc-700/50 text-zinc-500 dark:text-zinc-400'
                                         }`}>
-                                        {activeTab === 'default' ? <Mic className="w-5 h-5" /> : <Speaker className="w-5 h-5" />}
+                                        {activeTab === 'favorites' ? <Heart className="w-5 h-5 fill-current" /> : <Mic className="w-5 h-5" />}
                                     </div>
                                     <div>
-                                        <h3 className={`font-semibold text-sm ${currentVoiceId === voice.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'
+                                        <h3 className={`font-bold text-sm mb-1 transition-colors ${currentVoiceId === voice.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'
                                             }`}>
                                             {voice.name}
                                         </h3>
-                                        <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5">
-                                            {activeTab === 'default' ? (
-                                                <>
-                                                    <Globe className="w-3 h-3" /> Inworld AI
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Speaker className="w-3 h-3" /> System Voice
-                                                </>
+                                        <div className="flex items-center gap-2">
+                                            {voice.gender && (
+                                                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border transition-all
+                                                    ${voice.gender === 'MALE'
+                                                        ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 shadow-sm shadow-blue-500/5'
+                                                        : voice.gender === 'FEMALE'
+                                                            ? 'bg-pink-50 dark:bg-pink-500/10 border-pink-200 dark:border-pink-500/20 text-pink-600 dark:text-pink-400 shadow-sm shadow-pink-500/5'
+                                                            : 'bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-500 shadow-none'
+                                                    }`}>
+                                                    <div className={`w-1 h-1 rounded-full animate-pulse ${voice.gender === 'MALE' ? 'bg-blue-400' : voice.gender === 'FEMALE' ? 'bg-pink-400' : 'bg-zinc-400'}`} />
+                                                    {voice.gender}
+                                                </div>
                                             )}
-                                        </p>
+                                            {activeTab === 'my-voices' && (
+                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-zinc-500 text-[9px] font-black uppercase tracking-wider shadow-none">
+                                                    <Speaker className="w-2.5 h-2.5" />
+                                                    Owned
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 {currentVoiceId === voice.id && (
