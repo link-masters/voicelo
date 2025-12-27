@@ -19,13 +19,16 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User already has an influencer code" }, { status: 400 });
         }
 
-        // 2. Generate a unique code
-        // Use user name (cleaned) + random characters to ensure uniqueness and brand-ability
-        const cleanName = user.name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 8);
-        const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-        // Fallback if name is empty
-        const baseCode = cleanName || "FRIEND";
-        const generatedCode = `${baseCode}${randomStr}`;
+        const prefs = user.prefs as any;
+        if (prefs?.is_influencer_allowed !== true && prefs?.is_influencer_allowed !== "true") {
+            return NextResponse.json({ error: "Your account is not authorized to join the influencer program. Please contact support." }, { status: 403 });
+        }
+
+        // 2. Generate a unique code (MAX 8 characters)
+        const cleanName = user.name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        const prefix = cleanName.slice(0, 4) || "VOLC"; // 4 chars or fallback
+        const randomStr = Math.random().toString(36).substring(2, 10).toUpperCase();
+        const generatedCode = (prefix + randomStr).slice(0, 8);
 
         // 3. Create discount in Lemon Squeezy
         configureLemonSqueezy();
@@ -37,11 +40,14 @@ export async function POST(req: Request) {
 
         console.log(`[Influencer] Creating discount code "${generatedCode}" for user ${user.name}...`);
 
+        const discountRate = Number(prefs?.influencer_discount_rate) || 10;
+        const commissionRate = Number(prefs?.influencer_commission_rate) || 30;
+
         const { data, error } = await createDiscount({
             storeId: storeId,
             name: `Influencer: ${user.name} (${user.email})`,
             code: generatedCode,
-            amount: 10, // Default 10% discount for their followers
+            amount: discountRate,
             amountType: 'percent',
             isLimitedRedemptions: true,
             maxRedemptions: 1000
@@ -56,6 +62,8 @@ export async function POST(req: Request) {
         await users.updatePrefs(userId, {
             ...user.prefs,
             influencerCode: generatedCode,
+            influencer_discount_rate: discountRate,
+            influencer_commission_rate: commissionRate,
             influencerJoinedAt: new Date().toISOString(),
             isInfluencer: true
         });

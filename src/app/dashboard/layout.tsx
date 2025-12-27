@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/dashboard/Sidebar";
@@ -14,12 +14,18 @@ export default function DashboardLayout({
 }) {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (!loading && !user) {
             router.push("/");
         }
     }, [user, loading, router]);
+
+    // Close sidebar on route change
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [router]);
 
     if (loading) {
         return (
@@ -42,11 +48,11 @@ export default function DashboardLayout({
         <div className="min-h-screen bg-background text-foreground selection:bg-indigo-500/30">
             <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 pointer-events-none" />
 
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             <div className="lg:pl-64 flex flex-col min-h-screen relative z-10">
-                <Header />
-                <main className="flex-1 p-6 md:p-8 overflow-hidden h-[calc(100vh-80px)]">
+                <Header onMenuClick={() => setIsSidebarOpen(true)} />
+                <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-hidden h-auto lg:h-[calc(100vh-80px)]">
                     {children}
                 </main>
             </div>

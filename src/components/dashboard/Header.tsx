@@ -3,9 +3,13 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { LogOut, User, Settings, ChevronDown, Zap, Lock, CreditCard } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown, Zap, Lock, CreditCard, Menu } from "lucide-react";
 
-export default function Header() {
+interface HeaderProps {
+    onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
     const { user, logout } = useAuth();
     const pathname = usePathname();
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -38,51 +42,59 @@ export default function Header() {
     const isExpired = !!(user?.prefs as any)?.lastPurchaseDate && billingCycleEnd !== null && billingCycleEnd < new Date();
 
     return (
-        <header className="h-20 border-b border-border dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-md flex items-center justify-between px-6 md:px-8 sticky top-0 z-40 transition-colors duration-300">
-            <Link href="/dashboard" className="lg:hidden flex items-center gap-3 hover:opacity-80 transition-opacity">
-                {/* Mobile placeholder */}
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                    <span className="font-bold text-white text-xs">SF</span>
-                </div>
-                <span className="font-bold text-zinc-900 dark:text-white">SonicFlow</span>
-            </Link>
+        <header className="h-20 border-b border-border dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 transition-colors duration-300">
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={onMenuClick}
+                    className="lg:hidden p-2 -ml-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                    aria-label="Open menu"
+                >
+                    <Menu className="w-6 h-6" />
+                </button>
 
-            <div className="hidden lg:block">
-                <h2 className="text-xl font-semibold text-zinc-800 dark:text-zinc-200 transition-colors">
-                    {(() => {
-                        if (pathname === "/dashboard") return "Discover Voices";
-                        if (pathname.includes("/text-to-speech")) return "Text to Speech";
-                        if (pathname.includes("/voice-clone")) return "Voice Cloning";
-                        if (pathname.includes("/profile")) return "Account Profile";
-                        if (pathname.includes("/influencer-program")) return "Influencer Hub";
-                        return "Voice Synthesis Studio";
-                    })()}
-                </h2>
+                <Link href="/dashboard" className="lg:hidden flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+                        <span className="font-bold text-white text-xs">SF</span>
+                    </div>
+                </Link>
+
+                <div className="hidden lg:block">
+                    <h2 className="text-xl font-semibold text-zinc-800 dark:text-zinc-200 transition-colors line-clamp-1">
+                        {(() => {
+                            if (pathname === "/dashboard") return "Discover Voices";
+                            if (pathname.includes("/text-to-speech")) return "Text to Speech";
+                            if (pathname.includes("/voice-clone")) return "Voice Cloning";
+                            if (pathname.includes("/profile")) return "Account Profile";
+                            if (pathname.includes("/influencer-program")) return "Influencer Hub";
+                            return "Voice Synthesis Studio";
+                        })()}
+                    </h2>
+                </div>
             </div>
 
-            <div className="flex items-center gap-3 md:gap-6">
+            <div className="flex items-center gap-2 md:gap-6">
 
                 {/* Credits Counter */}
-                <div className="hidden md:flex flex-col items-end gap-1.5 mr-2">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col items-end gap-1 mr-1 md:mr-2">
+                    <div className="flex items-center gap-1.5 md:gap-2">
                         <div className={`p-1 rounded-md border shadow-sm ${isExpired ? 'bg-red-500/10 border-red-500/20' : 'bg-indigo-500/10 border-indigo-500/20'}`}>
                             {isExpired ? <Lock className="w-3 h-3 text-red-500" /> : <Zap className="w-3 h-3 text-indigo-400 fill-indigo-400" />}
                         </div>
-                        <span className="text-sm font-medium transition-colors">
+                        <span className="text-[10px] md:text-sm font-medium transition-colors">
                             {isExpired ? (
-                                <span className="text-red-500 font-bold">Credits Locked</span>
+                                <span className="text-red-500 font-bold">Locked</span>
                             ) : (
                                 <>
                                     <span className="text-zinc-900 dark:text-white font-bold">
-                                        {creditsTotal.toLocaleString()}
+                                        {creditsTotal >= 1000 ? `${(creditsTotal / 1000).toFixed(1)}k` : creditsTotal}
                                     </span>
-                                    <span className="text-zinc-500 ml-1 text-xs">credits remaining</span>
+                                    <span className="text-zinc-500 ml-1 hidden sm:inline">credits</span>
                                 </>
                             )}
                         </span>
                     </div>
                     {/* Expiration warning or progress */}
-                    <div className="w-36 h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-200 dark:border-white/5">
+                    <div className="w-16 md:w-36 h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-200 dark:border-white/5">
                         <div
                             className={`h-full rounded-full transition-all duration-500 ${isExpired ? 'bg-red-500 w-full' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-full'}`}
                         ></div>
@@ -92,7 +104,7 @@ export default function Header() {
                 <div className="relative" ref={dropdownRef}>
                     <button
                         onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className="flex items-center gap-3 pl-3 pr-2 py-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/5 transition-all group"
+                        className="flex items-center gap-2 md:gap-3 pl-1 md:pl-3 pr-1 md:pr-2 py-1 md:py-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/5 transition-all group"
                     >
                         <div className="text-right hidden md:block">
                             <p className="text-sm font-medium text-zinc-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors">
@@ -100,7 +112,7 @@ export default function Header() {
                             </p>
                             <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">{plan}</p>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-zinc-200 dark:border-white/10 group-hover:shadow-indigo-500/40 transition-all overflow-hidden relative">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-zinc-200 dark:border-white/10 group-hover:shadow-indigo-500/40 transition-all overflow-hidden relative">
                             {(user?.prefs as any)?.avatar ? (
                                 <img
                                     src={(user?.prefs as any).avatar}
@@ -109,7 +121,7 @@ export default function Header() {
                                     referrerPolicy="no-referrer"
                                 />
                             ) : (
-                                <span className="font-bold text-white uppercase text-sm">
+                                <span className="font-bold text-white uppercase text-xs md:text-sm">
                                     {user?.name ? user.name.charAt(0) : "G"}
                                 </span>
                             )}

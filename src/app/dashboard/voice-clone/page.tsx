@@ -163,16 +163,16 @@ export default function VoiceClonePage() {
     };
 
     return (
-        <div className="h-full flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+        <div className="h-full flex flex-col gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
             {/* Header Section */}
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center shrink-0">
                         <Mic className="w-5 h-5 text-indigo-500" />
                     </div>
                     Voice Cloning
                 </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
+                <p className="text-sm md:text-base text-zinc-500 dark:text-zinc-400">
                     Create a digital twin of any voice with high-fidelity neural processing. Our engine captures nuances, tone, and inflection.
                 </p>
             </div>
@@ -181,31 +181,31 @@ export default function VoiceClonePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                 {/* Left: Settings & Details */}
-                <div className="lg:col-span-12 xl:col-span-5 space-y-6">
-                    <div className="glass-panel rounded-[2rem] p-8 border border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-900/30 space-y-6 shadow-xl shadow-zinc-200/20 dark:shadow-none">
-                        <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">Voice Configuration</h3>
+                <div className="lg:col-span-12 xl:col-span-5 space-y-4 md:space-y-6">
+                    <div className="glass-panel rounded-[2rem] p-6 md:p-8 border border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-900/30 space-y-5 md:space-y-6 shadow-xl shadow-zinc-200/20 dark:shadow-none">
+                        <h3 className="text-[10px] md:text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">Voice Configuration</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 px-1">Voice Name</label>
+                                <label className="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 px-1">Voice Name</label>
                                 <input
                                     type="text"
                                     placeholder="e.g. My Professional Voice"
                                     value={formData.displayName}
                                     onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                                     disabled={isSubmitting}
-                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium disabled:opacity-50"
+                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium disabled:opacity-50 text-sm"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 px-1">Language</label>
+                                <label className="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 px-1">Language</label>
                                 <div className="relative" ref={dropdownRef}>
                                     <button
                                         type="button"
                                         onClick={() => !isSubmitting && setIsLangDropdownOpen(!isLangDropdownOpen)}
                                         disabled={isSubmitting}
-                                        className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white flex items-center justify-between hover:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium disabled:opacity-50"
+                                        className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white flex items-center justify-between hover:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium disabled:opacity-50 text-sm"
                                     >
                                         <div className="flex items-center gap-3">
                                             <Globe className="w-4 h-4 text-indigo-500" />
@@ -248,24 +248,24 @@ export default function VoiceClonePage() {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 px-1">Description (Optional)</label>
+                                <label className="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 px-1">Description (Optional)</label>
                                 <textarea
                                     placeholder="Briefly describe this voice..."
                                     rows={3}
                                     value={formData.description}
                                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                     disabled={isSubmitting}
-                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium resize-none disabled:opacity-50"
+                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium resize-none disabled:opacity-50 text-sm"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3 px-1">Voice Gender</label>
+                                <label className="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3 px-1">Voice Gender</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, gender: "MALE" }))}
-                                        className={`flex items-center justify-center gap-3 p-4 rounded-2xl border transition-all font-bold text-xs uppercase tracking-widest ${formData.gender === 'MALE'
+                                        className={`flex items-center justify-center gap-3 py-3.5 md:p-4 rounded-2xl border transition-all font-bold text-[10px] md:text-xs uppercase tracking-widest ${formData.gender === 'MALE'
                                             ? 'bg-blue-500/10 border-blue-500 text-blue-500 shadow-lg shadow-blue-500/10'
                                             : 'bg-white dark:bg-black/20 border-zinc-200 dark:border-white/10 text-zinc-400 hover:border-zinc-300 dark:hover:border-white/20'
                                             }`}
@@ -276,7 +276,7 @@ export default function VoiceClonePage() {
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, gender: "FEMALE" }))}
-                                        className={`flex items-center justify-center gap-3 p-4 rounded-2xl border transition-all font-bold text-xs uppercase tracking-widest ${formData.gender === 'FEMALE'
+                                        className={`flex items-center justify-center gap-3 py-3.5 md:p-4 rounded-2xl border transition-all font-bold text-[10px] md:text-xs uppercase tracking-widest ${formData.gender === 'FEMALE'
                                             ? 'bg-pink-500/10 border-pink-500 text-pink-500 shadow-lg shadow-pink-500/10'
                                             : 'bg-white dark:bg-black/20 border-zinc-200 dark:border-white/10 text-zinc-400 hover:border-zinc-300 dark:hover:border-white/20'
                                             }`}
@@ -288,23 +288,23 @@ export default function VoiceClonePage() {
                             </div>
 
                             {/* Public Choice */}
-                            <div className="p-5 rounded-[2rem] border border-zinc-200 dark:border-white/5 bg-indigo-50/30 dark:bg-indigo-500/5 space-y-3">
+                            <div className="p-4 md:p-5 rounded-[2rem] border border-zinc-200 dark:border-white/5 bg-indigo-50/30 dark:bg-indigo-500/5 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center text-indigo-500 shadow-sm">
+                                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center text-indigo-500 shadow-sm shrink-0">
                                             <Globe className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Make Public</h4>
-                                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Share this voice with the community</p>
+                                            <h4 className="text-xs md:text-sm font-bold text-zinc-900 dark:text-white">Make Public</h4>
+                                            <p className="text-[9px] md:text-[10px] text-zinc-500 dark:text-zinc-400">Share with the community</p>
                                         </div>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, isPublic: !prev.isPublic }))}
-                                        className={`w-12 h-6 rounded-full transition-all relative ${formData.isPublic ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                                        className={`w-11 h-5.5 rounded-full transition-all relative shrink-0 ${formData.isPublic ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-700'}`}
                                     >
-                                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${formData.isPublic ? 'left-7' : 'left-1'}`} />
+                                        <div className={`absolute top-0.75 w-4 h-4 rounded-full bg-white transition-all ${formData.isPublic ? 'left-6.25' : 'left-0.75'}`} />
                                     </button>
                                 </div>
                                 {formData.isPublic && (
@@ -320,37 +320,37 @@ export default function VoiceClonePage() {
                         {error && (
                             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 text-red-600 dark:text-red-400 text-sm animate-in slide-in-from-top-2">
                                 <AlertCircle className="w-5 h-5 shrink-0" />
-                                <p>{error}</p>
+                                <p className="text-xs md:text-sm">{error}</p>
                             </div>
                         )}
 
                         {success && (
                             <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-start gap-3 text-green-600 dark:text-green-400 text-sm animate-in slide-in-from-top-2">
                                 <CheckCircle2 className="w-5 h-5 shrink-0" />
-                                <p>Voice cloned successfully! Redirecting...</p>
+                                <p className="text-xs md:text-sm">Voice cloned successfully! Redirecting...</p>
                             </div>
                         )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-5 rounded-3xl border border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/20 flex gap-3">
-                            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 h-fit">
+                            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 h-fit shrink-0">
                                 <Info className="w-4 h-4" />
                             </div>
                             <div className="space-y-0.5">
-                                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Quality Tip</h4>
-                                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                                <h4 className="text-xs md:text-sm font-bold text-zinc-900 dark:text-white">Quality Tip</h4>
+                                <p className="text-[10px] md:text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                                     High-quality audio (10-15s) results in a better digital twin.
                                 </p>
                             </div>
                         </div>
                         <div className="p-5 rounded-3xl border border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/20 flex gap-3">
-                            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 h-fit">
+                            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 h-fit shrink-0">
                                 <AlertCircle className="w-4 h-4" />
                             </div>
                             <div className="space-y-0.5">
-                                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Ethics</h4>
-                                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                                <h4 className="text-xs md:text-sm font-bold text-zinc-900 dark:text-white">Ethics</h4>
+                                <p className="text-[10px] md:text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                                     Only clone voices you have explicit permission to use.
                                 </p>
                             </div>
@@ -365,7 +365,7 @@ export default function VoiceClonePage() {
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
                             onClick={() => !isSubmitting && fileInputRef.current?.click()}
-                            className="glass-panel rounded-[2.5rem] p-16 border-2 border-dashed border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/30 flex flex-col items-center justify-center text-center gap-8 group hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all duration-500 cursor-pointer min-h-[400px]"
+                            className="glass-panel rounded-[2.5rem] p-8 md:p-16 border-2 border-dashed border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/30 flex flex-col items-center justify-center text-center gap-6 md:gap-8 group hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all duration-500 cursor-pointer min-h-[300px] md:min-h-[400px]"
                         >
                             <input
                                 type="file"
@@ -375,43 +375,43 @@ export default function VoiceClonePage() {
                                 accept="audio/*"
                             />
 
-                            <div className="w-24 h-24 rounded-[2rem] bg-indigo-600/10 flex items-center justify-center text-zinc-400 group-hover:text-indigo-500 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-2xl shadow-indigo-500/5">
-                                <Upload className="w-10 h-10" />
+                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-indigo-600/10 flex items-center justify-center text-zinc-400 group-hover:text-indigo-500 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-2xl shadow-indigo-500/5">
+                                <Upload className="w-8 h-8 md:w-10 md:h-10" />
                             </div>
 
                             <div className="max-w-md space-y-3">
-                                <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">Upload Reference Audio</h3>
-                                <p className="text-zinc-500 dark:text-zinc-400">
+                                <h3 className="text-xl md:text-2xl font-bold text-zinc-900 dark:text-white">Upload Reference Audio</h3>
+                                <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
                                     Drag and drop your audio file or click to browse.<br />
-                                    We recommend 10-15 seconds of clear, uninterrupted speech.
+                                    We recommend 10-15 seconds of clear speech.
                                 </p>
                             </div>
 
-                            <div className="flex flex-wrap justify-center gap-4">
-                                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 rounded-full border border-zinc-200 dark:border-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+                                <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white dark:bg-white/5 rounded-full border border-zinc-200 dark:border-white/5 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                     <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                                     WAV, MP3, M4A
                                 </div>
-                                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 rounded-full border border-zinc-200 dark:border-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white dark:bg-white/5 rounded-full border border-zinc-200 dark:border-white/5 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                     <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                                    No Background Noise
+                                    Clean Audio
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="glass-panel rounded-[2.5rem] p-12 border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900/30 flex flex-col items-center justify-center text-center gap-8 min-h-[400px] animate-in zoom-in-95 duration-500 shadow-2xl shadow-zinc-200/20 dark:shadow-none">
-                            <div className="w-24 h-24 rounded-[2rem] bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 shadow-xl shadow-green-500/5">
-                                <Music className="w-10 h-10" />
+                        <div className="glass-panel rounded-[2.5rem] p-8 md:p-12 border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900/30 flex flex-col items-center justify-center text-center gap-6 md:gap-8 min-h-[300px] md:min-h-[400px] animate-in zoom-in-95 duration-500 shadow-2xl shadow-zinc-200/20 dark:shadow-none">
+                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 shadow-xl shadow-green-500/5 transition-all">
+                                <Music className="w-8 h-8 md:w-10 md:h-10" />
                             </div>
 
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">{formData.fileName}</h3>
-                                <p className="text-zinc-500 dark:text-zinc-400">Audio sample loaded and ready to process.</p>
+                                <h3 className="text-xl md:text-2xl font-bold text-zinc-900 dark:text-white truncate max-w-[250px] md:max-w-md mx-auto">{formData.fileName}</h3>
+                                <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Audio sample loaded and ready to process.</p>
                             </div>
 
                             {/* Audio Verification Player */}
                             {audioUrl && (
-                                <div className="w-full max-w-sm p-4 bg-zinc-50 dark:bg-white/5 rounded-3xl border border-zinc-200 dark:border-white/10 animate-in slide-in-from-bottom-2 duration-500">
+                                <div className="w-full max-w-sm p-3.5 bg-zinc-50 dark:bg-white/5 rounded-3xl border border-zinc-200 dark:border-white/10 animate-in slide-in-from-bottom-2 duration-500">
                                     <audio
                                         src={audioUrl}
                                         controls
@@ -422,19 +422,19 @@ export default function VoiceClonePage() {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row items-center gap-3">
                                 <button
                                     onClick={resetFile}
                                     disabled={isSubmitting}
-                                    className="flex items-center gap-2 px-6 py-3.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50"
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50"
                                 >
                                     <Trash2 className="w-4 h-4" />
-                                    Remove File
+                                    Remove
                                 </button>
                                 <button
                                     onClick={() => !isSubmitting && fileInputRef.current?.click()}
                                     disabled={isSubmitting}
-                                    className="px-6 py-3.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50"
+                                    className="w-full sm:w-auto px-6 py-3.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50"
                                 >
                                     Change File
                                 </button>
@@ -451,31 +451,31 @@ export default function VoiceClonePage() {
                     )}
 
                     {/* Ethical Agreement */}
-                    <div className="flex items-start gap-3 p-4 bg-zinc-50 dark:bg-white/5 rounded-2xl border border-zinc-200 dark:border-white/10 max-w-xl mx-auto">
-                        <div className="relative flex items-center h-5">
+                    <div className="flex items-start gap-4 p-5 bg-zinc-50 dark:bg-white/5 rounded-[2rem] border border-zinc-200 dark:border-white/10 max-w-xl mx-auto">
+                        <div className="relative flex items-center h-5 mt-0.5">
                             <input
                                 id="agreement"
                                 type="checkbox"
                                 checked={hasAgreed}
                                 onChange={(e) => setHasAgreed(e.target.checked)}
-                                className="w-4 h-4 rounded border-zinc-300 dark:border-white/10 text-indigo-600 focus:ring-indigo-500/50 bg-white dark:bg-black/20 transition-all cursor-pointer"
+                                className="w-4.5 h-4.5 rounded border-zinc-300 dark:border-white/10 text-indigo-600 focus:ring-indigo-500/50 bg-white dark:bg-black/20 transition-all cursor-pointer"
                             />
                         </div>
-                        <label htmlFor="agreement" className="text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400 cursor-pointer select-none">
-                            I confirm that I have the <span className="text-zinc-900 dark:text-white font-bold">legal rights and explicit permission</span> to clone this voice, and I agree to utilize this technology responsibly and ethically in accordance with the terms of service.
+                        <label htmlFor="agreement" className="text-[10px] md:text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400 cursor-pointer select-none">
+                            I confirm that I have the <span className="text-zinc-900 dark:text-white font-bold">legal rights and explicit permission</span> to clone this voice, and I agree to use this technology responsibly and ethically.
                         </label>
                     </div>
 
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting || !formData.audioData || !formData.displayName || !hasAgreed || !formData.langCode}
-                        className={`w-fit mx-auto group relative h-14 flex items-center justify-center gap-3 px-10 rounded-2xl text-xs font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-indigo-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/25'
+                        className={`w-full sm:w-fit mx-auto group relative h-14 md:h-16 flex items-center justify-center gap-3 px-10 rounded-2xl md:rounded-[1.5rem] text-xs font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-indigo-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/25'
                             }`}
                     >
                         {isSubmitting ? (
                             <>
-                                <Loader2 className="w-6 h-6 animate-spin" />
-                                <span>Processing Neural Model... {progress}%</span>
+                                <Loader2 className="w-6 h-6 animate-spin shrink-0" />
+                                <span className="text-xs">Processing Neural Model... {progress}%</span>
                                 <div
                                     className="absolute bottom-0 left-0 h-1.5 bg-white/30 transition-all duration-300"
                                     style={{ width: `${progress}%` }}
@@ -483,7 +483,7 @@ export default function VoiceClonePage() {
                             </>
                         ) : (
                             <>
-                                <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                <Mic className="w-5 h-5 group-hover:scale-110 transition-transform shrink-0" />
                                 <span>Initialize Voice Clone</span>
                             </>
                         )}

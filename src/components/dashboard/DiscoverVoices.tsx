@@ -207,16 +207,16 @@ export default function DiscoverVoices() {
         <div className="h-full flex flex-col space-y-6">
 
             {/* Navigation Tabs */}
-            <div className="flex items-center gap-8 border-b border-border dark:border-white/5">
+            <div className="flex items-center gap-6 md:gap-8 border-b border-border dark:border-white/5 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                 <button
                     onClick={() => setSourceFilter('default')}
-                    className={`pb-4 text-sm font-semibold transition-all relative ${sourceFilter === 'default'
+                    className={`pb-4 text-xs md:text-sm font-bold transition-all relative whitespace-nowrap ${sourceFilter === 'default'
                         ? 'text-indigo-600 dark:text-indigo-400'
-                        : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
+                        : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
                         }`}
                 >
                     <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4" />
+                        <Zap className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Default Voices
                     </div>
                     {sourceFilter === 'default' && (
@@ -225,13 +225,13 @@ export default function DiscoverVoices() {
                 </button>
                 <button
                     onClick={() => setSourceFilter('community')}
-                    className={`pb-4 text-sm font-semibold transition-all relative ${sourceFilter === 'community'
+                    className={`pb-4 text-xs md:text-sm font-bold transition-all relative whitespace-nowrap ${sourceFilter === 'community'
                         ? 'text-indigo-600 dark:text-indigo-400'
-                        : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
+                        : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
                         }`}
                 >
                     <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4" />
+                        <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Community Shared
                     </div>
                     {sourceFilter === 'community' && (
@@ -239,21 +239,22 @@ export default function DiscoverVoices() {
                     )}
                 </button>
 
-                <div className="ml-auto pb-4">
+                <div className="ml-auto pb-4 shrink-0">
                     <Link
                         href="/dashboard/voice-clone"
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
+                        className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all"
                     >
-                        <Plus className="w-4 h-4" />
-                        Clone Your Voice
+                        <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <span className="hidden sm:inline">Clone Your Voice</span>
+                        <span className="sm:hidden">Clone</span>
                     </Link>
                 </div>
             </div>
 
             {/* toolbar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <p className="text-zinc-500 dark:text-zinc-400">
+                <div className="hidden sm:block">
+                    <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
                         {sourceFilter === 'default'
                             ? "Premium neural voices optimized for high-quality production."
                             : "Explore custom voices shared by the community."}
@@ -268,7 +269,7 @@ export default function DiscoverVoices() {
                             placeholder="Search voices..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="bg-white dark:bg-black/20 border border-border dark:border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full md:w-64 transition-all shadow-sm dark:shadow-none"
+                            className="bg-white dark:bg-black/20 border border-border dark:border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full md:w-64 transition-all shadow-sm dark:shadow-none"
                         />
                     </div>
                 </div>
@@ -277,16 +278,16 @@ export default function DiscoverVoices() {
             {/* Content */}
             {
                 loading ? (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="flex-1 flex items-center justify-center py-12">
                         <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full" />
                     </div>
                 ) : filteredVoices.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-500">
+                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 py-12">
                         <Mic className="w-12 h-12 mb-4 opacity-20" />
-                        <p>No voices found matching your search</p>
+                        <p className="text-sm">No voices found matching your search</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 overflow-y-auto pb-8 scrollbar-hide">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-8">
                         {filteredVoices.map((voice) => {
                             const gender = getGender(voice);
                             const name = getName(voice);

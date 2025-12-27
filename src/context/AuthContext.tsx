@@ -31,10 +31,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Sync Google Avatar in background
             syncGoogleAvatar(userData).catch(err => console.debug("Avatar sync skipped:", err));
+            // Sync default preferences in background
+            syncUserPreferences(userData).catch(err => console.debug("Prefs sync skipped:", err));
         } catch (error) {
             setUser(null);
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function syncUserPreferences(currentUser: Models.User<Models.Preferences>) {
+        try {
+            const prefs = currentUser.prefs as any;
+            const updates: any = {};
+
+            // Initialize essential keys if they don't exist
+            if (prefs.is_influencer_allowed === undefined) {
+                updates.is_influencer_allowed = false;
+            }
+            if (prefs.creditsTotal === undefined) {
+                updates.creditsTotal = 1000; // Default starting credits
+            }
+            if (prefs.isInfluencer === undefined) {
+                updates.isInfluencer = false;
+            }
+            if (prefs.influencer_discount_rate === undefined) {
+                updates.influencer_discount_rate = 10; // Default 10%
+            }
+            if (prefs.influencer_commission_rate === undefined) {
+                updates.influencer_commission_rate = 30; // Default 30%
+            }
+
+            if (Object.keys(updates).length > 0) {
+                const updatedPrefs = await account.updatePrefs({
+                    ...prefs,
+                    ...updates
+                });
+                setUser({ ...currentUser, prefs: updatedPrefs });
+            }
+        } catch (e) {
+            // Fail silently
         }
     }
 

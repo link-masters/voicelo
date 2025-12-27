@@ -68,45 +68,45 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh] md:max-h-[80vh] animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md">
+                <div className="flex items-center justify-between p-5 md:p-6 border-b border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md">
                     <div>
-                        <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Select a Voice</h2>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">Choose the perfect voice for your content</p>
+                        <h2 className="text-lg md:text-xl font-bold text-zinc-900 dark:text-white">Select a Voice</h2>
+                        <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Choose the perfect voice for your content</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-white/5 rounded-lg transition-colors"
+                        className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-white/5 rounded-xl transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex items-center px-6 pt-6 gap-6 border-b border-zinc-200 dark:border-white/5">
+                <div className="flex items-center px-5 md:px-6 overflow-x-auto scrollbar-hide gap-5 md:gap-8 border-b border-zinc-200 dark:border-white/5">
                     <button
                         onClick={() => setActiveTab('default')}
-                        className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'default'
+                        className={`pb-3 pt-4 text-xs md:text-sm font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'default'
                             ? 'text-indigo-600 dark:text-indigo-400'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                             }`}
                     >
-                        <Zap className={`w-4 h-4 ${activeTab === 'default' ? 'fill-indigo-600/20' : ''}`} />
-                        Default Voices
+                        <Zap className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activeTab === 'default' ? 'fill-indigo-600/20' : ''}`} />
+                        Default
                         {activeTab === 'default' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
                         )}
                     </button>
                     <button
                         onClick={() => setActiveTab('my-voices')}
-                        className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'my-voices'
+                        className={`pb-3 pt-4 text-xs md:text-sm font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'my-voices'
                             ? 'text-indigo-600 dark:text-indigo-400'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                             }`}
                     >
-                        <User className={`w-4 h-4 ${activeTab === 'my-voices' ? 'fill-indigo-600/20' : ''}`} />
+                        <User className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activeTab === 'my-voices' ? 'fill-indigo-600/20' : ''}`} />
                         My Voices
                         {activeTab === 'my-voices' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
@@ -114,12 +114,12 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                     </button>
                     <button
                         onClick={() => setActiveTab('favorites')}
-                        className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'favorites'
+                        className={`pb-3 pt-4 text-xs md:text-sm font-bold uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2 ${activeTab === 'favorites'
                             ? 'text-indigo-600 dark:text-indigo-400'
                             : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                             }`}
                     >
-                        <Heart className={`w-4 h-4 ${activeTab === 'favorites' ? 'fill-indigo-600/20' : ''}`} />
+                        <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activeTab === 'favorites' ? 'fill-indigo-600/20' : ''}`} />
                         Favorites
                         {activeTab === 'favorites' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
@@ -128,25 +128,27 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                 </div>
 
                 {/* Search */}
-                <div className="p-4 bg-zinc-50 dark:bg-black/20 border-b border-zinc-200 dark:border-white/5">
+                <div className="p-4 md:p-5 bg-zinc-50/50 dark:bg-black/20 border-b border-zinc-200 dark:border-white/5">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                         <input
                             type="text"
                             placeholder={`Search ${activeTab === 'default' ? 'default' : activeTab === 'my-voices' ? 'my cloned' : 'favorite'} voices...`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            className="w-full bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
                         />
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-zinc-50/50 dark:bg-zinc-900/30">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/30">
                     {filteredVoices.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-zinc-400 dark:text-zinc-500">
-                            <Mic className="w-12 h-12 mb-3 opacity-20" />
-                            <p>No voices found matching "{searchTerm}"</p>
+                        <div className="flex flex-col items-center justify-center py-16 text-zinc-400 dark:text-zinc-500">
+                            <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                                <Mic className="w-8 h-8 opacity-20" />
+                            </div>
+                            <p className="text-sm font-medium">No voices found matching "{searchTerm}"</p>
                         </div>
                     ) : (
                         filteredVoices.map((voice) => (
@@ -156,48 +158,49 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                                     onSelectVoice(voice);
                                     onClose();
                                 }}
-                                className={`w-full text-left flex items-center justify-between p-3 rounded-xl border transition-all ${currentVoiceId === voice.id
+                                className={`w-full text-left flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${currentVoiceId === voice.id
                                     ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-500/50 ring-1 ring-indigo-500/50'
-                                    : 'bg-white dark:bg-zinc-800/40 border-zinc-200 dark:border-white/5 hover:border-indigo-500/30 hover:bg-zinc-50 dark:hover:bg-zinc-800/60'
+                                    : 'bg-white dark:bg-zinc-800/40 border-zinc-200 dark:border-white/5 hover:border-indigo-500/30 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 shadow-sm'
                                     }`}
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentVoiceId === voice.id
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${currentVoiceId === voice.id
                                         ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
                                         : 'bg-zinc-100 dark:bg-zinc-700/50 text-zinc-500 dark:text-zinc-400'
                                         }`}>
                                         {activeTab === 'favorites' ? <Heart className="w-5 h-5 fill-current" /> : <Mic className="w-5 h-5" />}
                                     </div>
-                                    <div>
-                                        <h3 className={`font-bold text-sm mb-1 transition-colors ${currentVoiceId === voice.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'
+                                    <div className="min-w-0">
+                                        <h3 className={`font-bold text-sm md:text-base mb-1 truncate transition-colors ${currentVoiceId === voice.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-white'
                                             }`}>
                                             {voice.name}
                                         </h3>
                                         <div className="flex items-center gap-2">
                                             {voice.gender && (
-                                                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border transition-all
+                                                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all
                                                     ${voice.gender === 'MALE'
-                                                        ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 shadow-sm shadow-blue-500/5'
+                                                        ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400'
                                                         : voice.gender === 'FEMALE'
-                                                            ? 'bg-pink-50 dark:bg-pink-500/10 border-pink-200 dark:border-pink-500/20 text-pink-600 dark:text-pink-400 shadow-sm shadow-pink-500/5'
-                                                            : 'bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-500 shadow-none'
+                                                            ? 'bg-pink-50 dark:bg-pink-500/10 border-pink-200 dark:border-pink-500/20 text-pink-600 dark:text-pink-400'
+                                                            : 'bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-500'
                                                     }`}>
-                                                    <div className={`w-1 h-1 rounded-full animate-pulse ${voice.gender === 'MALE' ? 'bg-blue-400' : voice.gender === 'FEMALE' ? 'bg-pink-400' : 'bg-zinc-400'}`} />
+                                                    <div className={`w-1 h-1 rounded-full ${voice.gender === 'MALE' ? 'bg-blue-400' : voice.gender === 'FEMALE' ? 'bg-pink-400' : 'bg-zinc-400'}`} />
                                                     {voice.gender}
                                                 </div>
                                             )}
                                             {activeTab === 'my-voices' && (
-                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-zinc-500 text-[9px] font-black uppercase tracking-wider shadow-none">
-                                                    <Speaker className="w-2.5 h-2.5" />
-                                                    Owned
+                                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-zinc-500 text-[9px] font-black uppercase tracking-widest">
+                                                    OWNED
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
-                                {currentVoiceId === voice.id && (
-                                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-                                )}
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${currentVoiceId === voice.id
+                                    ? 'border-indigo-500 bg-indigo-500'
+                                    : 'border-zinc-200 dark:border-white/10'}`}>
+                                    {currentVoiceId === voice.id && <Zap className="w-3 h-3 text-white fill-current" />}
+                                </div>
                             </button>
                         ))
                     )}

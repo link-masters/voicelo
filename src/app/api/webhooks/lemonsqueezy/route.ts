@@ -120,11 +120,17 @@ export async function POST(req: Request) {
                             console.log(`👤 Influencer found: ${influencer.name} (${influencer.$id})`);
 
                             const influencerPrefs = influencer.prefs as any;
+                            const commPercentage = Number(influencerPrefs.influencer_commission_rate) || 30;
+                            const orderAmount = attributes.total / 100;
+                            const calculatedCommission = (orderAmount * commPercentage) / 100;
+
                             const newRedemption = {
                                 id: payload.data.id,
                                 timestamp: new Date().toISOString(),
                                 planName: displayName,
-                                amount: attributes.total / 100,
+                                amount: orderAmount,
+                                commission: calculatedCommission,
+                                status: "Approved", // Defaulting to Approved for influencers
                                 currency: attributes.currency,
                                 userEmail: user.email.replace(/(.{2})(.*)(?=@)/, "$1***"), // Mask email for privacy
                             };
@@ -136,7 +142,8 @@ export async function POST(req: Request) {
                             await users.updatePrefs(influencer.$id, {
                                 ...influencerPrefs,
                                 totalRedemptions: (Number(influencerPrefs.totalRedemptions) || 0) + 1,
-                                totalEarningsRevenue: (Number(influencerPrefs.totalEarningsRevenue) || 0) + (attributes.total / 100),
+                                totalEarningsRevenue: (Number(influencerPrefs.totalEarningsRevenue) || 0) + orderAmount,
+                                approvedCommission: (Number(influencerPrefs.approvedCommission) || 0) + calculatedCommission,
                                 redemptions: redemptions
                             });
 
