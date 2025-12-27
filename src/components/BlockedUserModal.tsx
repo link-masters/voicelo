@@ -52,7 +52,7 @@ export default function BlockedUserModal({ isOpen, onClose }: BlockedUserModalPr
                 {/* Actions */}
                 <div className="space-y-3">
                     <button
-                        onClick={() => window.location.href = "mailto:support@sonicflow.com"}
+                        onClick={() => window.location.href = "mailto:support@voicelo.com"}
                         className="w-full btn bg-foreground text-background hover:opacity-90 py-3.5 rounded-xl font-semibold transition-all shadow-lg flex items-center justify-center gap-2"
                     >
                         Contact Support

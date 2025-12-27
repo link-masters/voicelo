@@ -178,7 +178,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                             </div>
                         )}
                         <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto">
-                            Unlock the full potential of SonicFlow. Higher limits, premium voices, and priority synthesis.
+                            Unlock the full potential of VoiceLo. Higher limits, premium voices, and priority synthesis.
                         </p>
                     </div>
 

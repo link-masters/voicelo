@@ -10,7 +10,7 @@ This application uses [Appwrite Cloud](https://cloud.appwrite.io) for authentica
 
 ### 2. Create a New Project
 1. Click "Create Project"
-2. Give it a name (e.g., "SonicFlow")
+2. Give it a name (e.g., "VoiceLo")
 3. Copy your **Project ID** - you'll need this
 
 ### 3. Configure Authentication
@@ -18,7 +18,7 @@ This application uses [Appwrite Cloud](https://cloud.appwrite.io) for authentica
 2. Click on **Settings**
 3. Add your app's URL to "Platforms" section:
    - Platform: **Web**
-   - Name: `SonicFlow (localhost)`
+   - Name: `VoiceLo (localhost)`
    - Hostname: `localhost`
    - Click **Next** and **Add**
 

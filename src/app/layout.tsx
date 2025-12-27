@@ -10,7 +10,7 @@ import { VoiceProvider } from "../context/VoiceContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SonicFlow - Modern TTS",
+  title: "VoiceLo - Modern TTS",
   description: "Next-generation Text to Speech Interface",
 };
 

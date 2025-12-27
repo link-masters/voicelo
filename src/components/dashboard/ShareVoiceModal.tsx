@@ -75,8 +75,8 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                                 <button
                                     onClick={handleCopy}
                                     className={`px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${copied
-                                            ? 'bg-green-500 text-white shadow-green-500/20'
-                                            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-500/20 active:scale-95'
+                                        ? 'bg-green-500 text-white shadow-green-500/20'
+                                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-500/20 active:scale-95'
                                         }`}
                                 >
                                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -88,7 +88,7 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                         {/* Social Shortcuts */}
                         <div className="grid grid-cols-2 gap-4">
                             <a
-                                href={`https://twitter.com/intent/tweet?text=Check out this awesome AI voice ${voiceName} on SonicFlow!&url=${encodeURIComponent(shareUrl)}`}
+                                href={`https://twitter.com/intent/tweet?text=Check out this awesome AI voice ${voiceName} on VoiceLo!&url=${encodeURIComponent(shareUrl)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center gap-3 p-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-white/5 hover:bg-zinc-50 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 transition-all group"

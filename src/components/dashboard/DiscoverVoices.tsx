@@ -292,7 +292,7 @@ export default function DiscoverVoices() {
                             const gender = getGender(voice);
                             const name = getName(voice);
                             const isCommunityVisible = voice.voiceId.includes('__') || voice.isCommunity;
-                            const creator = voice.creator || (voice.voiceId.includes('__') ? voice.voiceId.split('__')[0] : 'SonicFlow Official');
+                            const creator = voice.creator || (voice.voiceId.includes('__') ? voice.voiceId.split('__')[0] : 'VoiceLo Official');
 
                             return (
                                 <div key={voice.voiceId} className="group relative bg-white dark:bg-zinc-900/40 border border-border dark:border-white/5 hover:border-indigo-500/30 rounded-3xl p-6 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 shadow-sm hover:shadow-xl dark:shadow-none transition-all duration-500 flex flex-col">

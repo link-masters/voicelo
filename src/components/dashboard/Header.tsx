@@ -54,7 +54,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
                 <Link href="/dashboard" className="lg:hidden flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                        <span className="font-bold text-white text-xs">SF</span>
+                        <span className="font-bold text-white text-xs">VL</span>
                     </div>
                 </Link>
 

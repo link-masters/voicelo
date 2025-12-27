@@ -49,7 +49,7 @@ export default function Header() {
                         <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
                             <Mic className="w-6 h-6 text-white" />
                         </div>
-                        <span className="font-bold text-2xl tracking-tight text-foreground">SonicFlow</span>
+                        <span className="font-bold text-2xl tracking-tight text-foreground">VoiceLo</span>
                     </Link>
 
                     {/* Desktop Nav */}

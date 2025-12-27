@@ -89,7 +89,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-foreground mb-2">Create Account</h2>
-                    <p className="text-muted-foreground text-sm">Join SonicFlow and start creating</p>
+                    <p className="text-muted-foreground text-sm">Join VoiceLo and start creating</p>
                 </div>
 
                 {/* Form */}

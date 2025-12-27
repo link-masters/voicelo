@@ -9,7 +9,7 @@ export default function Footer() {
                 {/* Brand & Copyright */}
                 <div className="flex flex-col items-center md:items-start gap-1">
                     <span className="text-sm font-semibold text-foreground tracking-wide">
-                        SonicFlow
+                        VoiceLo
                     </span>
                     <p className="text-xs text-muted-foreground">
                         © {new Date().getFullYear()} All rights reserved.

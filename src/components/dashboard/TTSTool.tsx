@@ -39,7 +39,7 @@ export default function TTSTool() {
     const searchParams = useSearchParams();
     const voiceParam = searchParams.get('voice');
 
-    const [text, setText] = useState("Welcome to SonicFlow. Experience the future of voice synthesis today.");
+    const [text, setText] = useState("Welcome to VoiceLo. Experience the future of voice synthesis today.");
     const [voices, setVoices] = useState<VoiceOption[]>([]);
     const [selectedVoice, setSelectedVoice] = useState<VoiceOption | null>(null);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -252,7 +252,7 @@ export default function TTSTool() {
         if (audioUrl) {
             const a = document.createElement('a');
             a.href = audioUrl;
-            a.download = `sonicflow_generation_${Date.now()}.mp3`;
+            a.download = `voicelo_generation_${Date.now()}.mp3`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

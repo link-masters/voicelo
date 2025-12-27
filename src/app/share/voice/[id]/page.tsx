@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!voice || !voice.isPublic) return { title: "Voice Not Found" };
 
     return {
-        title: `${voice.displayName} | Shared Voice on SonicFlow`,
+        title: `${voice.displayName} | Shared Voice on VoiceLo`,
         description: voice.description || `Listen to this amazing AI voice created by ${voice.creator}.`,
         openGraph: {
             title: `${voice.displayName} - AI Voice`,
@@ -63,7 +63,7 @@ export default async function SharedVoicePage({ params }: Props) {
                     <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform">
                         <Zap className="w-6 h-6 fill-current" />
                     </div>
-                    <span className="text-xl font-black tracking-tighter text-zinc-900 dark:text-white uppercase">SonicFlow</span>
+                    <span className="text-xl font-black tracking-tighter text-zinc-900 dark:text-white uppercase">VoiceLo</span>
                 </Link>
 
                 <div className="w-full max-w-4xl">
@@ -147,7 +147,7 @@ export default async function SharedVoicePage({ params }: Props) {
 
                     {/* Footer Info */}
                     <p className="mt-8 text-center text-sm text-zinc-500 dark:text-zinc-500">
-                        Generated and shared via SonicFlow Neural Engine. <Link href="/" className="text-indigo-500 font-bold hover:underline">Join the community</Link>
+                        Generated and shared via VoiceLo Neural Engine. <Link href="/" className="text-indigo-500 font-bold hover:underline">Join the community</Link>
                     </p>
                 </div>
             </main>

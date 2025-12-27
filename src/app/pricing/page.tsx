@@ -301,7 +301,7 @@ function PricingContent() {
                         </div>
                         <h2 className="text-3xl font-bold text-foreground">Trusted by 10,000+ creators</h2>
                         <p className="text-muted-foreground">
-                            Join our community of developers, podcasters, and filmmakers who use SonicFlow to bring their text to life.
+                            Join our community of developers, podcasters, and filmmakers who use VoiceLo to bring their text to life.
                             Questions? Our team is here to help.
                         </p>
                         <button className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors flex items-center gap-2 mx-auto">
