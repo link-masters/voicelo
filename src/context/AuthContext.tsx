@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { account, ID } from "@/lib/appwrite";
 import { Models, OAuthProvider } from "appwrite";
+import { ensureWelcomeEmailSent, sendVerificationEmail } from "@/app/actions/emailActions";
 
 interface AuthContextType {
     user: Models.User<Models.Preferences> | null;
@@ -70,6 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (prefs.processedBroadcasts === undefined) {
                 updates.processedBroadcasts = []; // Track which global broadcasts are cloned
             }
+            if (prefs.welcomeEmailSent === undefined) {
+                updates.welcomeEmailSent = false;
+            }
 
             if (Object.keys(updates).length > 0) {
                 const updatedPrefs = await account.updatePrefs({
@@ -77,6 +81,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     ...updates
                 });
                 setUser({ ...currentUser, prefs: updatedPrefs });
+            }
+
+            console.log("Checking if welcome email needs to be sent...", {
+                welcomeEmailSent: prefs.welcomeEmailSent,
+                userId: currentUser.$id,
+                email: currentUser.email
+            });
+
+            // Trigger welcome email if not already sent
+            if (prefs.welcomeEmailSent !== true) {
+                console.log("Email not yet sent. Triggering ensureWelcomeEmailSent action...");
+                ensureWelcomeEmailSent(currentUser.$id, currentUser.email, currentUser.name)
+                    .then(result => {
+                        console.log("ensureWelcomeEmailSent result:", result);
+                        if (result.success && (result as any).alreadySent !== true) {
+                            console.log("Welcome email sent successfully! UI state will refresh on next check.");
+                        }
+                    })
+                    .catch(err => console.error("Action error triggering welcome email:", err));
+            } else {
+                console.log("Welcome email already recorded as sent in local prefs.");
+            }
+
+            // Trigger verification email if not verified and not already sent
+            if (currentUser.emailVerification === false && prefs.verificationEmailSent !== true) {
+                console.log("User unverified. Triggering verification email...");
+
+                // Use current origin for development (localhost) or production
+                const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://voicelo.app';
+
+                sendVerificationEmail(currentUser.$id, currentUser.email, currentUser.name, baseUrl)
+                    .then(async (result: any) => {
+                        if (result.success && result.alreadyVerified !== true) {
+                            console.log("Verification email sent successfully");
+                            // Mark as sent in prefs so we don't spam on every refresh
+                            const currentPrefs = (await account.getPrefs()) as any;
+                            await account.updatePrefs({
+                                ...currentPrefs,
+                                verificationEmailSent: true
+                            });
+                        }
+                    })
+                    .catch((err: any) => console.error("Verification email trigger error:", err));
             }
         } catch (e) {
             // Fail silently
@@ -121,6 +168,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await account.createEmailPasswordSession(email, password);
             const userData = await account.get();
             setUser(userData);
+
+            // Sync Google Avatar and Preferences immediately
+            syncGoogleAvatar(userData).catch(err => console.debug("Avatar sync skipped:", err));
+            syncUserPreferences(userData).catch(err => console.debug("Prefs sync skipped:", err));
         } catch (error: any) {
             throw new Error(error.message || "Failed to login");
         }
