@@ -1,0 +1,56 @@
+﻿        const voices = data.voices || [];
+
+
+
+        // Enrich voices with metadata from description
+
+        return voices.map((v: any) => {
+
+            const description = v.description || "";
+
+            const sharedByMatch = description.match(/\[SHARED_BY:(.*?)\]/);
+
+            const isPublicMatch = description.match(/\[PUBLIC:(.*?)\]/);
+
+
+
+            if (sharedByMatch || isPublicMatch) {
+
+                const creator = sharedByMatch ? sharedByMatch[1] : "Unknown";
+
+                const isPublic = isPublicMatch ? isPublicMatch[1] === "true" : false;
+
+
+
+                // Clean description
+
+                const cleanDescription = description.replace(/\[SHARED_BY:.*?\]/g, "").replace(/\[PUBLIC:.*?\]/g, "").trim();
+
+
+
+                return {
+
+                    ...v,
+
+                    description: cleanDescription,
+
+                    isCommunity: true,
+
+                    isPublic: isPublic,
+
+                    creator: creator
+
+                };
+
+            }
+
+            return v;
+
+        });
+
+    } catch (error) {
+
+        console.error('getInworldVoices error:', error);
+
+        return [];
+

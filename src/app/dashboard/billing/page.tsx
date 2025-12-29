@@ -11,7 +11,9 @@ export default function BillingPage() {
 
     // Dynamic data from user preferences
     const plan = (user?.prefs as any)?.plan || "Free Plan";
-    const creditsTotal = (user?.prefs as any)?.creditsTotal || 0;
+    const creditsTotalRaw = (user?.prefs as any)?.creditsTotal || 0;
+    const creditsUsed = (user?.prefs as any)?.creditsUsed || 0;
+    const creditsTotal = Math.max(0, creditsTotalRaw - creditsUsed);
     const billingCycleEnd = (user?.prefs as any)?.billingCycleEnd ? new Date((user?.prefs as any).billingCycleEnd) : null;
     const transactions = (user?.prefs as any)?.transactions || [];
 

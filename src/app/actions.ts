@@ -12,6 +12,8 @@ const VOICES_BASE_URL = 'https://api.inworld.ai/voices/v1';
 
 const APPWRITE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || 'main';
 const APPWRITE_VOICES_TABLE_ID = process.env.NEXT_PUBLIC_APPWRITE_VOICES_TABLE_ID || 'user_shared_voices';
+const APPWRITE_BROADCASTS_ID = process.env.NEXT_PUBLIC_APPWRITE_BROADCASTS_ID || 'broadcasts';
+const APPWRITE_USER_NOTIFICATIONS_ID = process.env.NEXT_PUBLIC_APPWRITE_USER_NOTIFICATIONS_ID || 'user_notifications';
 
 import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "@/lib/appwrite-server";
@@ -100,8 +102,9 @@ export async function synthesizeInworldSpeech(
 
             // 2. Check if user has enough credits
             const creditCost = text.length;
-            if (creditsTotal < creditCost) {
-                throw new Error(`Insufficient credits. You need ${creditCost} credits, but only have ${creditsTotal} left.`);
+            const creditsBalance = ((user.prefs.creditsTotal as number) || 0) - ((user.prefs.creditsUsed as number) || 0);
+            if (creditsBalance < creditCost) {
+                throw new Error(`Insufficient credits. You need ${creditCost} credits, but only have ${creditsBalance} left.`);
             }
         }
 
@@ -136,7 +139,7 @@ export async function synthesizeInworldSpeech(
             const creditCost = text.length;
             await users.updatePrefs(userId, {
                 ...user.prefs,
-                creditsTotal: creditsTotal - creditCost
+                creditsUsed: Number(user.prefs.creditsUsed || 0) + creditCost
             });
 
             // 4. Increment usage if it's a community voice
@@ -203,7 +206,8 @@ export async function cloneInworldVoice(formData: {
 
         // 2. Credit Cost (cloning is expensive, let's say 1000 credits)
         const CLONE_COST = 1000;
-        if (creditsTotal < CLONE_COST) {
+        const creditsBalance = ((user.prefs.creditsTotal as number) || 0) - ((user.prefs.creditsUsed as number) || 0);
+        if (creditsBalance < CLONE_COST) {
             throw new Error(`Insufficient credits. Cloning costs ${CLONE_COST} credits.`);
         }
 
@@ -262,7 +266,7 @@ export async function cloneInworldVoice(formData: {
         // 4. Deduct on success
         await users.updatePrefs(formData.userId, {
             ...user.prefs,
-            creditsTotal: creditsTotal - CLONE_COST
+            creditsUsed: Number(user.prefs.creditsUsed || 0) + CLONE_COST
         });
 
         return data;
@@ -489,5 +493,149 @@ export async function deleteUserVoice(docId: string) {
     } catch (error) {
         console.error('deleteUserVoice error:', error);
         throw error;
+    }
+}
+
+// --- ADMIN BROADCAST NOTIFICATIONS ---
+
+export async function createBroadcast(data: {
+    title: string;
+    message: string;
+    type: 'info' | 'success' | 'warning' | 'error' | 'system';
+    category?: string;
+    expiresAt?: string;
+}) {
+    try {
+        const { databases } = createAdminClient();
+        return await databases.createDocument(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_BROADCASTS_ID,
+            ID.unique(),
+            {
+                ...data,
+                createdAt: new Date().toISOString(),
+            }
+        );
+    } catch (error) {
+        console.error('createBroadcast error:', error);
+        throw error;
+    }
+}
+
+export async function getActiveBroadcasts() {
+    try {
+        const { databases } = createAdminClient();
+        const response = await databases.listDocuments(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_BROADCASTS_ID,
+            [
+                Query.orderDesc('$createdAt'),
+                Query.limit(20)
+            ]
+        );
+
+        return response.documents.map((doc: any) => ({
+            id: doc.$id,
+            title: doc.title,
+            message: doc.message,
+            type: doc.type,
+            category: doc.category || 'system',
+            timestamp: doc.$createdAt,
+        }));
+    } catch (error) {
+        // Fail silently if collection doesn't exist yet
+        console.debug('Broadcasts collection not found or error fetching:', error);
+        return [];
+    }
+}
+
+// --- USER SPECIFIC NOTIFICATIONS (SYNCED) ---
+
+export async function getUserNotifications(userId: string) {
+    try {
+        const { databases } = createAdminClient();
+        const response = await databases.listDocuments(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_USER_NOTIFICATIONS_ID,
+            [
+                Query.equal('userId', userId),
+                Query.orderDesc('$createdAt'),
+                Query.limit(50)
+            ]
+        );
+
+        return response.documents.map((doc: any) => ({
+            id: doc.$id,
+            title: doc.title,
+            message: doc.message,
+            type: doc.type,
+            timestamp: new Date(doc.$createdAt).getTime(),
+            read: doc.read,
+            category: doc.category || 'general'
+        }));
+    } catch (error) {
+        console.debug('User notifications collection error:', error);
+        return [];
+    }
+}
+
+export async function createUserNotification(userId: string, data: any) {
+    try {
+        const { databases } = createAdminClient();
+        return await databases.createDocument(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_USER_NOTIFICATIONS_ID,
+            ID.unique(),
+            {
+                userId,
+                title: data.title,
+                message: data.message,
+                type: data.type,
+                read: false,
+                category: data.category || 'general'
+            }
+        );
+    } catch (error) {
+        console.error('createUserNotification error:', error);
+    }
+}
+
+export async function markNotificationSync(docId: string, read: boolean) {
+    try {
+        const { databases } = createAdminClient();
+        return await databases.updateDocument(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_USER_NOTIFICATIONS_ID,
+            docId,
+            { read }
+        );
+    } catch (error) {
+        console.error('markNotificationSync error:', error);
+    }
+}
+
+export async function deleteNotificationSync(docId: string) {
+    try {
+        const { databases } = createAdminClient();
+        return await databases.deleteDocument(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_USER_NOTIFICATIONS_ID,
+            docId
+        );
+    } catch (error) {
+        console.error('deleteNotificationSync error:', error);
+    }
+}
+
+export async function updateUserSeenBroadcasts(userId: string, seenIds: string[]) {
+    try {
+        const { users } = createAdminClient();
+        const user = await users.get(userId);
+        await users.updatePrefs(userId, {
+            ...user.prefs,
+            processedBroadcasts: seenIds
+        });
+    } catch (error) {
+        console.error('updateUserSeenBroadcasts error:', error);
     }
 }

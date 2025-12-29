@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, Mic, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown } from "lucide-react";
+import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, Mic, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X } from "lucide-react";
 import VoiceSelectionModal from "./VoiceSelectionModal";
 import { getInworldVoices, getCommunityVoices, synthesizeInworldSpeech } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
 import { useVoices } from "@/context/VoiceContext";
+import { useNotifications } from "@/context/NotificationContext";
 
 interface VoiceOption {
     id: string;
@@ -38,6 +39,7 @@ export default function TTSTool() {
     const { officialVoices, communityVoices, loading: voicesLoading } = useVoices();
     const searchParams = useSearchParams();
     const voiceParam = searchParams.get('voice');
+    const { addNotification } = useNotifications();
 
     const [text, setText] = useState("Welcome to VoiceLo. Experience the future of voice synthesis today.");
     const [voices, setVoices] = useState<VoiceOption[]>([]);
@@ -49,6 +51,7 @@ export default function TTSTool() {
     const [rate, setRate] = useState(1);
     const [pitch, setPitch] = useState(1);
     const [volume, setVolume] = useState(1);
+    const [autoplay, setAutoplay] = useState(true);
 
     // Audio Player State
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -92,14 +95,28 @@ export default function TTSTool() {
         setVoices(formattedVoices);
     }, [officialVoices, communityVoices, user]);
 
-    // Load History from LocalStorage
+    // Load Settings from LocalStorage
     useEffect(() => {
-        const saved = localStorage.getItem('tts_history');
-        if (saved) {
+        const savedHistory = localStorage.getItem('tts_history');
+        if (savedHistory) {
             try {
-                setGenerationHistory(JSON.parse(saved));
+                setGenerationHistory(JSON.parse(savedHistory));
             } catch (e) {
                 console.error("Failed to parse history", e);
+            }
+        }
+
+        const savedSettings = localStorage.getItem('voicelo_tts_settings');
+        if (savedSettings) {
+            try {
+                const settings = JSON.parse(savedSettings);
+                setRate(settings.rate || 1);
+                setPitch(settings.pitch || 1);
+                setVolume(settings.volume || 1);
+                setPlayerVolume(settings.volume || 1);
+                setAutoplay(settings.autoplay !== undefined ? settings.autoplay : true);
+            } catch (e) {
+                console.error("Failed to parse settings", e);
             }
         }
     }, []);
@@ -194,18 +211,29 @@ export default function TTSTool() {
                     const url = URL.createObjectURL(blob);
 
                     setAudioUrl(url);
-                    setTimeout(() => {
-                        if (audioRef.current) {
-                            audioRef.current.play().catch(e => console.log("Playback failed:", e));
-                        }
-                    }, 100);
+                    if (autoplay) {
+                        setTimeout(() => {
+                            if (audioRef.current) {
+                                audioRef.current.play().catch(e => console.log("Playback failed:", e));
+                            }
+                        }, 100);
+                    }
 
                     addToHistory();
+                    addNotification({
+                        title: "Generation Successful",
+                        message: `Successfully synthesized audio for ${selectedVoice.name}`,
+                        type: "success"
+                    });
                     await refreshUser();
                 }
             } catch (err: any) {
                 console.error("Inworld synthesis failed", err);
-                alert(err.message || "Synthesis failed. Please try again.");
+                addNotification({
+                    title: "Synthesis Error",
+                    message: err.message || "Synthesis failed. Please try again.",
+                    type: "error"
+                });
             } finally {
                 setIsGenerating(false);
             }
@@ -244,7 +272,6 @@ export default function TTSTool() {
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
-            // setAudioUrl(null); // Optional: keep the file loaded or clear it? Better to keep it for replay.
         }
     };
 
@@ -256,8 +283,17 @@ export default function TTSTool() {
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            addNotification({
+                title: "Download Started",
+                message: "Your audio file is being downloaded.",
+                type: "info"
+            });
         } else {
-            alert("No audio file generated to download. (Browser voices cannot be downloaded natively)");
+            addNotification({
+                title: "Download Warning",
+                message: "No audio file generated to download. (Browser voices cannot be downloaded natively)",
+                type: "warning"
+            });
         }
     };
 
@@ -286,6 +322,11 @@ export default function TTSTool() {
         navigator.clipboard.writeText(textToCopy);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
+        addNotification({
+            title: "Text Copied",
+            message: "Generation text copied to clipboard",
+            type: "success"
+        }, false); // Don't show toast for this frequent action
     };
 
     return (
@@ -467,7 +508,7 @@ export default function TTSTool() {
                                 </div>
 
                                 {/* Time & Progress */}
-                                <div className="flex-1 w-full flex flex-col gap-1 or-2">
+                                <div className="flex-1 w-full flex flex-col gap-1 pr-2">
                                     <div className="flex items-center justify-between text-[9px] md:text-[10px] text-zinc-500 dark:text-zinc-400 font-mono tracking-wider uppercase">
                                         <span>{formatTime(currentTime)}</span>
                                         <span>{formatTime(duration)}</span>
@@ -613,3 +654,4 @@ export default function TTSTool() {
         </div>
     );
 }
+

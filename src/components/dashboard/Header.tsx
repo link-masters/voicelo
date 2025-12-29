@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { LogOut, User, Settings, ChevronDown, Zap, Lock, CreditCard, Menu } from "lucide-react";
+import NotificationDropdown from "./NotificationDropdown";
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -35,11 +36,20 @@ export default function Header({ onMenuClick }: HeaderProps) {
         }
     };
 
-    const creditsUsed = (user?.prefs as any)?.creditsUsed || 0;
-    const creditsTotal = (user?.prefs as any)?.creditsTotal || 0;
-    const plan = (user?.prefs as any)?.plan || "Free Plan";
-    const billingCycleEnd = (user?.prefs as any)?.billingCycleEnd ? new Date((user?.prefs as any).billingCycleEnd) : null;
-    const isExpired = !!(user?.prefs as any)?.lastPurchaseDate && billingCycleEnd !== null && billingCycleEnd < new Date();
+    const prefs = (user?.prefs as any) || {};
+    const creditsUsed = Number(prefs.creditsUsed || 0);
+    const creditsTotal = Number(prefs.creditsTotal || 0);
+
+    // Remaining Balance to display
+    const creditsBalance = Math.max(0, creditsTotal - creditsUsed);
+
+    // Percentage for the progress bar (Usage / Capacity)
+    const creditsPercentage = creditsTotal > 0 ? (creditsUsed / creditsTotal) * 100 : 0;
+
+    const creditsDisplay = creditsBalance; // Changed for clarity
+    const plan = prefs.plan || "Free Plan";
+    const billingCycleEnd = prefs.billingCycleEnd ? new Date(prefs.billingCycleEnd) : null;
+    const isExpired = !!prefs.lastPurchaseDate && billingCycleEnd !== null && billingCycleEnd < new Date();
 
     return (
         <header className="h-20 border-b border-border dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 transition-colors duration-300">
@@ -65,6 +75,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                             if (pathname.includes("/text-to-speech")) return "Text to Speech";
                             if (pathname.includes("/voice-clone")) return "Voice Cloning";
                             if (pathname.includes("/profile")) return "Account Profile";
+                            if (pathname.includes("/settings")) return "App Settings";
                             if (pathname.includes("/influencer-program")) return "Influencer Hub";
                             return "Voice Synthesis Studio";
                         })()}
@@ -74,8 +85,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
             <div className="flex items-center gap-2 md:gap-6">
 
+                <NotificationDropdown />
+
                 {/* Credits Counter */}
-                <div className="flex flex-col items-end gap-1 mr-1 md:mr-2">
+                <div className="flex flex-col gap-1.5 mr-1 md:mr-2 items-end">
                     <div className="flex items-center gap-1.5 md:gap-2">
                         <div className={`p-1 rounded-md border shadow-sm ${isExpired ? 'bg-red-500/10 border-red-500/20' : 'bg-indigo-500/10 border-indigo-500/20'}`}>
                             {isExpired ? <Lock className="w-3 h-3 text-red-500" /> : <Zap className="w-3 h-3 text-indigo-400 fill-indigo-400" />}
@@ -86,7 +99,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
                             ) : (
                                 <>
                                     <span className="text-zinc-900 dark:text-white font-bold">
-                                        {creditsTotal >= 1000 ? `${(creditsTotal / 1000).toFixed(1)}k` : creditsTotal}
+                                        <span className="md:hidden">
+                                            {creditsDisplay >= 1000 ? `${(creditsDisplay / 1000).toFixed(1)}k` : creditsDisplay}
+                                        </span>
+                                        <span className="hidden md:inline">
+                                            {creditsDisplay.toLocaleString()}
+                                        </span>
                                     </span>
                                     <span className="text-zinc-500 ml-1 hidden sm:inline">credits</span>
                                 </>
@@ -94,10 +112,15 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         </span>
                     </div>
                     {/* Expiration warning or progress */}
-                    <div className="w-16 md:w-36 h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-200 dark:border-white/5">
+                    <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800/80 rounded-full overflow-hidden border border-zinc-200/50 dark:border-white/5 relative">
                         <div
-                            className={`h-full rounded-full transition-all duration-500 ${isExpired ? 'bg-red-500 w-full' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-full'}`}
-                        ></div>
+                            className={`h-full rounded-full transition-all duration-500 relative ${isExpired ? 'bg-red-500' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'}`}
+                            style={{ width: `${isExpired ? 100 : Math.max(2, creditsPercentage)}%` }}
+                        >
+                            {!isExpired && (
+                                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -154,10 +177,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                 <User className="w-4 h-4" />
                                 Profile
                             </Link>
-                            <button className="w-full text-left px-4 py-2.5 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2.5 transition-colors">
+                            <Link
+                                href="/dashboard/settings"
+                                onClick={() => setDropdownOpen(false)}
+                                className="w-full text-left px-4 py-2.5 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2.5 transition-colors"
+                            >
                                 <Settings className="w-4 h-4" />
                                 Settings
-                            </button>
+                            </Link>
 
                             <div className="border-t border-zinc-100 dark:border-white/5 my-1.5 mx-2"></div>
 

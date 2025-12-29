@@ -5,6 +5,7 @@ import { Mic, Upload, Play, Info, CheckCircle2, AlertCircle, Loader2, Music, Glo
 import { cloneInworldVoice } from "@/app/actions";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Toast, { ToastType } from "@/components/dashboard/Toast";
 
 const LANGUAGES = [
     { code: "EN_US", label: "English" },
@@ -29,6 +30,7 @@ export default function VoiceClonePage() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [notification, setNotification] = useState<{ message: string; type: ToastType } | null>(null);
     const [success, setSuccess] = useState(false);
     const [progress, setProgress] = useState(0);
 
@@ -69,7 +71,7 @@ export default function VoiceClonePage() {
 
     const processFile = async (file: File) => {
         if (!file.type.startsWith("audio/")) {
-            setError("Please upload an audio file (mp3, wav, etc.).");
+            setNotification({ message: "Please upload an audio file (mp3, wav, etc.).", type: "error" });
             return;
         }
 
@@ -89,7 +91,7 @@ export default function VoiceClonePage() {
             }));
             setError(null);
         };
-        reader.onerror = () => setError("Failed to read file.");
+        reader.onerror = () => setNotification({ message: "Failed to read file.", type: "error" });
         reader.readAsDataURL(file);
     };
 
@@ -107,11 +109,11 @@ export default function VoiceClonePage() {
 
     const handleSubmit = async () => {
         if (!formData.displayName) {
-            setError("Please enter a name for your voice.");
+            setNotification({ message: "Please enter a name for your voice.", type: "error" });
             return;
         }
         if (!formData.audioData) {
-            setError("Please upload an audio sample first.");
+            setNotification({ message: "Please upload an audio sample first.", type: "error" });
             return;
         }
 
@@ -147,7 +149,7 @@ export default function VoiceClonePage() {
             }, 2000);
 
         } catch (err: any) {
-            setError(err.message || "An error occurred while cloning the voice.");
+            setNotification({ message: err.message || "An error occurred while cloning the voice.", type: "error" });
             setIsSubmitting(false);
             setProgress(0);
         }
@@ -164,6 +166,13 @@ export default function VoiceClonePage() {
 
     return (
         <div className="h-full flex flex-col gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+            {notification && (
+                <Toast
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
             {/* Header Section */}
             <div className="flex flex-col gap-2">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">

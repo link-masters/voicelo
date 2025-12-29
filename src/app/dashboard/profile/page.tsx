@@ -87,7 +87,7 @@ export default function ProfilePage() {
                                 <span className="text-zinc-500 dark:text-zinc-400 font-medium flex items-center gap-2">
                                     <Zap className="w-4 h-4 text-amber-500 fill-amber-500" /> Plan Usage
                                 </span>
-                                <span className="text-zinc-900 dark:text-white font-bold">{creditsUsed} / {creditsTotal} Credits</span>
+                                <span className="text-zinc-900 dark:text-white font-bold">{creditsUsed.toLocaleString()} / {creditsTotal.toLocaleString()} Credits</span>
                             </div>
                             <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-700/50 rounded-full overflow-hidden">
                                 <div

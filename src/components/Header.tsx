@@ -30,8 +30,8 @@ export default function Header() {
     }, []);
 
     const navLinks = [
-        { name: "Features", href: "/#features" },
-        { name: "Demo", href: "/#demo" },
+        { name: "Text To Speech", href: "/text-to-speech" },
+        { name: "Voice Cloning", href: "/voice-cloning" },
         { name: "Pricing", href: "/pricing" },
     ];
 
@@ -54,15 +54,21 @@ export default function Header() {
 
                     {/* Desktop Nav */}
                     <div className="hidden md:flex items-center gap-8">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
+                        {navLinks.map((link) => {
+                            const isActive = pathname === link.href;
+                            return (
+                                <Link
+                                    key={link.name}
+                                    href={link.href}
+                                    className={`relative text-sm font-medium transition-colors py-1 group outline-none ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground focus-visible:text-foreground"
+                                        }`}
+                                >
+                                    {link.name}
+                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-300 ease-in-out ${isActive ? "w-full" : "w-0 group-hover:w-full group-focus-visible:w-full"
+                                        }`} />
+                                </Link>
+                            );
+                        })}
                     </div>
 
                     {/* Auth Actions */}
@@ -110,16 +116,22 @@ export default function Header() {
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
                     <div className="absolute top-full left-0 right-0 bg-background/95 backdrop-blur-xl border-b border-border md:hidden p-6 flex flex-col gap-6 animate-in slide-in-from-top-5 shadow-2xl">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                className="text-lg font-medium text-muted-foreground hover:text-foreground"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
+                        {navLinks.map((link) => {
+                            const isActive = pathname === link.href;
+                            return (
+                                <Link
+                                    key={link.name}
+                                    href={link.href}
+                                    className={`relative text-lg font-medium transition-colors w-fit group ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                                        }`}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    {link.name}
+                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"
+                                        }`} />
+                                </Link>
+                            );
+                        })}
                         <div className="pt-4 border-t border-border">
                             {user ? (
                                 <Link

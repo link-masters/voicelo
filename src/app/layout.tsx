@@ -3,9 +3,11 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CookieConsent from "../components/CookieConsent";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "../context/ThemeContext";
 import { VoiceProvider } from "../context/VoiceContext";
+import { NotificationProvider } from "../context/NotificationContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,13 +25,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <AuthProvider>
-          <VoiceProvider>
-            <ThemeProvider>
-              <main className="flex-1 flex flex-col">
-                {children}
-              </main>
-            </ThemeProvider>
-          </VoiceProvider>
+          <NotificationProvider>
+            <VoiceProvider>
+              <ThemeProvider>
+                <main className="flex-1 flex flex-col">
+                  {children}
+                </main>
+                <CookieConsent />
+              </ThemeProvider>
+            </VoiceProvider>
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

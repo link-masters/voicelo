@@ -62,10 +62,6 @@ export default function LandingPage() {
 
         {/* Hero Section */}
         <section className="flex-1 flex flex-col items-center justify-center px-6 pt-32 pb-32 text-center max-w-5xl mx-auto space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/80 text-muted-foreground text-sm animate-fade-in-down">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span>Now with Neural V2 Engine</span>
-          </div>
 
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight text-foreground leading-tight animate-fade-in-up">
             Voice Synthesis <br />

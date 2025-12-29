@@ -52,6 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (prefs.creditsTotal === undefined) {
                 updates.creditsTotal = 1000; // Default starting credits
             }
+            if (prefs.creditsUsed === undefined) {
+                updates.creditsUsed = 0; // Initialize creditsUsed
+            }
             if (prefs.isInfluencer === undefined) {
                 updates.isInfluencer = false;
             }
@@ -60,6 +63,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             if (prefs.influencer_commission_rate === undefined) {
                 updates.influencer_commission_rate = 30; // Default 30%
+            }
+            if (prefs.isAdmin === undefined) {
+                updates.isAdmin = false; // Default non-admin
+            }
+            if (prefs.processedBroadcasts === undefined) {
+                updates.processedBroadcasts = []; // Track which global broadcasts are cloned
             }
 
             if (Object.keys(updates).length > 0) {

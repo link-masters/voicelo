@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mic, Settings, User, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X } from 'lucide-react';
+import { Mic, Settings, User, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X, ShieldAlert } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -230,10 +230,38 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             </div>
                         </div>
                     </div>
+                    {/* Admin Section */}
+                    {((user?.prefs as any)?.isAdmin === true || (user?.prefs as any)?.isAdmin === "true") && (
+                        <div className="space-y-2">
+                            <div className="px-4 mb-3">
+                                <h2 className="text-[10px] font-bold text-red-500 uppercase tracking-[0.2em]">
+                                    Administration
+                                </h2>
+                            </div>
+                            <Link
+                                href="/dashboard/admin/notifications"
+                                onClick={onClose}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/admin/notifications')
+                                    ? 'bg-red-500/10 text-red-600 border border-red-500/30 shadow-sm'
+                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/5 border border-transparent'
+                                    }`}
+                            >
+                                <ShieldAlert className="w-5 h-5 transition-transform group-hover:scale-110" />
+                                <span>Broadcasts</span>
+                            </Link>
+                        </div>
+                    )}
 
                     <div className="pt-6 border-t border-border dark:border-white/5">
-                        <Link href="#" onClick={onClose} className="flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 font-medium transition-all group">
-                            <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                        <Link
+                            href="/dashboard/settings"
+                            onClick={onClose}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/settings')
+                                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
+                                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
+                                }`}
+                        >
+                            <Settings className={`w-5 h-5 transition-transform ${isActive('/dashboard/settings') ? 'rotate-90' : 'group-hover:rotate-90'}`} />
                             <span>Settings</span>
                         </Link>
                     </div>
