@@ -116,6 +116,13 @@ export async function sendVerificationEmail(userId: string, email: string, name:
             return { success: false, error: error.message };
         }
 
+        // Mark as sent in user preferences via Admin SDK
+        await users.updatePrefs(userId, {
+            ...user.prefs,
+            verificationEmailSent: true,
+            verificationEmailSentDate: new Date().toISOString()
+        });
+
         return { success: true, data };
     } catch (error: any) {
         console.error('sendVerificationEmail error:', error);

@@ -106,23 +106,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Trigger verification email if not verified and not already sent
             if (currentUser.emailVerification === false && prefs.verificationEmailSent !== true) {
-                console.log("User unverified. Triggering verification email...");
-
-                // Use current origin for development (localhost) or production
+                console.log("User unverified. Triggering verification email fallback...");
                 const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://voicelo.app';
-
                 sendVerificationEmail(currentUser.$id, currentUser.email, currentUser.name, baseUrl)
-                    .then(async (result: any) => {
-                        if (result.success && result.alreadyVerified !== true) {
-                            console.log("Verification email sent successfully");
-                            // Mark as sent in prefs so we don't spam on every refresh
-                            const currentPrefs = (await account.getPrefs()) as any;
-                            await account.updatePrefs({
-                                ...currentPrefs,
-                                verificationEmailSent: true
-                            });
-                        }
-                    })
                     .catch((err: any) => console.error("Verification email trigger error:", err));
             }
         } catch (e) {
@@ -167,6 +153,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             await account.createEmailPasswordSession(email, password);
             const userData = await account.get();
+
+            if (!userData.emailVerification) {
+                // Not verified! Log them out immediately.
+                await account.deleteSession("current");
+                setUser(null);
+                throw new Error("Your email address is not verified. Please check your inbox for the verification link (including spam).");
+            }
+
             setUser(userData);
 
             // Sync Google Avatar and Preferences immediately
@@ -179,8 +173,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function signup(email: string, password: string, name: string) {
         try {
-            await account.create(ID.unique(), email, password, name);
-            await login(email, password);
+            const newUser = await account.create(ID.unique(), email, password, name);
+
+            // Send verification email immediately using the server action
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://voicelo.app';
+            await sendVerificationEmail(newUser.$id, newUser.email, newUser.name, baseUrl);
+
+            // We do NOT call login() here. The user must verify first.
+            console.log("Signup success, verification email sent.");
         } catch (error: any) {
             throw new Error(error.message || "Failed to create account");
         }
