@@ -87,10 +87,10 @@ function VerifyEmailInner() {
                         <p className="text-gray-500 leading-relaxed">{message}</p>
                         <div className="pt-4">
                             <Link
-                                href="/login"
+                                href="/"
                                 className="inline-block bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-8 py-3 rounded-2xl font-medium transition-all"
                             >
-                                Back to Login
+                                Back to Home
                             </Link>
                         </div>
                     </div>

@@ -92,11 +92,15 @@ export async function sendVerificationEmail(userId: string, email: string, name:
         const token = crypto.randomBytes(32).toString('hex');
         const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-        await users.updatePrefs(userId, {
-            ...user.prefs,
+        const currentPrefs = user.prefs || {};
+        const updatedPrefs = {
+            ...currentPrefs,
             verificationToken: token,
             verificationTokenExpires: expires
-        });
+        };
+
+        // Update with token first
+        await users.updatePrefs(userId, updatedPrefs);
 
         const verificationUrl = `${baseUrl}/verify-email?userId=${userId}&token=${token}`;
 
@@ -116,9 +120,9 @@ export async function sendVerificationEmail(userId: string, email: string, name:
             return { success: false, error: error.message };
         }
 
-        // Mark as sent in user preferences via Admin SDK
+        // Mark as sent in user preferences via Admin SDK, preserving the token
         await users.updatePrefs(userId, {
-            ...user.prefs,
+            ...updatedPrefs,
             verificationEmailSent: true,
             verificationEmailSentDate: new Date().toISOString()
         });
