@@ -46,7 +46,7 @@ const planConfigs: Record<string, any> = {
     },
     "turbo_pack": {
         icon: Rocket,
-        color: "indigo",
+        color: "primary",
         popular: true,
         features: [
             "50,000 Credits",
@@ -86,7 +86,7 @@ function PricingContent() {
                     const mappedPlans = data.map((plan: any) => {
                         const config = planConfigs[plan.productName?.toLowerCase()] || {
                             icon: Star,
-                            color: "indigo",
+                            color: "primary",
                             features: ["Premium Access", "Cloud Storage", "Priority Support"]
                         };
 
@@ -157,16 +157,16 @@ function PricingContent() {
     const colorStyles: Record<string, string> = {
         zinc: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
         amber: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-        indigo: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
-        purple: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+        primary: "bg-primary/10 text-primary border-primary/20",
+        secondary: "bg-secondary text-secondary-foreground border-border",
     };
 
     return (
-        <div className="min-h-screen text-foreground selection:bg-indigo-500/30 font-sans">
+        <div className="min-h-screen text-foreground selection:bg-primary/30 font-sans">
             {/* Background Effects */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-indigo-500/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-zinc-50 dark:bg-purple-500/10 rounded-full blur-[120px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-primary/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-zinc-50 dark:bg-primary/5 rounded-full blur-[120px]" />
                 <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03] dark:opacity-20" />
             </div>
 
@@ -176,13 +176,13 @@ function PricingContent() {
                 <div className="max-w-7xl mx-auto px-6">
                     {/* Header Section */}
                     <div className="text-center mb-20 space-y-4 animate-fade-in-up">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-border text-indigo-600 dark:text-indigo-400 text-xs font-bold tracking-wider uppercase">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-border text-primary text-xs font-bold tracking-wider uppercase">
                             <Star className="w-3 h-3 fill-current" />
                             Pricing Plans
                         </div>
                         {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && (
                             <div className="flex justify-center">
-                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-bold animate-pulse">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-sm font-bold animate-pulse">
                                     <Zap className="w-4 h-4 fill-current" />
                                     Special Influencer Offer: {urlDiscount} Applied
                                 </div>
@@ -190,7 +190,7 @@ function PricingContent() {
                         )}
                         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground">
                             Simple, Transparent <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-400">Credit Packages</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-primary">Credit Packages</span>
                         </h1>
                         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                             Choose the perfect credit package for your monthly creative needs. Professional tools with transparent, predictable pricing.
@@ -201,7 +201,7 @@ function PricingContent() {
                     <div className="flex flex-wrap justify-center gap-8 mb-20">
                         {fetching ? (
                             <div className="w-full flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 animate-spin text-indigo-500" />
+                                <Loader2 className="w-12 h-12 animate-spin text-primary" />
                             </div>
                         ) : plans.length === 0 ? (
                             <div className="w-full text-center py-20">
@@ -212,18 +212,18 @@ function PricingContent() {
                                 <div
                                     key={plan.name}
                                     className={`group relative p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-card/50 dark:bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:translate-y-[-8px] animate-fade-in-up ${plan.popular
-                                        ? "border-indigo-600/30 dark:border-indigo-500/50 shadow-2xl shadow-indigo-500/10"
+                                        ? "border-primary/30 dark:border-primary/50 shadow-2xl shadow-primary/10"
                                         : "border-border hover:border-border/80"
                                         }`}
                                     style={{ animationDelay: `${index * 100}ms` }}
                                 >
                                     {plan.popular && (
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-full tracking-wider uppercase shadow-xl shadow-indigo-500/40">
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase shadow-xl shadow-primary/40">
                                             Best Value
                                         </div>
                                     )}
 
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 mx-auto border ${colorStyles[plan.color] || colorStyles.indigo}`}>
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 mx-auto border ${colorStyles[plan.color] || colorStyles.primary}`}>
                                         <plan.icon className="w-7 h-7" />
                                     </div>
 
@@ -272,7 +272,7 @@ function PricingContent() {
                                         className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group/btn ${plan.variantId === "free"
                                             ? "bg-secondary text-muted-foreground border border-border cursor-not-allowed"
                                             : plan.popular
-                                                ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30"
+                                                ? "bg-primary text-primary-foreground hover:opacity-90 shadow-xl shadow-primary/30"
                                                 : "bg-secondary/50 hover:bg-secondary text-foreground border border-border"
                                             }`}
                                     >
@@ -291,7 +291,7 @@ function PricingContent() {
                     </div>
 
                     {/* FAQ or Trust Section */}
-                    <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-indigo-500/5 border border-border text-center space-y-6 animate-fade-in-up delay-300">
+                    <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-primary/5 border border-border text-center space-y-6 animate-fade-in-up delay-300">
                         <div className="flex justify-center -space-x-3">
                             {[1, 2, 3, 4, 5].map((i) => (
                                 <div key={i} className="w-12 h-12 rounded-full border-4 border-black bg-zinc-800 flex items-center justify-center overflow-hidden">
@@ -304,7 +304,7 @@ function PricingContent() {
                             Join our community of developers, podcasters, and filmmakers who use VoiceLo to bring their text to life.
                             Questions? Our team is here to help.
                         </p>
-                        <button className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors flex items-center gap-2 mx-auto">
+                        <button className="text-primary font-semibold hover:opacity-80 transition-colors flex items-center gap-2 mx-auto">
                             Contact Support <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
@@ -320,7 +320,7 @@ export default function PricingPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen bg-background flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-indigo-500" />
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
             </div>
         }>
             <PricingContent />

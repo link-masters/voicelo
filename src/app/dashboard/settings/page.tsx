@@ -101,8 +101,8 @@ export default function SettingsPage() {
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
-                    <div className="p-2 bg-indigo-500/10 rounded-xl">
-                        <Settings className="w-8 h-8 text-indigo-500" />
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                        <Settings className="w-8 h-8 text-primary" />
                     </div>
                     Settings
                 </h1>
@@ -124,7 +124,7 @@ export default function SettingsPage() {
                         <button
                             key={item.id}
                             className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all ${item.id === 'general'
-                                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
+                                ? 'bg-primary/10 text-primary border border-primary/20'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5'
                                 }`}
                         >
@@ -141,7 +141,7 @@ export default function SettingsPage() {
                     <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                                <Monitor className="w-5 h-5 text-indigo-500" /> Appearance
+                                <Monitor className="w-5 h-5 text-primary" /> Appearance
                             </h2>
                         </div>
                         <div className="p-6 space-y-6">
@@ -152,11 +152,11 @@ export default function SettingsPage() {
                                 </div>
                                 <button
                                     onClick={toggleTheme}
-                                    className="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 rounded-xl transition-all hover:border-indigo-500/50"
+                                    className="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 rounded-xl transition-all hover:border-primary/50"
                                 >
                                     {theme === 'dark' ? (
                                         <>
-                                            <Moon className="w-4 h-4 text-indigo-400" />
+                                            <Moon className="w-4 h-4 text-primary" />
                                             <span className="text-sm font-medium">Dark Mode</span>
                                         </>
                                     ) : (
@@ -174,11 +174,11 @@ export default function SettingsPage() {
                     <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5 flex items-center justify-between">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                                <Volume2 className="w-5 h-5 text-indigo-500" /> Voice Studio Defaults
+                                <Volume2 className="w-5 h-5 text-primary" /> Voice Studio Defaults
                             </h2>
                             <button
                                 onClick={resetDefaults}
-                                className="text-xs text-zinc-500 hover:text-indigo-500 transition-colors font-medium"
+                                className="text-xs text-zinc-500 hover:text-primary transition-colors font-medium"
                             >
                                 Reset to Default
                             </button>
@@ -202,13 +202,13 @@ export default function SettingsPage() {
                             <div className="space-y-4">
                                 <div className="flex justify-between">
                                     <label className="text-sm font-medium text-zinc-900 dark:text-white">Default Speaking Rate</label>
-                                    <span className="text-xs font-mono text-indigo-500 font-bold">{ttsDefaults.rate}x</span>
+                                    <span className="text-xs font-mono text-primary font-bold">{ttsDefaults.rate}x</span>
                                 </div>
                                 <input
                                     type="range" min="0.5" max="2" step="0.1"
                                     value={ttsDefaults.rate}
                                     onChange={(e) => saveTtsSetting('rate', parseFloat(e.target.value))}
-                                    className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                    className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-primary"
                                 />
                                 <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
                                     <span>Slower</span>
@@ -221,13 +221,13 @@ export default function SettingsPage() {
                             <div className="space-y-4">
                                 <div className="flex justify-between">
                                     <label className="text-sm font-medium text-zinc-900 dark:text-white">Default Voice Pitch</label>
-                                    <span className="text-xs font-mono text-indigo-500 font-bold">{ttsDefaults.pitch}</span>
+                                    <span className="text-xs font-mono text-primary font-bold">{ttsDefaults.pitch}</span>
                                 </div>
                                 <input
                                     type="range" min="0.5" max="2" step="0.1"
                                     value={ttsDefaults.pitch}
                                     onChange={(e) => saveTtsSetting('pitch', parseFloat(e.target.value))}
-                                    className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                    className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-primary"
                                 />
                                 <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
                                     <span>Deep</span>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                     <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                                <Bell className="w-5 h-5 text-indigo-500" /> Notifications
+                                <Bell className="w-5 h-5 text-primary" /> Notifications
                             </h2>
                         </div>
                         <div className="p-6 space-y-6">
@@ -258,7 +258,7 @@ export default function SettingsPage() {
                                     </div>
                                     <button
                                         onClick={() => saveNotifSetting(item.id, !(notifications as any)[item.id])}
-                                        className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${(notifications as any)[item.id] ? 'bg-indigo-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                                        className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${(notifications as any)[item.id] ? 'bg-primary' : 'bg-zinc-300 dark:bg-zinc-700'}`}
                                     >
                                         <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${(notifications as any)[item.id] ? 'translate-x-6' : ''}`} />
                                     </button>
@@ -271,7 +271,7 @@ export default function SettingsPage() {
                     <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                                <Shield className="w-5 h-5 text-indigo-500" /> Data & Privacy
+                                <Shield className="w-5 h-5 text-primary" /> Data & Privacy
                             </h2>
                         </div>
                         <div className="p-6 space-y-6">

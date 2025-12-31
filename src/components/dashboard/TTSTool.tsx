@@ -220,11 +220,6 @@ export default function TTSTool() {
                     }
 
                     addToHistory();
-                    addNotification({
-                        title: "Generation Successful",
-                        message: `Successfully synthesized audio for ${selectedVoice.name}`,
-                        type: "success"
-                    });
                     await refreshUser();
                 }
             } catch (err: any) {
@@ -322,11 +317,6 @@ export default function TTSTool() {
         navigator.clipboard.writeText(textToCopy);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
-        addNotification({
-            title: "Text Copied",
-            message: "Generation text copied to clipboard",
-            type: "success"
-        }, false); // Don't show toast for this frequent action
     };
 
     return (
@@ -398,7 +388,7 @@ export default function TTSTool() {
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsVoiceModalOpen(true)}
-                                        className="w-full flex items-center justify-between bg-white dark:bg-zinc-800/80 border border-border dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-200 text-sm rounded-xl px-4 py-2.5 md:py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all shadow-sm dark:shadow-lg text-left"
+                                        className="w-full flex items-center justify-between bg-white dark:bg-zinc-800/80 border border-border dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-200 text-sm rounded-xl px-4 py-2.5 md:py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all shadow-sm dark:shadow-lg text-left"
                                     >
                                         <span className="truncate pr-2">{selectedVoice?.name || "Select a voice..."}</span>
                                         <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
@@ -466,7 +456,7 @@ export default function TTSTool() {
                                 <button
                                     onClick={handleGenerate}
                                     disabled={isGenerating || !text.trim()}
-                                    className={`w-full btn btn-primary py-3 md:py-4 text-xs md:text-sm uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-shadow ${(isGenerating || !text.trim()) ? 'opacity-50 cursor-not-allowed shadow-none' : ''}`}
+                                    className={`w-full btn btn-primary py-3 md:py-4 text-xs md:text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow ${(isGenerating || !text.trim()) ? 'opacity-50 cursor-not-allowed shadow-none' : ''}`}
                                 >
                                     {isGenerating ? (
                                         <div className="flex items-center justify-center">
@@ -492,7 +482,7 @@ export default function TTSTool() {
                                     {/* Playback Controls */}
                                     <button
                                         onClick={isSpeaking ? handlePause : () => audioRef.current?.play()}
-                                        className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-indigo-500 hover:bg-indigo-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 transition-all shrink-0"
+                                        className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary hover:opacity-90 flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 transition-all shrink-0"
                                     >
                                         {isSpeaking ? <Pause className="w-4 h-4 md:w-5 md:h-5 fill-current" /> : <Play className="w-4 h-4 md:w-5 md:h-5 fill-current ml-0.5" />}
                                     </button>
@@ -500,7 +490,7 @@ export default function TTSTool() {
                                     {/* Mobile/Compact Download Only visible on mobile in this row */}
                                     <button
                                         onClick={handleDownload}
-                                        className="md:hidden flex ml-auto items-center gap-2 px-3 py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-indigo-500/20"
+                                        className="md:hidden flex ml-auto items-center gap-2 px-3 py-2 bg-primary/10 text-primary rounded-lg text-[10px] font-bold uppercase tracking-wider border border-primary/20"
                                     >
                                         <Download className="w-3.5 h-3.5" />
                                         <span>Save</span>
@@ -515,7 +505,7 @@ export default function TTSTool() {
                                     </div>
                                     <div className="relative h-1.5 md:h-2 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden group">
                                         <div
-                                            className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-100 ease-linear"
+                                            className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-100 ease-linear"
                                             style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
                                         />
                                         <input
@@ -569,12 +559,12 @@ export default function TTSTool() {
                 {/* Right Side: Generation History */}
                 <div className="lg:col-span-4 xl:col-span-3 lg:h-[calc(100vh-140px)] flex flex-col">
                     <div className="glass-panel rounded-2xl md:rounded-3xl p-0 flex-1 flex flex-col border border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-900/30 overflow-hidden min-h-[400px]">
-                        <div className="p-4 flex items-center justify-between gap-2 text-indigo-600 dark:text-indigo-200 border-b border-border dark:border-white/5 bg-white/80 dark:bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
+                        <div className="p-4 flex items-center justify-between gap-2 text-primary border-b border-border dark:border-white/5 bg-white/80 dark:bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
                             <div className="flex items-center gap-2">
                                 <History className="w-4 h-4" />
                                 <h2 className="font-semibold tracking-wide text-xs md:text-sm">Recent History</h2>
                             </div>
-                            <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
                                 {generationHistory.length}
                             </span>
                         </div>
@@ -587,12 +577,12 @@ export default function TTSTool() {
                                 </div>
                             ) : (
                                 generationHistory.map((item) => (
-                                    <div key={item.id} className="group relative p-3 md:p-4 bg-white dark:bg-zinc-900/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-xl border border-border dark:border-white/5 shadow-sm dark:shadow-none hover:border-indigo-500/30 transition-all">
+                                    <div key={item.id} className="group relative p-3 md:p-4 bg-white dark:bg-zinc-900/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-xl border border-border dark:border-white/5 shadow-sm dark:shadow-none hover:border-primary/30 transition-all">
                                         {/* Header: Timestamp & Voice */}
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex items-center gap-2 overflow-hidden flex-1">
-                                                <div className="w-6 h-6 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
-                                                    <Mic className="w-3 h-3 text-indigo-400" />
+                                                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                                    <Mic className="w-3 h-3 text-primary" />
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 truncate">
@@ -637,7 +627,7 @@ export default function TTSTool() {
                                                 </button>
                                                 <button
                                                     onClick={() => restoreHistoryItem(item)}
-                                                    className="px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 text-[9px] md:text-[10px] font-bold uppercase tracking-wide rounded-lg flex items-center gap-1.5 transition-colors border border-indigo-500/20"
+                                                    className="px-2 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-[9px] md:text-[10px] font-bold uppercase tracking-wide rounded-lg flex items-center gap-1.5 transition-colors border border-primary/20"
                                                 >
                                                     <RotateCcw className="w-3 h-3" />
                                                     <span className="hidden sm:inline">Restore</span>

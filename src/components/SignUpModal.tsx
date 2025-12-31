@@ -101,7 +101,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                 {/* Name Field */}
                                 <div className="space-y-2">
                                     <label htmlFor="name" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <User className="w-4 h-4 text-indigo-500" />
+                                        <User className="w-4 h-4 text-primary" />
                                         Full Name
                                     </label>
                                     <input
@@ -111,14 +111,14 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="John Doe"
                                         required
-                                        className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
+                                        className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder-muted-foreground"
                                     />
                                 </div>
 
                                 {/* Email Field */}
                                 <div className="space-y-2">
                                     <label htmlFor="signup-email" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <Mail className="w-4 h-4 text-indigo-500" />
+                                        <Mail className="w-4 h-4 text-primary" />
                                         Email Address
                                     </label>
                                     <input
@@ -128,14 +128,14 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="you@example.com"
                                         required
-                                        className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
+                                        className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder-muted-foreground"
                                     />
                                 </div>
 
                                 {/* Password Field */}
                                 <div className="space-y-2">
                                     <label htmlFor="signup-password" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <Lock className="w-4 h-4 text-indigo-500" />
+                                        <Lock className="w-4 h-4 text-primary" />
                                         Password
                                     </label>
                                     <div className="relative">
@@ -147,7 +147,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                             placeholder="••••••••"
                                             required
                                             minLength={8}
-                                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
+                                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder-muted-foreground"
                                         />
                                         <button
                                             type="button"
@@ -162,7 +162,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                 {/* Confirm Password Field */}
                                 <div className="space-y-2">
                                     <label htmlFor="confirm-password" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <Lock className="w-4 h-4 text-indigo-500" />
+                                        <Lock className="w-4 h-4 text-primary" />
                                         Confirm Password
                                     </label>
                                     <div className="relative">
@@ -174,7 +174,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                             placeholder="••••••••"
                                             required
                                             minLength={8}
-                                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
+                                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder-muted-foreground"
                                         />
                                         <button
                                             type="button"
@@ -197,11 +197,11 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full btn bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+                                    className="w-full btn bg-primary hover:opacity-90 text-primary-foreground py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
                                 >
                                     {isLoading ? (
                                         <>
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                                             Creating account...
                                         </>
                                     ) : (
@@ -211,13 +211,10 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                             </div>
                         </form>
 
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-border"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
-                            </div>
+                        <div className="flex items-center my-6 gap-4">
+                            <div className="flex-1 border-t border-border"></div>
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">Or continue with</span>
+                            <div className="flex-1 border-t border-border"></div>
                         </div>
 
                         <button
@@ -237,9 +234,9 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
 
                         <p className="text-center text-xs text-muted-foreground mt-4">
                             By signing up, you agree to our{" "}
-                            <button className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition-colors">Terms of Service</button>
+                            <button className="text-primary hover:opacity-80 transition-colors">Terms of Service</button>
                             {" "}and{" "}
-                            <button className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition-colors">Privacy Policy</button>
+                            <button className="text-primary hover:opacity-80 transition-colors">Privacy Policy</button>
                         </p>
 
                         <p className="text-center text-sm text-muted-foreground mt-6">
@@ -247,7 +244,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                             <button
                                 type="button"
                                 onClick={onSwitchToSignIn}
-                                className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 font-medium transition-colors"
+                                className="text-primary hover:opacity-80 font-medium transition-colors"
                             >
                                 Sign in
                             </button>
@@ -268,7 +265,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                 setIsSuccess(false);
                                 onSwitchToSignIn();
                             }}
-                            className="w-full btn bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-500/20"
+                            className="w-full btn bg-primary hover:opacity-90 text-primary-foreground py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-primary/20"
                         >
                             Go to Sign In
                         </button>
@@ -279,7 +276,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
                                     // Optional: logic to resend email
                                     alert("If you didn't receive the email, please try logging in to trigger a new link.");
                                 }}
-                                className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 font-medium transition-colors"
+                                className="text-primary hover:opacity-80 font-medium transition-colors"
                             >
                                 Resend
                             </button>

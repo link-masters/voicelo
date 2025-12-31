@@ -38,7 +38,7 @@ export default async function SharedVoicePage({ params }: Props) {
                 </div>
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Voice Not Found</h1>
                 <p className="text-zinc-500 mb-8 text-center max-w-md">The voice you're looking for doesn't exist or has been made private.</p>
-                <Link href="/" className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold transition-all">
+                <Link href="/" className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-bold transition-all shadow-lg shadow-primary/20">
                     Go Home
                 </Link>
             </div>
@@ -50,17 +50,17 @@ export default async function SharedVoicePage({ params }: Props) {
     const date = new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] selection:bg-primary/30">
             {/* Background Decorations */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
             </div>
 
             <main className="relative z-10 container mx-auto px-6 py-20 lg:py-32 flex flex-col items-center">
                 {/* Logo Link */}
                 <Link href="/" className="mb-12 group flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                         <Zap className="w-6 h-6 fill-current" />
                     </div>
                     <span className="text-xl font-black tracking-tighter text-zinc-900 dark:text-white uppercase">VoiceLo</span>
@@ -92,7 +92,7 @@ export default async function SharedVoicePage({ params }: Props) {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400 font-medium tracking-tight">
-                                    <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] text-white font-bold">
+                                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-bold">
                                         {creator.charAt(0).toUpperCase()}
                                     </div>
                                     <span>Created by @{creator}</span>
@@ -129,7 +129,7 @@ export default async function SharedVoicePage({ params }: Props) {
                                         <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Community Likes</span>
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <div className="flex items-center gap-2 text-indigo-500">
+                                        <div className="flex items-center gap-2 text-primary">
                                             <Mic className="w-5 h-5" />
                                             <span className="text-2xl font-black tabular-nums">{uses}</span>
                                         </div>
@@ -147,7 +147,7 @@ export default async function SharedVoicePage({ params }: Props) {
 
                     {/* Footer Info */}
                     <p className="mt-8 text-center text-sm text-zinc-500 dark:text-zinc-500">
-                        Generated and shared via VoiceLo Neural Engine. <Link href="/" className="text-indigo-500 font-bold hover:underline">Join the community</Link>
+                        Generated and shared via VoiceLo Neural Engine. <Link href="/" className="text-primary font-bold hover:underline">Join the community</Link>
                     </p>
                 </div>
             </main>

@@ -36,19 +36,19 @@ export default function BillingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
                     <div className="flex items-center gap-2 text-zinc-500 text-sm font-medium">
-                        <Shield className="w-4 h-4 text-indigo-500" /> Current Plan
+                        <Shield className="w-4 h-4 text-primary" /> Current Plan
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-xl font-bold text-zinc-900 dark:text-white">{plan}</span>
-                        {isPro && <Crown className="w-4 h-4 text-indigo-500 fill-indigo-500" />}
+                        {isPro && <Crown className="w-4 h-4 text-primary fill-primary" />}
                     </div>
                 </div>
 
                 <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
                     <div className="flex items-center gap-2 text-zinc-500 text-sm font-medium">
-                        <Zap className="w-4 h-4 text-indigo-400 fill-indigo-400" /> Available Credits
+                        <Zap className="w-4 h-4 text-primary fill-primary/20" /> Available Credits
                     </div>
-                    <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{creditsTotal.toLocaleString()}</span>
+                    <span className="text-2xl font-black text-primary">{creditsTotal.toLocaleString()}</span>
                 </div>
 
                 <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3">
@@ -57,10 +57,10 @@ export default function BillingPage() {
                             <Clock className="w-4 h-4 text-zinc-400" /> Cycle End
                         </div>
                         <div className="group relative">
-                            <Info className="w-4 h-4 text-zinc-400 cursor-help hover:text-indigo-500 transition-colors" />
+                            <Info className="w-4 h-4 text-zinc-400 cursor-help hover:text-primary transition-colors" />
                             <div className="absolute top-full right-0 mt-3 w-80 p-5 bg-zinc-900 dark:bg-zinc-800 text-white text-sm rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] border border-white/10 leading-relaxed origin-top-right">
                                 <p className="mb-2">
-                                    Only the <span className="text-indigo-400 font-bold underline underline-offset-4 decoration-indigo-500/30">latest transaction</span> defines your active billing cycle.
+                                    Only the <span className="text-primary font-bold underline underline-offset-4 decoration-primary/30">latest transaction</span> defines your active billing cycle.
                                 </p>
                                 <p className="text-zinc-400 dark:text-zinc-400">
                                     While credits from all previous purchases remain usable, their individual cycles do not stack or extend the main expiration date.
@@ -76,7 +76,7 @@ export default function BillingPage() {
                 <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-border dark:border-white/5 p-6 shadow-sm flex flex-col gap-3 items-center justify-center">
                     <button
                         onClick={() => setIsPricingModalOpen(true)}
-                        className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 text-sm"
+                        className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95 text-sm"
                     >
                         Buy Credits
                     </button>
@@ -87,7 +87,7 @@ export default function BillingPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                        <CreditCard className="w-5 h-5 text-indigo-500" /> Transaction History
+                        <CreditCard className="w-5 h-5 text-primary" /> Transaction History
                     </h2>
                 </div>
 
@@ -111,14 +111,14 @@ export default function BillingPage() {
                                             <tr key={tx.id || idx} className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.01] transition-colors group">
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                                             <Zap className="w-5 h-5" />
                                                         </div>
                                                         <span className="font-bold text-zinc-900 dark:text-white">{tx.packageName}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
-                                                    <span className="font-black text-indigo-600 dark:text-indigo-400">+{tx.creditsAllotted?.toLocaleString()}</span>
+                                                    <span className="font-black text-primary">+{tx.creditsAllotted?.toLocaleString()}</span>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
                                                     <span className="text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">

@@ -39,8 +39,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             `}>
                 <div className="p-6 h-20 flex items-center justify-between border-b border-border dark:border-white/5">
                     <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity" onClick={onClose}>
-                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                            <Mic className="w-5 h-5 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                            <Mic className="w-5 h-5 text-primary-foreground" />
                         </div>
                         <span className="font-bold text-xl tracking-tight text-zinc-900 dark:text-white transition-colors">VoiceLo</span>
                     </Link>
@@ -64,7 +64,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             href="/dashboard"
                             onClick={onClose}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard')
-                                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
+                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                 }`}
                         >
@@ -84,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             href="/dashboard/text-to-speech"
                             onClick={onClose}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/text-to-speech')
-                                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
+                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                 }`}
                         >
@@ -110,7 +110,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     if (isActive('/dashboard/voice-clone')) onClose?.();
                                 }}
                                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-all ${isActive('/dashboard/voice-clone')
-                                    ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
+                                    ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                     }`}
                             >
@@ -126,7 +126,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     e.preventDefault();
                                     setIsCloneMenuOpen(!isCloneMenuOpen);
                                 }}
-                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isCloneMenuOpen ? 'text-indigo-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isCloneMenuOpen ? 'text-primary' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
                             >
                                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCloneMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
@@ -139,7 +139,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     href="/dashboard/voice-clone"
                                     onClick={onClose}
                                     className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/voice-clone')
-                                        ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/5'
+                                        ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
@@ -149,7 +149,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     href="/dashboard/my-voices"
                                     onClick={onClose}
                                     className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/my-voices')
-                                        ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/5'
+                                        ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
@@ -182,13 +182,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     if (isActive('/dashboard/influencer-program')) onClose?.();
                                 }}
                                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-all ${isActive('/dashboard/influencer-program')
-                                    ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
+                                    ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
                                     <TrendingUp className={`w-5 h-5 transition-transform ${isActive('/dashboard/influencer-program') ? 'scale-110' : 'group-hover:scale-110'}`} />
-                                    <span>Influencer Hub</span>
+                                    <span>Influencer Program</span>
                                 </div>
                             </Link>
 
@@ -198,7 +198,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     e.preventDefault();
                                     setIsEarningsMenuOpen(!isEarningsMenuOpen);
                                 }}
-                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isEarningsMenuOpen ? 'text-indigo-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isEarningsMenuOpen ? 'text-primary' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
                             >
                                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isEarningsMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
@@ -211,7 +211,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     href="/dashboard/influencer-program"
                                     onClick={onClose}
                                     className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/influencer-program')
-                                        ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/5'
+                                        ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
@@ -221,7 +221,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     href="/dashboard/influencer-program/verify"
                                     onClick={onClose}
                                     className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/influencer-program/verify')
-                                        ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/5'
+                                        ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
@@ -257,7 +257,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             href="/dashboard/settings"
                             onClick={onClose}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/settings')
-                                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-sm'
+                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                 }`}
                         >

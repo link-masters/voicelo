@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
             {/* Header / Cover */}
             <div className="relative rounded-[2.5rem] overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 shadow-sm group">
-                <div className="h-48 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-90 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="h-48 bg-gradient-to-r from-primary via-blue-600 to-primary/80 opacity-90 group-hover:opacity-100 transition-opacity duration-500">
                     <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-30 mix-blend-overlay"></div>
                 </div>
 
@@ -56,7 +56,7 @@ export default function ProfilePage() {
                                     <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/5">
                                         <Mail className="w-3.5 h-3.5" /> {user?.email}
                                     </span>
-                                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
+                                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
                                         <Shield className="w-3.5 h-3.5" /> {plan}
                                     </span>
                                 </div>
@@ -71,7 +71,7 @@ export default function ProfilePage() {
                         <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/5 flex flex-col gap-1">
                             <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Member Since</p>
                             <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-semibold">
-                                <Calendar className="w-4 h-4 text-indigo-500" />
+                                <Calendar className="w-4 h-4 text-primary" />
                                 {joinDate}
                             </div>
                         </div>
@@ -104,7 +104,7 @@ export default function ProfilePage() {
                 {/* Account Settings */}
                 <div className="lg:col-span-2 space-y-6">
                     <h2 className="text-xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
-                        <User className="w-5 h-5 text-indigo-500" /> Account Management
+                        <User className="w-5 h-5 text-primary" /> Account Management
                     </h2>
 
                     <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden">
@@ -115,9 +115,9 @@ export default function ProfilePage() {
                                     <input
                                         type="text"
                                         defaultValue={user?.name || ""}
-                                        className="flex-1 bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                        className="flex-1 bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                                     />
-                                    <button className="px-6 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors">
+                                    <button className="px-6 py-3 rounded-xl bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors">
                                         Update
                                     </button>
                                 </div>
@@ -155,19 +155,19 @@ export default function ProfilePage() {
 
                 {/* Sidebar Cards */}
                 <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group">
+                    <div className="bg-gradient-to-br from-primary to-blue-700 rounded-3xl p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-700"></div>
                         <div className="relative z-10">
                             <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6">
                                 <Zap className="w-6 h-6 text-white" />
                             </div>
                             <h3 className="text-xl font-bold mb-2">Get More Credits</h3>
-                            <p className="text-indigo-100 mb-6 text-sm leading-relaxed">
+                            <p className="text-primary-foreground/90 mb-6 text-sm leading-relaxed">
                                 Running low? Top up your account with high-quality synthesis credits.
                             </p>
                             <button
                                 onClick={() => setIsPricingModalOpen(true)}
-                                className="w-full py-3 rounded-xl bg-white text-indigo-600 font-bold hover:bg-indigo-50 transition-colors shadow-lg"
+                                className="w-full py-3 rounded-xl bg-white text-primary font-bold hover:bg-zinc-50 transition-colors shadow-lg"
                             >
                                 Top Up Now
                             </button>
@@ -176,12 +176,12 @@ export default function ProfilePage() {
 
                     <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 p-6">
                         <h3 className="font-semibold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-indigo-500" /> Recent Activity
+                            <Zap className="w-4 h-4 text-primary" /> Recent Activity
                         </h3>
                         <div className="space-y-4">
                             {[1, 2, 3].map((i) => (
                                 <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors group cursor-pointer">
-                                    <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                         <Zap className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1 min-w-0">

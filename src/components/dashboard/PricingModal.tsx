@@ -42,7 +42,7 @@ const planConfigs: Record<string, any> = {
     },
     "turbo_pack": {
         icon: Rocket,
-        color: "indigo",
+        color: "primary",
         popular: true,
         features: [
             "50,000 Credits",
@@ -83,7 +83,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                     const mappedPlans = data.map((plan: any) => {
                         const config = planConfigs[plan.productName?.toLowerCase()] || {
                             icon: Star,
-                            color: "indigo",
+                            color: "primary",
                             features: ["Premium Access", "Cloud Storage", "Priority Support"]
                         };
 
@@ -156,7 +156,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
     const colorStyles: Record<string, string> = {
         zinc: "bg-zinc-50 dark:bg-zinc-500/10 text-zinc-600 dark:text-zinc-400",
         amber: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400",
-        indigo: "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+        primary: "bg-primary/10 text-primary",
         purple: "bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400",
     };
 
@@ -172,7 +172,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                     <div className="text-center mb-12">
                         <h2 className="text-4xl font-bold text-zinc-900 dark:text-white mb-4">Choose Your Plan</h2>
                         {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && (
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-4 border border-indigo-500/20">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4 border border-primary/20">
                                 <Zap className="w-3 h-3" />
                                 Special Offer Applied: {urlDiscount}
                             </div>
@@ -185,7 +185,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                     <div className="flex flex-wrap justify-center gap-8">
                         {fetching ? (
                             <div className="w-full flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 animate-spin text-indigo-500" />
+                                <Loader2 className="w-12 h-12 animate-spin text-primary" />
                             </div>
                         ) : plans.length === 0 ? (
                             <div className="w-full text-center py-20">
@@ -196,17 +196,17 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                 <div
                                     key={plan.name}
                                     className={`relative group p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-white dark:bg-zinc-900 border transition-all duration-500 hover:scale-[1.02] ${plan.popular
-                                        ? "border-indigo-500 dark:border-indigo-500/50 shadow-2xl shadow-indigo-500/10"
+                                        ? "border-primary shadow-2xl shadow-primary/10"
                                         : "border-border dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10"
                                         }`}
                                 >
                                     {plan.popular && (
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-indigo-500 text-white text-xs font-bold rounded-full tracking-wider uppercase">
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase">
                                             Most Popular
                                         </div>
                                     )}
 
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 mx-auto ${colorStyles[plan.color] || colorStyles.indigo}`}>
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 mx-auto ${colorStyles[plan.color] || colorStyles.primary}`}>
                                         <plan.icon className="w-6 h-6" />
                                     </div>
 
@@ -254,7 +254,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                         className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${plan.variantId === "free"
                                             ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-border dark:border-zinc-700"
                                             : plan.popular
-                                                ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25"
+                                                ? "bg-primary hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/25"
                                                 : "bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white"
                                             }`}
                                     >

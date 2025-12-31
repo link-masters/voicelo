@@ -40,7 +40,7 @@ export const WelcomeEmail = ({ userName }: WelcomeEmailProps) => {
                             </Text>
                             <Section className="my-8 text-center">
                                 <Button
-                                    className="bg-indigo-600 rounded text-white text-[16px] font-semibold no-underline text-center px-6 py-3"
+                                    className="bg-blue-600 rounded text-white text-[16px] font-semibold no-underline text-center px-6 py-3"
                                     href="https://voicelo.app/dashboard"
                                 >
                                     Go to Dashboard

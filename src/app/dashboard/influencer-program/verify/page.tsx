@@ -134,7 +134,7 @@ export default function VerifyPage() {
                 </div>
 
                 {/* Info Card */}
-                <div className="p-8 bg-indigo-600 rounded-[2.5rem] text-white flex flex-col justify-between shadow-xl relative overflow-hidden group">
+                <div className="p-8 bg-primary rounded-[2.5rem] text-primary-foreground flex flex-col justify-between shadow-xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-20 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-110 transition-transform duration-700"></div>
                     <div className="relative z-10">
                         <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6">
@@ -146,13 +146,13 @@ export default function VerifyPage() {
                                 <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
                                     <div className="w-2 h-2 bg-white rounded-full"></div>
                                 </div>
-                                <p className="text-sm text-indigo-100 leading-relaxed">Faster application review and whitelisting.</p>
+                                <p className="text-sm text-primary-foreground/90 leading-relaxed">Faster application review and whitelisting.</p>
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
                                     <div className="w-2 h-2 bg-white rounded-full"></div>
                                 </div>
-                                <p className="text-sm text-indigo-100 leading-relaxed">Access to higher commission rates based on reach.</p>
+                                <p className="text-sm text-primary-foreground/90 leading-relaxed">Access to higher commission rates based on reach.</p>
                             </li>
                         </ul>
                     </div>
@@ -163,8 +163,8 @@ export default function VerifyPage() {
                                 <Search className="w-5 h-5 text-emerald-400" />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-indigo-100 uppercase tracking-widest">Verification Status</p>
-                                <p className="text-sm font-bold text-white">{isAllowed ? 'Whitelisted' : isRequestPending ? 'Under Review' : 'Incomplete'}</p>
+                                <p className="text-xs font-bold text-primary-foreground/80 uppercase tracking-widest">Verification Status</p>
+                                <p className="text-sm font-bold text-white uppercase tracking-widest">{isAllowed ? 'Whitelisted' : isRequestPending ? 'Under Review' : 'Incomplete'}</p>
                             </div>
                         </div>
                     </div>
@@ -174,8 +174,8 @@ export default function VerifyPage() {
             {/* Application Section if not allowed */}
             {!isAllowed && (
                 <div className="p-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 rounded-[3rem] text-center">
-                    <div className="w-20 h-20 bg-indigo-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
-                        <Lock className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+                    <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                        <Lock className="w-10 h-10 text-primary" />
                     </div>
                     <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-4">Request Whitelist Access</h2>
                     <p className="text-zinc-500 dark:text-zinc-400 max-w-lg mx-auto mb-8 leading-relaxed">
@@ -183,7 +183,7 @@ export default function VerifyPage() {
                     </p>
                     <button
                         disabled={!youtubeStats || isRequestPending}
-                        className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                        className="px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-2xl transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
                     >
                         {isRequestPending ? 'Request Pending' : 'Submit Application'}
                         <ArrowRight className="w-5 h-5" />

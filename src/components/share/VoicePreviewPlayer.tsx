@@ -73,8 +73,8 @@ export default function VoicePreviewPlayer({ voiceId, description }: VoicePrevie
                 onClick={handlePreview}
                 disabled={isLoading}
                 className={`group relative flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold uppercase tracking-widest transition-all active:scale-95 shadow-xl ${isPlaying
-                    ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30'
-                    : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-zinc-200 dark:border-white/10 hover:border-indigo-500/50'
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-zinc-200 dark:border-white/10 hover:border-primary/50'
                     }`}
             >
                 {isLoading ? (

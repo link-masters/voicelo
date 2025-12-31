@@ -211,7 +211,7 @@ export default function DiscoverVoices() {
                 <button
                     onClick={() => setSourceFilter('default')}
                     className={`pb-4 text-xs md:text-sm font-bold transition-all relative whitespace-nowrap ${sourceFilter === 'default'
-                        ? 'text-indigo-600 dark:text-indigo-400'
+                        ? 'text-primary'
                         : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
                         }`}
                 >
@@ -220,13 +220,13 @@ export default function DiscoverVoices() {
                         Default Voices
                     </div>
                     {sourceFilter === 'default' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
                     )}
                 </button>
                 <button
                     onClick={() => setSourceFilter('community')}
                     className={`pb-4 text-xs md:text-sm font-bold transition-all relative whitespace-nowrap ${sourceFilter === 'community'
-                        ? 'text-indigo-600 dark:text-indigo-400'
+                        ? 'text-primary'
                         : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
                         }`}
                 >
@@ -235,14 +235,14 @@ export default function DiscoverVoices() {
                         Community Shared
                     </div>
                     {sourceFilter === 'community' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-t-full" />
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
                     )}
                 </button>
 
                 <div className="ml-auto pb-4 shrink-0">
                     <Link
                         href="/dashboard/voice-clone"
-                        className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all"
+                        className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all"
                     >
                         <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         <span className="hidden sm:inline">Clone Your Voice</span>
@@ -263,13 +263,13 @@ export default function DiscoverVoices() {
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
                     <div className="relative group w-full md:w-auto">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500 group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
                             placeholder="Search voices..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="bg-white dark:bg-black/20 border border-border dark:border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 w-full md:w-64 transition-all shadow-sm dark:shadow-none"
+                            className="bg-white dark:bg-black/20 border border-border dark:border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/50 w-full md:w-64 transition-all shadow-sm dark:shadow-none"
                         />
                     </div>
                 </div>
@@ -279,7 +279,7 @@ export default function DiscoverVoices() {
             {
                 loading ? (
                     <div className="flex-1 flex items-center justify-center py-12">
-                        <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full" />
+                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
                     </div>
                 ) : filteredVoices.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 py-12">
@@ -295,12 +295,12 @@ export default function DiscoverVoices() {
                             const creator = voice.creator || (voice.voiceId.includes('__') ? voice.voiceId.split('__')[0] : 'VoiceLo Official');
 
                             return (
-                                <div key={voice.voiceId} className="group relative bg-white dark:bg-zinc-900/40 border border-border dark:border-white/5 hover:border-indigo-500/30 rounded-3xl p-6 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 shadow-sm hover:shadow-xl dark:shadow-none transition-all duration-500 flex flex-col">
+                                <div key={voice.voiceId} className="group relative bg-white dark:bg-zinc-900/40 border border-border dark:border-white/5 hover:border-primary/30 rounded-3xl p-6 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 shadow-sm hover:shadow-xl dark:shadow-none transition-all duration-500 flex flex-col">
 
                                     {isCommunityVisible && (
                                         <div className="flex items-center justify-between mb-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white dark:ring-zinc-800 shadow-lg">
+                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs ring-2 ring-white dark:ring-zinc-800 shadow-lg">
                                                     {creator.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
@@ -324,8 +324,8 @@ export default function DiscoverVoices() {
                                                     handleLike(voice.voiceId);
                                                 }}
                                                 className={`p-2 rounded-full transition-all border group/bookmark ${voice.likedBy?.includes(user?.$id || "")
-                                                    ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20'
-                                                    : 'bg-zinc-100 dark:bg-white/5 text-zinc-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 border-transparent hover:border-indigo-500/20'
+                                                    ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
+                                                    : 'bg-zinc-100 dark:bg-white/5 text-zinc-400 hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/10 border-transparent hover:border-primary/20'
                                                     }`}
                                             >
                                                 <Bookmark className={`w-4 h-4 ${voice.likedBy?.includes(user?.$id || "") ? 'fill-current' : 'group-hover/bookmark:fill-current'}`} />
@@ -336,7 +336,7 @@ export default function DiscoverVoices() {
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-4">
                                             <div>
-                                                <h3 className="font-bold text-lg text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-2">{name}</h3>
+                                                <h3 className="font-bold text-lg text-zinc-900 dark:text-white group-hover:text-primary transition-colors mb-2">{name}</h3>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                                                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-white/5 border border-border dark:border-white/5 text-zinc-500 dark:text-zinc-400">
                                                         <Globe className="w-3 h-3" />
@@ -369,7 +369,7 @@ export default function DiscoverVoices() {
                                     {/* Tags */}
                                     <div className="flex flex-wrap gap-2 mb-6">
                                         {voice.tags?.slice(0, 3).map(tag => (
-                                            <span key={tag} className="text-[10px] px-2.5 py-1 rounded-full bg-indigo-50/50 dark:bg-indigo-500/5 text-indigo-600/70 dark:text-indigo-400/60 border border-indigo-500/10 font-medium">
+                                            <span key={tag} className="text-[10px] px-2.5 py-1 rounded-full bg-primary/5 text-primary/70 border border-primary/10 font-medium">
                                                 #{tag}
                                             </span>
                                         ))}
@@ -412,7 +412,7 @@ export default function DiscoverVoices() {
                                         <button
                                             onClick={() => handlePreview(voice)}
                                             disabled={isPreviewLoading === voice.voiceId}
-                                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${playingVoiceId === voice.voiceId ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30' : ''
+                                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${playingVoiceId === voice.voiceId ? 'bg-primary/10 text-primary border border-primary/20' : ''
                                                 }`}
                                         >
                                             {isPreviewLoading === voice.voiceId ? (
@@ -430,7 +430,7 @@ export default function DiscoverVoices() {
 
                                         <button
                                             onClick={() => handleUseVoice(voice.voiceId)}
-                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/25 active:scale-95"
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:opacity-90 text-primary-foreground rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-primary/25 active:scale-95"
                                         >
                                             <Zap className="w-4 h-4 fill-current" /> Get Voice
                                         </button>

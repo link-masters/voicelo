@@ -223,7 +223,7 @@ const ToastComponent = ({ message, type, onClose }: { message: string, type: Not
     const icons = {
         success: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
         error: <AlertCircle className="w-5 h-5 text-red-500" />,
-        info: <Info className="w-5 h-5 text-indigo-500" />,
+        info: <Info className="w-5 h-5 text-primary" />,
         warning: <AlertTriangle className="w-5 h-5 text-amber-500" />,
         system: <Settings className="w-5 h-5 text-purple-500" />,
     };
@@ -231,7 +231,7 @@ const ToastComponent = ({ message, type, onClose }: { message: string, type: Not
     const backgrounds = {
         success: "bg-white dark:bg-zinc-900 border-emerald-500/20 shadow-emerald-500/10",
         error: "bg-white dark:bg-zinc-900 border-red-500/20 shadow-red-500/10",
-        info: "bg-white dark:bg-zinc-900 border-indigo-500/20 shadow-indigo-500/10",
+        info: "bg-white dark:bg-zinc-900 border-primary/20 shadow-primary/10",
         warning: "bg-white dark:bg-zinc-900 border-amber-500/20 shadow-amber-500/10",
         system: "bg-white dark:bg-zinc-900 border-purple-500/20 shadow-purple-500/10",
     };
@@ -256,7 +256,7 @@ const ToastComponent = ({ message, type, onClose }: { message: string, type: Not
                 <div
                     className={`h-full transition-all duration-linear ${type === 'success' ? 'bg-emerald-500' :
                         type === 'error' ? 'bg-red-500' :
-                            type === 'info' ? 'bg-indigo-500' :
+                            type === 'info' ? 'bg-primary' :
                                 type === 'warning' ? 'bg-amber-500' : 'bg-purple-500'
                         }`}
                     style={{

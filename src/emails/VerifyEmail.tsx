@@ -40,7 +40,7 @@ export const VerifyEmail = ({ userName, verificationUrl }: VerifyEmailProps) => 
                             </Text>
                             <Section className="text-center mb-8">
                                 <Button
-                                    className="bg-indigo-600 rounded-lg text-white text-[14px] font-medium no-underline text-center px-10 py-3.5"
+                                    className="bg-blue-600 rounded-lg text-white text-[14px] font-medium no-underline text-center px-10 py-3.5"
                                     href={verificationUrl}
                                 >
                                     Verify Email
@@ -49,8 +49,8 @@ export const VerifyEmail = ({ userName, verificationUrl }: VerifyEmailProps) => 
                             <Text className="text-gray-500 text-[13px] leading-5 text-center">
                                 Or copy and paste this link into your browser:
                             </Text>
-                            <Text className="text-indigo-600 text-[13px] leading-5 text-center break-all px-4">
-                                <Link href={verificationUrl} className="text-indigo-600 underline">
+                            <Text className="text-blue-600 text-[13px] leading-5 text-center break-all px-4">
+                                <Link href={verificationUrl} className="text-blue-600 underline">
                                     {verificationUrl}
                                 </Link>
                             </Text>

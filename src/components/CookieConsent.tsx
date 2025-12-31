@@ -31,12 +31,12 @@ export default function CookieConsent() {
         <div className="fixed bottom-6 right-6 z-[100] w-[calc(100%-3rem)] sm:w-[400px] pointer-events-none">
             <div className="bg-background/95 backdrop-blur-xl border border-border/50 shadow-[0_15px_40px_rgba(0,0,0,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)] rounded-2xl p-5 pointer-events-auto animate-in fade-in slide-in-from-right-10 duration-500 relative overflow-hidden">
                 {/* Decorative background element */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 blur-2xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl pointer-events-none" />
 
                 <div className="flex flex-col gap-4">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                 <Cookie className="w-5 h-5" />
                             </div>
                             <h3 className="text-base font-bold text-foreground">Cookie Policy</h3>
@@ -51,7 +51,7 @@ export default function CookieConsent() {
 
                     <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
                         We use cookies to enhance your experience and secure your account. By continuing, you agree to our{" "}
-                        <Link href="/cookies" className="text-indigo-500 hover:underline font-medium decoration-2 underline-offset-4">
+                        <Link href="/cookies" className="text-primary hover:underline font-medium decoration-2 underline-offset-4">
                             Cookie Policy
                         </Link>.
                     </p>
@@ -65,7 +65,7 @@ export default function CookieConsent() {
                         </button>
                         <button
                             onClick={handleAccept}
-                            className="flex-1 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition-all outline-none"
+                            className="flex-1 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 hover:shadow-lg hover:shadow-primary/20 active:scale-95 transition-all outline-none"
                         >
                             Accept
                         </button>

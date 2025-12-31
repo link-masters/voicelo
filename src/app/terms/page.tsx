@@ -4,10 +4,10 @@ import Footer from "@/components/Footer";
 
 export default function TermsOfService() {
     return (
-        <div className="min-h-screen text-foreground selection:bg-indigo-500/30 font-sans text-base leading-relaxed">
+        <div className="min-h-screen text-foreground selection:bg-primary/30 font-sans text-base leading-relaxed">
             {/* Background Ambience */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-indigo-500/20 rounded-full blur-[120px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-primary/20 rounded-full blur-[120px]" />
                 <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] bg-slate-50 dark:bg-blue-500/10 rounded-full blur-[100px]" />
                 <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03] dark:opacity-20" />
             </div>
@@ -55,15 +55,15 @@ export default function TermsOfService() {
                                 </p>
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500">•</span>
+                                        <span className="text-primary">•</span>
                                         <span>Credits are consumed based on the length of the text processed.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500">•</span>
+                                        <span className="text-primary">•</span>
                                         <span>Credits are non-transferable and have no cash value.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500">•</span>
+                                        <span className="text-primary">•</span>
                                         <span>We reserve the right to change our pricing at any time.</span>
                                     </li>
                                 </ul>
@@ -102,7 +102,7 @@ export default function TermsOfService() {
                             </section>
 
                             <section className="space-y-6">
-                                <div className="p-1 px-4 rounded-full bg-indigo-500/10 border border-indigo-500/20 w-fit text-indigo-500 text-xs font-bold uppercase tracking-widest">
+                                <div className="p-1 px-4 rounded-full bg-primary/10 border border-primary/20 w-fit text-primary text-xs font-bold uppercase tracking-widest">
                                     Special Addendum
                                 </div>
                                 <h2 className="text-2xl font-bold text-foreground">6. Voice Cloning Policy</h2>
@@ -111,19 +111,19 @@ export default function TermsOfService() {
                                 </p>
                                 <ul className="space-y-4 text-muted-foreground">
                                     <li className="flex gap-3">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                         <span><strong className="text-foreground">Right to Clone:</strong> You must own the rights to the voice you are cloning or have explicit, written consent from the individual whose voice is being cloned.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                         <span><strong className="text-foreground">Ethical Use:</strong> You agree not to use cloned voices to deceive, defraud, or harass individuals. This includes but is not limited to creating "Deepfakes" for misinformation.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                         <span><strong className="text-foreground">Biometric Data:</strong> You acknowledge that voice cloning involves the processing of biometric indicators. We handle this data with extreme care as outlined in our Privacy Policy.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                         <span><strong className="text-foreground">Indemnification:</strong> You agree to indemnify and hold VoiceLo harmless from any legal claims arising from your use of a cloned voice without proper authorization.</span>
                                     </li>
                                 </ul>
@@ -136,12 +136,12 @@ export default function TermsOfService() {
                                 </p>
                             </section>
 
-                            <section className="space-y-4 p-8 rounded-3xl bg-indigo-500/5 border border-indigo-500/10">
+                            <section className="space-y-4 p-8 rounded-3xl bg-primary/5 border border-primary/10">
                                 <h2 className="text-2xl font-bold text-foreground">8. Contact Us</h2>
                                 <p className="text-muted-foreground">
                                     For legal inquiries or questions regarding these terms:
                                 </p>
-                                <p className="text-indigo-500 font-semibold text-lg">legal@voicelo.com</p>
+                                <p className="text-primary font-semibold text-lg">legal@voicelo.com</p>
                             </section>
                         </div>
                     </div>

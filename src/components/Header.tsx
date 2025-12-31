@@ -46,8 +46,8 @@ export default function Header() {
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
-                            <Mic className="w-6 h-6 text-white" />
+                        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-300">
+                            <Mic className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <span className="font-bold text-2xl tracking-tight text-foreground">VoiceLo</span>
                     </Link>
@@ -64,7 +64,7 @@ export default function Header() {
                                         }`}
                                 >
                                     {link.name}
-                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-300 ease-in-out ${isActive ? "w-full" : "w-0 group-hover:w-full group-focus-visible:w-full"
+                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary rounded-full transition-all duration-300 ease-in-out ${isActive ? "w-full" : "w-0 group-hover:w-full group-focus-visible:w-full"
                                         }`} />
                                 </Link>
                             );
@@ -97,7 +97,7 @@ export default function Header() {
                         ) : (
                             <button
                                 onClick={() => setSignInModalOpen(true)}
-                                className="hidden md:block px-6 py-2.5 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
+                                className="hidden md:block px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-all shadow-lg shadow-primary/20"
                             >
                                 Sign In
                             </button>
@@ -127,7 +127,7 @@ export default function Header() {
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
                                     {link.name}
-                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"
+                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary rounded-full transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"
                                         }`} />
                                 </Link>
                             );
@@ -148,7 +148,7 @@ export default function Header() {
                                         setSignInModalOpen(true);
                                         setMobileMenuOpen(false);
                                     }}
-                                    className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold"
+                                    className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-bold"
                                 >
                                     Sign In
                                 </button>

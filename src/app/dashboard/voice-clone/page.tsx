@@ -176,8 +176,8 @@ export default function VoiceClonePage() {
             {/* Header Section */}
             <div className="flex flex-col gap-2">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center shrink-0">
-                        <Mic className="w-5 h-5 text-indigo-500" />
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Mic className="w-5 h-5 text-primary" />
                     </div>
                     Voice Cloning
                 </h1>
@@ -203,7 +203,7 @@ export default function VoiceClonePage() {
                                     value={formData.displayName}
                                     onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                                     disabled={isSubmitting}
-                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium disabled:opacity-50 text-sm"
+                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium disabled:opacity-50 text-sm"
                                 />
                             </div>
 
@@ -214,10 +214,10 @@ export default function VoiceClonePage() {
                                         type="button"
                                         onClick={() => !isSubmitting && setIsLangDropdownOpen(!isLangDropdownOpen)}
                                         disabled={isSubmitting}
-                                        className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white flex items-center justify-between hover:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium disabled:opacity-50 text-sm"
+                                        className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white flex items-center justify-between hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium disabled:opacity-50 text-sm"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <Globe className="w-4 h-4 text-indigo-500" />
+                                            <Globe className="w-4 h-4 text-primary" />
                                             <div className="flex items-center gap-2">
                                                 <span className={!selectedLanguage ? 'text-zinc-400' : ''}>
                                                     {selectedLanguage ? selectedLanguage.label : 'Select Language'}
@@ -240,7 +240,7 @@ export default function VoiceClonePage() {
                                                             setIsLangDropdownOpen(false);
                                                         }}
                                                         className={`w-full px-5 py-3 text-left flex items-center justify-between transition-colors ${formData.langCode === lang.code
-                                                            ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                                                            ? 'bg-primary/10 text-primary'
                                                             : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5'
                                                             }`}
                                                     >
@@ -264,7 +264,7 @@ export default function VoiceClonePage() {
                                     value={formData.description}
                                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                     disabled={isSubmitting}
-                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium resize-none disabled:opacity-50 text-sm"
+                                    className="w-full bg-white dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-2xl py-3 md:py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium resize-none disabled:opacity-50 text-sm"
                                 />
                             </div>
 
@@ -279,7 +279,7 @@ export default function VoiceClonePage() {
                                             : 'bg-white dark:bg-black/20 border-zinc-200 dark:border-white/10 text-zinc-400 hover:border-zinc-300 dark:hover:border-white/20'
                                             }`}
                                     >
-                                        <div className={`w-2 h-2 rounded-full ${formData.gender === 'MALE' ? 'bg-blue-500 animate-pulse' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                                        <div className={`w-2 h-2 rounded-full ${formData.gender === 'MALE' ? 'bg-primary animate-pulse' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                                         Male
                                     </button>
                                     <button
@@ -297,10 +297,10 @@ export default function VoiceClonePage() {
                             </div>
 
                             {/* Public Choice */}
-                            <div className="p-4 md:p-5 rounded-[2rem] border border-zinc-200 dark:border-white/5 bg-indigo-50/30 dark:bg-indigo-500/5 space-y-3">
+                            <div className="p-4 md:p-5 rounded-[2rem] border border-zinc-200 dark:border-white/5 bg-primary/5 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center text-indigo-500 shadow-sm shrink-0">
+                                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center text-primary shadow-sm shrink-0">
                                             <Globe className="w-5 h-5" />
                                         </div>
                                         <div>
@@ -311,14 +311,14 @@ export default function VoiceClonePage() {
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, isPublic: !prev.isPublic }))}
-                                        className={`w-11 h-5.5 rounded-full transition-all relative shrink-0 ${formData.isPublic ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                                        className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${formData.isPublic ? 'bg-primary' : 'bg-zinc-300 dark:bg-zinc-700'}`}
                                     >
-                                        <div className={`absolute top-0.75 w-4 h-4 rounded-full bg-white transition-all ${formData.isPublic ? 'left-6.25' : 'left-0.75'}`} />
+                                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${formData.isPublic ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
                                 {formData.isPublic && (
-                                    <div className="p-3 bg-white/50 dark:bg-black/20 rounded-xl border border-indigo-500/10">
-                                        <p className="text-[10px] leading-relaxed text-indigo-600/80 dark:text-indigo-400/80 italic text-center">
+                                    <div className="p-3 bg-white/50 dark:bg-black/20 rounded-xl border border-primary/10">
+                                        <p className="text-[10px] leading-relaxed text-primary/80 italic text-center">
                                             "Public voices appear in the Community Shared tab for all users to discover and use."
                                         </p>
                                     </div>
@@ -354,7 +354,7 @@ export default function VoiceClonePage() {
                             </div>
                         </div>
                         <div className="p-5 rounded-3xl border border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/20 flex gap-3">
-                            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 h-fit shrink-0">
+                            <div className="p-2 rounded-xl bg-primary/10 text-primary h-fit shrink-0">
                                 <AlertCircle className="w-4 h-4" />
                             </div>
                             <div className="space-y-0.5">
@@ -374,7 +374,7 @@ export default function VoiceClonePage() {
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
                             onClick={() => !isSubmitting && fileInputRef.current?.click()}
-                            className="glass-panel rounded-[2.5rem] p-8 md:p-16 border-2 border-dashed border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/30 flex flex-col items-center justify-center text-center gap-6 md:gap-8 group hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all duration-500 cursor-pointer min-h-[300px] md:min-h-[400px]"
+                            className="glass-panel rounded-[2.5rem] p-8 md:p-16 border-2 border-dashed border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/30 flex flex-col items-center justify-center text-center gap-6 md:gap-8 group hover:border-primary/50 hover:bg-primary/5 transition-all duration-500 cursor-pointer min-h-[300px] md:min-h-[400px]"
                         >
                             <input
                                 type="file"
@@ -384,7 +384,7 @@ export default function VoiceClonePage() {
                                 accept="audio/*"
                             />
 
-                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-indigo-600/10 flex items-center justify-center text-zinc-400 group-hover:text-indigo-500 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-2xl shadow-indigo-500/5">
+                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-zinc-400 group-hover:text-primary group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-2xl shadow-primary/5">
                                 <Upload className="w-8 h-8 md:w-10 md:h-10" />
                             </div>
 
@@ -467,7 +467,7 @@ export default function VoiceClonePage() {
                                 type="checkbox"
                                 checked={hasAgreed}
                                 onChange={(e) => setHasAgreed(e.target.checked)}
-                                className="w-4.5 h-4.5 rounded border-zinc-300 dark:border-white/10 text-indigo-600 focus:ring-indigo-500/50 bg-white dark:bg-black/20 transition-all cursor-pointer"
+                                className="w-4.5 h-4.5 rounded border-zinc-300 dark:border-white/10 text-primary focus:ring-primary/50 bg-white dark:bg-black/20 transition-all cursor-pointer"
                             />
                         </div>
                         <label htmlFor="agreement" className="text-[10px] md:text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400 cursor-pointer select-none">
@@ -478,7 +478,7 @@ export default function VoiceClonePage() {
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting || !formData.audioData || !formData.displayName || !hasAgreed || !formData.langCode}
-                        className={`w-full sm:w-fit mx-auto group relative h-14 md:h-16 flex items-center justify-center gap-3 px-10 rounded-2xl md:rounded-[1.5rem] text-xs font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-indigo-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/25'
+                        className={`w-full sm:w-fit mx-auto group relative h-14 md:h-16 flex items-center justify-center gap-3 px-10 rounded-2xl md:rounded-[1.5rem] text-xs font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-primary text-primary-foreground' : 'bg-primary text-primary-foreground shadow-xl shadow-primary/25'
                             }`}
                     >
                         {isSubmitting ? (

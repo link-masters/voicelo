@@ -152,8 +152,8 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                 <div className="flex items-center justify-between p-8 border-b border-border dark:border-white/5">
                     <div>
                         <h2 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
-                                <Mic className="w-5 h-5 text-indigo-500" />
+                            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                <Mic className="w-5 h-5 text-primary" />
                             </div>
                             Clone New Voice
                         </h2>
@@ -183,7 +183,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                 onDragOver={handleDragOver}
                                 onDrop={handleDrop}
                                 onClick={() => fileInputRef.current?.click()}
-                                className="group relative border-2 border-dashed border-border dark:border-white/10 rounded-[32px] p-12 flex flex-col items-center justify-center text-center hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-all cursor-pointer"
+                                className="group relative border-2 border-dashed border-border dark:border-white/10 rounded-[32px] p-12 flex flex-col items-center justify-center text-center hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
                             >
                                 <input
                                     type="file"
@@ -199,7 +199,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                 <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Upload Audio Sample</h3>
                                 <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed">
                                     Drag and drop your audio file or click to browse.<br />
-                                    <span className="text-indigo-500 font-medium">Recommended: 10-15 seconds of clear audio.</span>
+                                    <span className="text-primary font-medium">Recommended: 10-15 seconds of clear audio.</span>
                                 </p>
 
                                 <div className="mt-8 flex items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
@@ -219,7 +219,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                         placeholder="e.g. My Custom Voice"
                                         value={formData.displayName}
                                         onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium"
                                     />
                                 </div>
 
@@ -229,7 +229,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                         <select
                                             value={formData.langCode}
                                             onChange={(e) => setFormData(prev => ({ ...prev, langCode: e.target.value }))}
-                                            className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                                            className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium"
                                         >
                                             {LANGUAGES.map(lang => (
                                                 <option key={lang.code} value={lang.code}>{lang.label}</option>
@@ -246,14 +246,14 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                         rows={3}
                                         value={formData.description}
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium resize-none"
+                                        className="w-full bg-zinc-50 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl py-3.5 px-5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium resize-none"
                                     />
                                 </div>
 
                                 <div className="p-4 bg-zinc-50 dark:bg-white/5 rounded-2xl border border-border dark:border-white/10 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                                            <Music className="w-5 h-5 text-indigo-500" />
+                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                            <Music className="w-5 h-5 text-primary" />
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold text-zinc-900 dark:text-white">{formData.fileName}</p>
@@ -262,7 +262,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                                     </div>
                                     <button
                                         onClick={() => setStep(1)}
-                                        className="text-xs font-bold text-zinc-400 hover:text-indigo-500 transition-colors uppercase"
+                                        className="text-xs font-bold text-zinc-400 hover:text-primary transition-colors uppercase"
                                     >
                                         Change
                                     </button>
@@ -285,7 +285,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                     <button
                         onClick={handleSubmit}
                         disabled={step === 1 || isSubmitting || !formData.displayName}
-                        className={`relative group h-14 min-w-[160px] flex items-center justify-center gap-3 px-8 rounded-2xl text-sm font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-indigo-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25'
+                        className={`relative group h-14 min-w-[160px] flex items-center justify-center gap-3 px-8 rounded-2xl text-sm font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-primary text-primary-foreground' : 'bg-primary hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/25'
                             }`}
                     >
                         {isSubmitting ? (

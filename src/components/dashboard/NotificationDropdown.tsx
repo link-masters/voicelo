@@ -60,8 +60,8 @@ export default function NotificationDropdown() {
             case "success": return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
             case "error": return <AlertCircle className="w-4 h-4 text-red-500" />;
             case "warning": return <AlertTriangle className="w-4 h-4 text-amber-500" />;
-            case "info": return <Info className="w-4 h-4 text-indigo-500" />;
-            case "system": return <Settings className="w-4 h-4 text-purple-500" />;
+            case "info": return <Info className="w-4 h-4 text-primary" />;
+            case "system": return <Settings className="w-4 h-4 text-secondary-foreground" />;
             default: return <Bell className="w-4 h-4 text-zinc-500" />;
         }
     };
@@ -72,8 +72,8 @@ export default function NotificationDropdown() {
             case "success": return "bg-emerald-500/10 border-emerald-500/20";
             case "error": return "bg-red-500/10 border-red-500/20";
             case "warning": return "bg-amber-500/10 border-amber-500/20";
-            case "info": return "bg-indigo-500/10 border-indigo-500/20";
-            case "system": return "bg-purple-500/10 border-purple-500/20";
+            case "info": return "bg-primary/10 border-primary/20";
+            case "system": return "bg-secondary border-border shadow-sm";
             default: return "bg-zinc-500/10 border-zinc-500/20";
         }
     };
@@ -84,7 +84,7 @@ export default function NotificationDropdown() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`relative p-2.5 rounded-full transition-all duration-300 group ${isOpen
-                    ? 'bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400'
+                    ? 'bg-primary/10 text-primary'
                     : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5'
                     }`}
             >
@@ -109,7 +109,7 @@ export default function NotificationDropdown() {
                             {unreadCount > 0 && (
                                 <button
                                     onClick={() => markAllAsRead()}
-                                    className="p-2 text-zinc-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-500/5"
+                                    className="p-2 text-zinc-400 hover:text-primary transition-colors rounded-lg hover:bg-primary/5"
                                     title="Mark all as read"
                                 >
                                     <Check className="w-4 h-4" />
@@ -137,7 +137,7 @@ export default function NotificationDropdown() {
                                             if (!notif.read) markAsRead(notif.id);
                                         }}
                                         className={`group relative p-5 transition-all duration-300 cursor-pointer border-b border-zinc-100 dark:border-white/5 last:border-0 ${!notif.read
-                                            ? 'bg-indigo-500/[0.03] dark:bg-indigo-500/[0.05] hover:bg-indigo-500/[0.06] dark:hover:bg-indigo-500/[0.08]'
+                                            ? 'bg-primary/5 hover:bg-primary/10'
                                             : 'bg-transparent hover:bg-zinc-50 dark:hover:bg-white/[0.02] opacity-70 hover:opacity-100'
                                             }`}
                                     >
@@ -147,7 +147,7 @@ export default function NotificationDropdown() {
                                                     {getIcon(notif.type)}
                                                 </div>
                                                 {!notif.read && (
-                                                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white dark:border-zinc-900 shadow-sm animate-pulse" />
+                                                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-white dark:border-zinc-900 shadow-sm animate-pulse" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0 pr-6">
@@ -179,7 +179,7 @@ export default function NotificationDropdown() {
                                                     setSelectedNotif(notif);
                                                     if (!notif.read) markAsRead(notif.id);
                                                 }}
-                                                className="p-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 rounded-lg text-indigo-500 hover:scale-110 shadow-sm transition-all"
+                                                className="p-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 rounded-lg text-primary hover:scale-110 shadow-sm transition-all"
                                                 title="View Details"
                                             >
                                                 <Eye className="w-3.5 h-3.5" />
@@ -215,7 +215,7 @@ export default function NotificationDropdown() {
                     <div className="p-4 bg-zinc-50/50 dark:bg-white/[0.02] border-t border-zinc-100 dark:border-white/5 text-center">
                         <Link
                             href="/dashboard/settings"
-                            className="text-xs font-bold text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors inline-flex items-center gap-1.5 group"
+                            className="text-xs font-bold text-primary hover:opacity-80 transition-colors inline-flex items-center gap-1.5 group"
                             onClick={() => setIsOpen(false)}
                         >
                             Notification Settings
@@ -303,7 +303,7 @@ function NotificationDetailsModal({ notification, onClose, getIcon, getTypeStyle
                 <div className={`absolute top-0 left-0 right-0 h-32 opacity-10 dark:opacity-20 ${notification.type === 'success' ? 'bg-emerald-500' :
                     notification.type === 'error' ? 'bg-red-500' :
                         notification.type === 'warning' ? 'bg-amber-500' :
-                            notification.type === 'info' ? 'bg-indigo-500' : 'bg-purple-500'
+                            notification.type === 'info' ? 'bg-primary' : 'bg-primary'
                     }`} />
 
                 <div className="relative p-8">
@@ -346,7 +346,7 @@ function NotificationDetailsModal({ notification, onClose, getIcon, getTypeStyle
                             Close
                         </button>
                         {notification.category === "marketing" && (
-                            <button className="p-4 bg-indigo-500 text-white rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/20">
+                            <button className="p-4 bg-primary text-primary-foreground rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
                                 <ExternalLink className="w-5 h-5" />
                             </button>
                         )}

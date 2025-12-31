@@ -41,14 +41,14 @@ function VerifyEmailInner() {
     }, [searchParams, router]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">
-            <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-indigo-100/50 p-8 text-center border border-indigo-50/50">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+            <div className="max-w-md w-full bg-card rounded-3xl shadow-xl shadow-primary/10 p-8 text-center border border-primary/10">
                 {status === "loading" && (
                     <div className="space-y-6">
                         <div className="flex justify-center">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-50 animate-pulse"></div>
-                                <Loader2 className="h-16 w-16 text-indigo-600 animate-spin relative z-10" />
+                                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                                <Loader2 className="h-16 w-16 text-primary animate-spin relative z-10" />
                             </div>
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">Checking verification</h1>
@@ -68,7 +68,7 @@ function VerifyEmailInner() {
                         <div className="pt-4">
                             <Link
                                 href="/dashboard"
-                                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-medium transition-all shadow-lg shadow-indigo-200"
+                                className="inline-block bg-primary text-primary-foreground hover:opacity-90 px-8 py-3 rounded-2xl font-medium transition-all shadow-lg shadow-primary/20"
                             >
                                 Go to Dashboard
                             </Link>
@@ -103,8 +103,8 @@ function VerifyEmailInner() {
 export default function VerifyEmailPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
-                <Loader2 className="h-10 w-10 text-indigo-600 animate-spin" />
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
             </div>
         }>
             <VerifyEmailInner />

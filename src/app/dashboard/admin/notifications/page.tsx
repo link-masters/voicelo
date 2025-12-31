@@ -81,7 +81,7 @@ export default function AdminNotificationsPage() {
     };
 
     const notificationTypes = [
-        { id: "info", label: "Information", icon: Info, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+        { id: "info", label: "Information", icon: Info, color: "text-primary", bg: "bg-primary/10" },
         { id: "success", label: "Success", icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
         { id: "warning", label: "Warning", icon: AlertTriangle, color: "text-amber-500", bg: "bg-amber-500/10" },
         { id: "error", label: "Critical / Error", icon: ShieldAlert, color: "text-red-500", bg: "bg-red-500/10" },
@@ -93,8 +93,8 @@ export default function AdminNotificationsPage() {
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
-                    <div className="p-2 bg-indigo-500/10 rounded-xl">
-                        <Bell className="w-8 h-8 text-indigo-500" />
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                        <Bell className="w-8 h-8 text-primary" />
                     </div>
                     Global Broadcasts
                 </h1>
@@ -109,15 +109,15 @@ export default function AdminNotificationsPage() {
                     <h3 className="font-bold text-zinc-900 dark:text-white">How it works</h3>
                     <ul className="space-y-3 text-sm text-zinc-500 dark:text-zinc-400">
                         <li className="flex gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                             Global broadcasts are stored in Appwrite and fetched by all active clients.
                         </li>
                         <li className="flex gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                             Users will see this as an unread notification in their bell menu.
                         </li>
                         <li className="flex gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                             Each notification is only shown once to any specific device.
                         </li>
                     </ul>
@@ -137,7 +137,7 @@ export default function AdminNotificationsPage() {
                                 <input
                                     type="text"
                                     placeholder="e.g. System Maintenance Scheduled"
-                                    className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                     required
@@ -150,7 +150,7 @@ export default function AdminNotificationsPage() {
                                 <textarea
                                     placeholder="Provide more context here..."
                                     rows={4}
-                                    className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                                    className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none transition-all resize-none"
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                     required
@@ -167,7 +167,7 @@ export default function AdminNotificationsPage() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: t.id as any })}
                                             className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${formData.type === t.id
-                                                ? 'bg-indigo-500/10 border-indigo-500 ring-1 ring-indigo-500'
+                                                ? 'bg-primary/10 border-primary ring-1 ring-primary'
                                                 : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10'
                                                 }`}
                                         >
@@ -185,7 +185,7 @@ export default function AdminNotificationsPage() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting || !formData.title || !formData.message}
-                                className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-white rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20"
+                                className="px-6 py-3 bg-primary hover:opacity-90 disabled:opacity-50 text-primary-foreground rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
                             >
                                 {isSubmitting ? (
                                     <>

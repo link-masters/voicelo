@@ -63,8 +63,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 </button>
 
                 <Link href="/dashboard" className="lg:hidden flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                        <span className="font-bold text-white text-xs">VL</span>
+                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                        <span className="font-bold text-primary-foreground text-xs">VL</span>
                     </div>
                 </Link>
 
@@ -76,7 +76,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                             if (pathname.includes("/voice-clone")) return "Voice Cloning";
                             if (pathname.includes("/profile")) return "Account Profile";
                             if (pathname.includes("/settings")) return "App Settings";
-                            if (pathname.includes("/influencer-program")) return "Influencer Hub";
+                            if (pathname.includes("/influencer-program")) return "Influencer Program";
                             return "Voice Synthesis Studio";
                         })()}
                     </h2>
@@ -90,8 +90,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 {/* Credits Counter */}
                 <div className="flex flex-col gap-1.5 mr-1 md:mr-2 items-end">
                     <div className="flex items-center gap-1.5 md:gap-2">
-                        <div className={`p-1 rounded-md border shadow-sm ${isExpired ? 'bg-red-500/10 border-red-500/20' : 'bg-indigo-500/10 border-indigo-500/20'}`}>
-                            {isExpired ? <Lock className="w-3 h-3 text-red-500" /> : <Zap className="w-3 h-3 text-indigo-400 fill-indigo-400" />}
+                        <div className={`p-1 rounded-md border shadow-sm ${isExpired ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-primary/20'}`}>
+                            {isExpired ? <Lock className="w-3 h-3 text-red-500" /> : <Zap className="w-3 h-3 text-primary animate-pulse" />}
                         </div>
                         <span className="text-[10px] md:text-sm font-medium transition-colors">
                             {isExpired ? (
@@ -114,11 +114,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     {/* Expiration warning or progress */}
                     <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800/80 rounded-full overflow-hidden border border-zinc-200/50 dark:border-white/5 relative">
                         <div
-                            className={`h-full rounded-full transition-all duration-500 relative ${isExpired ? 'bg-red-500' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'}`}
+                            className={`h-full rounded-full transition-all duration-500 relative ${isExpired ? 'bg-red-500' : 'bg-primary'}`}
                             style={{ width: `${isExpired ? 100 : Math.max(2, creditsPercentage)}%` }}
                         >
                             {!isExpired && (
-                                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                <div className="absolute inset-0 bg-white/10 animate-pulse"></div>
                             )}
                         </div>
                     </div>
@@ -130,12 +130,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         className="flex items-center gap-2 md:gap-3 pl-1 md:pl-3 pr-1 md:pr-2 py-1 md:py-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/5 transition-all group"
                     >
                         <div className="text-right hidden md:block">
-                            <p className="text-sm font-medium text-zinc-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors">
+                            <p className="text-sm font-medium text-zinc-800 dark:text-white group-hover:text-primary transition-colors">
                                 {user?.name || "Guest User"}
                             </p>
                             <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">{plan}</p>
                         </div>
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-zinc-200 dark:border-white/10 group-hover:shadow-indigo-500/40 transition-all overflow-hidden relative">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary flex items-center justify-center shadow-lg border border-zinc-200 dark:border-white/10 group-hover:border-primary/50 transition-all overflow-hidden relative">
                             {(user?.prefs as any)?.avatar ? (
                                 <img
                                     src={(user?.prefs as any).avatar}
@@ -144,7 +144,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                     referrerPolicy="no-referrer"
                                 />
                             ) : (
-                                <span className="font-bold text-white uppercase text-xs md:text-sm">
+                                <span className="font-bold text-foreground uppercase text-xs md:text-sm">
                                     {user?.name ? user.name.charAt(0) : "G"}
                                 </span>
                             )}

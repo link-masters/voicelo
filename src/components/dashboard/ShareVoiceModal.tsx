@@ -43,12 +43,12 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
             <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden animate-scale-in">
 
                 {/* Header Decoration */}
-                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-indigo-500/10 to-transparent pointer-events-none" />
+                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
                 <div className="p-8 relative">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
                                 <Share2 className="w-6 h-6" />
                             </div>
                             <div>
@@ -68,7 +68,7 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                         {/* URL Box */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 px-1">Voice Link</label>
-                            <div className="flex items-center gap-2 p-2 bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/5 rounded-2xl group focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                            <div className="flex items-center gap-2 p-2 bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/5 rounded-2xl group focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                                 <div className="pl-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 truncate flex-1 font-medium">
                                     {shareUrl}
                                 </div>
@@ -76,7 +76,7 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                                     onClick={handleCopy}
                                     className={`px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${copied
                                         ? 'bg-green-500 text-white shadow-green-500/20'
-                                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-500/20 active:scale-95'
+                                        : 'bg-primary text-primary-foreground hover:opacity-90 shadow-primary/20 active:scale-95'
                                         }`}
                                 >
                                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

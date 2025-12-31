@@ -13,6 +13,7 @@ interface AuthContextType {
     logout: () => Promise<void>;
     loginWithGoogle: (redirectPath?: string) => Promise<void>;
     refreshUser: () => Promise<void>;
+    resendVerification: (userId: string, email: string, name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,10 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const userData = await account.get();
             setUser(userData);
 
-            // Sync Google Avatar in background
-            syncGoogleAvatar(userData).catch(err => console.debug("Avatar sync skipped:", err));
-            // Sync default preferences in background
-            syncUserPreferences(userData).catch(err => console.debug("Prefs sync skipped:", err));
+            // Sync Preference and Avatar sequentially to avoid race conditions
+            // Each function will return the updated user to pass to the next one
+            const updatedUser = await syncUserPreferences(userData);
+            await syncGoogleAvatar(updatedUser || userData);
         } catch (error) {
             setUser(null);
         } finally {
@@ -43,76 +44,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function syncUserPreferences(currentUser: Models.User<Models.Preferences>) {
         try {
+            // Re-fetch to get the absolute latest if this is called after some time, 
+            // but for initialization we can use currentUser. 
+            // To be safe against other background updates (like broadcasts), 
+            // we should ideally fetch again if we are about to update.
             const prefs = currentUser.prefs as any;
             const updates: any = {};
 
-            // Initialize essential keys if they don't exist
-            if (prefs.is_influencer_allowed === undefined) {
+            // Initialize essential keys if they don't exist OR are null
+            if (prefs.is_influencer_allowed === undefined || prefs.is_influencer_allowed === null) {
                 updates.is_influencer_allowed = false;
             }
-            if (prefs.creditsTotal === undefined) {
-                updates.creditsTotal = 1000; // Default starting credits
+            if (prefs.creditsTotal === undefined || prefs.creditsTotal === null) {
+                updates.creditsTotal = 1000;
             }
-            if (prefs.creditsUsed === undefined) {
-                updates.creditsUsed = 0; // Initialize creditsUsed
+            if (prefs.creditsUsed === undefined || prefs.creditsUsed === null) {
+                updates.creditsUsed = 0;
             }
-            if (prefs.isInfluencer === undefined) {
+            if (prefs.isInfluencer === undefined || prefs.isInfluencer === null) {
                 updates.isInfluencer = false;
             }
-            if (prefs.influencer_discount_rate === undefined) {
-                updates.influencer_discount_rate = 10; // Default 10%
+            if (prefs.influencer_discount_rate === undefined || prefs.influencer_discount_rate === null) {
+                updates.influencer_discount_rate = 10;
             }
-            if (prefs.influencer_commission_rate === undefined) {
-                updates.influencer_commission_rate = 30; // Default 30%
+            if (prefs.influencer_commission_rate === undefined || prefs.influencer_commission_rate === null) {
+                updates.influencer_commission_rate = 30;
             }
-            if (prefs.isAdmin === undefined) {
-                updates.isAdmin = false; // Default non-admin
+            if (prefs.isAdmin === undefined || prefs.isAdmin === null) {
+                updates.isAdmin = false;
             }
-            if (prefs.processedBroadcasts === undefined) {
-                updates.processedBroadcasts = []; // Track which global broadcasts are cloned
-            }
-            if (prefs.welcomeEmailSent === undefined) {
+            if (prefs.welcomeEmailSent === undefined || prefs.welcomeEmailSent === null) {
                 updates.welcomeEmailSent = false;
             }
 
+            let finalUser = currentUser;
+
             if (Object.keys(updates).length > 0) {
+                // Fetch LATEST just before updating to avoid overwriting other background changes
+                const latestUser = await account.get();
                 const updatedPrefs = await account.updatePrefs({
-                    ...prefs,
+                    ...latestUser.prefs,
                     ...updates
                 });
-                setUser({ ...currentUser, prefs: updatedPrefs });
+                finalUser = { ...latestUser, prefs: updatedPrefs };
+                setUser(finalUser);
             }
 
-            console.log("Checking if welcome email needs to be sent...", {
-                welcomeEmailSent: prefs.welcomeEmailSent,
-                userId: currentUser.$id,
-                email: currentUser.email
-            });
 
             // Trigger welcome email if not already sent
-            if (prefs.welcomeEmailSent !== true) {
-                console.log("Email not yet sent. Triggering ensureWelcomeEmailSent action...");
-                ensureWelcomeEmailSent(currentUser.$id, currentUser.email, currentUser.name)
+            const finalPrefs = finalUser.prefs as any;
+            if (finalPrefs.welcomeEmailSent !== true) {
+                ensureWelcomeEmailSent(finalUser.$id, finalUser.email, finalUser.name)
                     .then(result => {
-                        console.log("ensureWelcomeEmailSent result:", result);
                         if (result.success && (result as any).alreadySent !== true) {
-                            console.log("Welcome email sent successfully! UI state will refresh on next check.");
+                            // Optionally update local state if needed, but the server action 
+                            // already updates the DB.
                         }
                     })
                     .catch(err => console.error("Action error triggering welcome email:", err));
-            } else {
-                console.log("Welcome email already recorded as sent in local prefs.");
             }
 
             // Trigger verification email if not verified and not already sent
-            if (currentUser.emailVerification === false && prefs.verificationEmailSent !== true) {
-                console.log("User unverified. Triggering verification email fallback...");
+            if (finalUser.emailVerification === false && finalPrefs.verificationEmailSent !== true) {
                 const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://voicelo.app';
-                sendVerificationEmail(currentUser.$id, currentUser.email, currentUser.name, baseUrl)
+                sendVerificationEmail(finalUser.$id, finalUser.email, finalUser.name, baseUrl)
                     .catch((err: any) => console.error("Verification email trigger error:", err));
             }
+
+            return finalUser;
         } catch (e) {
-            // Fail silently
+            return currentUser;
         }
     }
 
@@ -158,14 +159,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Not verified! Log them out immediately.
                 await account.deleteSession("current");
                 setUser(null);
-                throw new Error("Your email address is not verified. Please check your inbox for the verification link (including spam).");
+                const error = new Error("Your email address is not verified. Please check your inbox.") as any;
+                error.type = "email_not_verified";
+                error.userId = userData.$id;
+                error.userName = userData.name;
+                error.email = userData.email;
+                throw error;
             }
 
             setUser(userData);
 
-            // Sync Google Avatar and Preferences immediately
-            syncGoogleAvatar(userData).catch(err => console.debug("Avatar sync skipped:", err));
-            syncUserPreferences(userData).catch(err => console.debug("Prefs sync skipped:", err));
+            // Sync Preference and Avatar sequentially to avoid race conditions
+            const updatedUser = await syncUserPreferences(userData);
+            await syncGoogleAvatar(updatedUser || userData);
         } catch (error: any) {
             throw new Error(error.message || "Failed to login");
         }
@@ -212,8 +218,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
+    async function resendVerification(userId: string, email: string, name: string) {
+        try {
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://voicelo.app';
+            const result = await sendVerificationEmail(userId, email, name, baseUrl);
+            if (!result.success) {
+                throw new Error(result.error || "Failed to resend verification");
+            }
+        } catch (error: any) {
+            throw new Error(error.message || "Failed to resend verification");
+        }
+    }
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, refreshUser: checkUser }}>
+        <AuthContext.Provider value={{
+            user,
+            loading,
+            login,
+            signup,
+            logout,
+            loginWithGoogle,
+            refreshUser: checkUser,
+            resendVerification
+        }}>
             {children}
         </AuthContext.Provider>
     );

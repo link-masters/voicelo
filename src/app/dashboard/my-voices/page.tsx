@@ -193,7 +193,7 @@ export default function MyVoicesPage() {
                 </div>
                 <Link
                     href="/dashboard/voice-clone"
-                    className="w-full md:w-auto flex items-center justify-center gap-3 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-lg shadow-indigo-500/20 active:scale-95 shrink-0 group"
+                    className="w-full md:w-auto flex items-center justify-center gap-3 px-6 py-3.5 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-lg shadow-primary/20 active:scale-95 shrink-0 group"
                 >
                     <Mic className="w-4 h-4 group-hover:scale-110 transition-transform" />
                     Clone New Voice
@@ -202,8 +202,8 @@ export default function MyVoicesPage() {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 md:p-8 shadow-sm group hover:border-indigo-500/20 transition-colors">
-                    <div className="bg-indigo-500/10 w-12 h-12 rounded-2xl flex items-center justify-center text-indigo-500 mb-6 group-hover:scale-110 transition-transform">
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 md:p-8 shadow-sm group hover:border-primary/20 transition-colors">
+                    <div className="bg-primary/10 w-12 h-12 rounded-2xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                         <Mic className="w-6 h-6" />
                     </div>
                     <p className="text-xs md:text-sm font-black text-zinc-400 uppercase tracking-widest mb-1">Total Clones</p>
@@ -227,13 +227,13 @@ export default function MyVoicesPage() {
 
             {/* Filter Bar */}
             <div className="relative group max-w-md">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-indigo-500 transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
                 <input
                     type="text"
                     placeholder="Search my voices..."
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
-                    className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 pl-12 pr-12 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all shadow-sm"
+                    className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl py-3.5 pl-12 pr-12 text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
                 />
                 {filter && (
                     <button
@@ -248,7 +248,7 @@ export default function MyVoicesPage() {
             {/* Voices List */}
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
+                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
                     <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">Loading your voices...</p>
                 </div>
             ) : filteredVoices.length === 0 ? (
@@ -263,7 +263,7 @@ export default function MyVoicesPage() {
                     {!filter && (
                         <Link
                             href="/dashboard/voice-clone"
-                            className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl transition-all shadow-lg active:scale-95 text-xs uppercase tracking-widest"
+                            className="px-8 py-4 bg-primary text-primary-foreground font-black rounded-2xl transition-all shadow-lg active:scale-95 text-xs uppercase tracking-widest"
                         >
                             Get Started
                         </Link>
@@ -291,7 +291,7 @@ export default function MyVoicesPage() {
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg shrink-0
                                                         ${voice.gender === 'MALE' ? 'bg-blue-600 shadow-blue-500/20' :
-                                                            voice.gender === 'FEMALE' ? 'bg-pink-600 shadow-pink-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}
+                                                            voice.gender === 'FEMALE' ? 'bg-pink-600 shadow-pink-500/20' : 'bg-primary shadow-primary/20'}
                                                     `}>
                                                         {voice.displayName.charAt(0).toUpperCase()}
                                                     </div>
@@ -342,8 +342,8 @@ export default function MyVoicesPage() {
                                                         onClick={() => handlePreview(voice)}
                                                         className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all
                                                             ${playingVoiceId === voice.voiceId
-                                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                                                                : 'bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-indigo-500/10 border border-zinc-200 dark:border-white/10'}
+                                                                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                                                : 'bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-primary dark:hover:text-primary hover:bg-zinc-100 dark:hover:bg-primary/10 border border-zinc-200 dark:border-white/10'}
                                                         `}
                                                     >
                                                         {isPreviewLoading === voice.voiceId ? (
@@ -356,20 +356,20 @@ export default function MyVoicesPage() {
                                                     </button>
                                                     <button
                                                         onClick={() => handleShare(voice)}
-                                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 border border-zinc-200 dark:border-white/10 transition-all hover:bg-zinc-100 dark:hover:bg-indigo-500/10"
+                                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-primary dark:hover:text-primary border border-zinc-200 dark:border-white/10 transition-all hover:bg-zinc-100 dark:hover:bg-primary/10"
                                                     >
                                                         <Share2 className="w-4 h-4" />
                                                     </button>
                                                     <Link
                                                         href={`/dashboard?voiceId=${voice.voiceId}`}
-                                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95"
                                                     >
                                                         <Zap className="w-4 h-4 fill-current" />
                                                     </Link>
                                                     <div className="relative group/menu">
                                                         <button
                                                             onClick={() => setActiveMenu(activeMenu === voice.voiceId ? null : voice.voiceId)}
-                                                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 border border-zinc-200 dark:border-white/10 transition-all"
+                                                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-primary dark:hover:text-primary border border-zinc-200 dark:border-white/10 transition-all"
                                                         >
                                                             <MoreHorizontal className="w-4 h-4" />
                                                         </button>
@@ -401,7 +401,7 @@ export default function MyVoicesPage() {
                                     <div className="flex items-center gap-4 min-w-0">
                                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shrink-0
                                             ${voice.gender === 'MALE' ? 'bg-blue-600 shadow-blue-500/20' :
-                                                voice.gender === 'FEMALE' ? 'bg-pink-600 shadow-pink-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}
+                                                voice.gender === 'FEMALE' ? 'bg-pink-600 shadow-pink-500/20' : 'bg-primary shadow-primary/20'}
                                         `}>
                                             {voice.displayName.charAt(0).toUpperCase()}
                                         </div>
@@ -418,7 +418,7 @@ export default function MyVoicesPage() {
                                         onClick={() => handlePreview(voice)}
                                         className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all shrink-0
                                             ${playingVoiceId === voice.voiceId
-                                                ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/30'
+                                                ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/30'
                                                 : 'bg-zinc-50 dark:bg-white/5 text-zinc-400 border border-zinc-200 dark:border-white/10 shadow-sm'}
                                         `}
                                     >
@@ -470,7 +470,7 @@ export default function MyVoicesPage() {
                                     <div className="flex items-center gap-2">
                                         <Link
                                             href={`/dashboard?voiceId=${voice.voiceId}`}
-                                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95"
                                         >
                                             <Zap className="w-4 h-4 fill-current" />
                                         </Link>
@@ -510,8 +510,8 @@ export default function MyVoicesPage() {
                                                     key={pageNum}
                                                     onClick={() => setCurrentPage(pageNum)}
                                                     className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all active:scale-95 ${currentPage === pageNum
-                                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                                                        : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-500 hover:border-indigo-500/50 hover:text-indigo-600'
+                                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                                        : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-500 hover:border-primary/50 hover:text-primary'
                                                         }`}
                                                 >
                                                     {pageNum}

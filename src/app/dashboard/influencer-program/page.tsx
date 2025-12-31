@@ -194,12 +194,12 @@ export default function InfluencerHubPage() {
 
             return (
                 <div className="max-w-4xl mx-auto py-12 md:py-20 px-4 md:px-6 text-center">
-                    <div className="w-20 h-20 md:w-24 md:h-24 bg-indigo-500/10 rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 md:mb-8 animate-pulse">
-                        <TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-indigo-500" />
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-primary/10 rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 md:mb-8 animate-pulse">
+                        <TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-primary" />
                     </div>
                     <h1 className="text-2xl md:text-4xl font-black text-zinc-900 dark:text-white mb-4 md:mb-6">Join our Influencer Program</h1>
                     <p className="text-sm md:text-lg text-zinc-500 dark:text-zinc-400 max-w-lg mx-auto mb-8 md:mb-10 leading-relaxed">
-                        Earn a <span className="text-indigo-600 dark:text-indigo-400 font-bold">{commissionRate}% commission</span> on every sale you refer.
+                        Earn a <span className="text-primary font-bold">{commissionRate}% commission</span> on every sale you refer.
                         Track your impact in real-time.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
@@ -207,7 +207,7 @@ export default function InfluencerHubPage() {
                             <button
                                 onClick={handleRequestAccess}
                                 disabled={isRequestingAccess}
-                                className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center justify-center gap-2.5 text-sm md:text-base group"
+                                className="w-full sm:w-auto px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-2xl transition-all shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2.5 text-sm md:text-base group"
                             >
                                 {isRequestingAccess ? (
                                     <RefreshCw className="w-5 h-5 animate-spin" />
@@ -220,7 +220,7 @@ export default function InfluencerHubPage() {
                             <button
                                 onClick={handleJoin}
                                 disabled={isJoining}
-                                className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center justify-center gap-2.5 text-sm md:text-base group"
+                                className="w-full sm:w-auto px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-2xl transition-all shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2.5 text-sm md:text-base group"
                             >
                                 {isJoining ? (
                                     <RefreshCw className="w-5 h-5 animate-spin" />
@@ -262,7 +262,7 @@ export default function InfluencerHubPage() {
                     <div className="flex flex-wrap items-center gap-4 p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 rounded-2xl shadow-sm">
                         <div className="px-4 py-2 border-r border-zinc-100 dark:border-white/5 text-center">
                             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Your Code ({discountRate}%)</p>
-                            <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{influencerCode}</p>
+                            <p className="text-lg font-black text-primary">{influencerCode}</p>
                         </div>
                         <button
                             onClick={copyToClipboard}
@@ -274,7 +274,7 @@ export default function InfluencerHubPage() {
                         <button
                             onClick={() => handleRefresh(true)}
                             disabled={isRefreshing}
-                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                         >
                             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                             {isRefreshing ? "Syncing..." : "Sync Now"}
@@ -283,20 +283,20 @@ export default function InfluencerHubPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-8 shadow-sm group hover:border-indigo-500/20 transition-colors">
+                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-8 shadow-sm group hover:border-primary/20 transition-colors">
                         <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-6 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
                             <Users className="w-6 h-6" />
                         </div>
                         <p className="text-sm font-medium text-zinc-500 mb-1">Total Redemptions</p>
                         <h3 className="text-3xl font-black text-zinc-900 dark:text-white">{totalRedemptions}</h3>
                     </div>
-                    <div className="bg-indigo-600 rounded-[2rem] border border-indigo-500/20 p-8 shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden">
+                    <div className="bg-primary rounded-[2rem] border border-primary/20 p-8 shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-10 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
                         <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
                             <CheckCircle2 className="w-6 h-6" />
                         </div>
                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <p className="text-sm font-medium text-indigo-100">Approved Commission</p>
+                            <p className="text-sm font-medium text-white/90">Approved Commission</p>
                             <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap">{commissionRate}% Rate</span>
                         </div>
                         <h3 className="text-3xl font-black text-white">{formatValue(approvedCommission)}</h3>
@@ -320,8 +320,8 @@ export default function InfluencerHubPage() {
 
                 <div className="space-y-6">
                     <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                            <Calendar className="w-5 h-5 text-indigo-500" />
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-primary" />
                         </div>
                         Recent Redemptions
                     </h2>
@@ -346,7 +346,7 @@ export default function InfluencerHubPage() {
                                             <tr key={red.id || idx} className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.01] transition-colors group">
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-xs font-black text-indigo-600 dark:text-indigo-400 shrink-0">{idx + 1}</div>
+                                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-black text-primary shrink-0">{idx + 1}</div>
                                                         <span className="font-bold text-zinc-900 dark:text-white truncate max-w-[150px]">{red.userEmail}</span>
                                                     </div>
                                                 </td>
@@ -391,13 +391,13 @@ export default function InfluencerHubPage() {
                                 <div key={red.id || idx} className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-5 shadow-sm space-y-4">
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-xs font-black text-indigo-600 dark:text-indigo-400 shrink-0">{idx + 1}</div>
+                                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xs font-black text-primary shrink-0">{idx + 1}</div>
                                             <div className="min-w-0">
                                                 <p className="font-bold text-zinc-900 dark:text-white truncate">{red.userEmail}</p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{new Date(red.timestamp).toLocaleDateString()}</span>
                                                     <span className="text-[10px] font-black text-zinc-300 dark:text-zinc-700">•</span>
-                                                    <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{red.planName}</span>
+                                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{red.planName}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -426,7 +426,7 @@ export default function InfluencerHubPage() {
                     </div>
                 </div>
 
-                <div className="bg-indigo-600 rounded-[2rem] md:rounded-[3rem] p-8 md:p-10 text-white relative overflow-hidden">
+                <div className="bg-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-10 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-20 md:p-40 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 md:-mr-20 md:-mt-20"></div>
                     <div className="relative z-10 space-y-5 md:space-y-6">
                         <div className="w-12 h-12 md:w-14 md:h-14 rounded-[1.25rem] md:rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
@@ -434,8 +434,8 @@ export default function InfluencerHubPage() {
                         </div>
                         <div className="max-w-xl">
                             <h3 className="text-xl md:text-2xl font-black mb-2 md:mb-3 tracking-tight">Professional Payouts</h3>
-                            <p className="text-sm md:text-base text-indigo-100 leading-relaxed mb-6">Commissions are paid out on the 1st of every month once you exceed {formatValue(50)}.</p>
-                            <button className="w-full sm:w-auto px-6 py-3.5 bg-white text-indigo-600 font-black rounded-xl hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-widest">
+                            <p className="text-sm md:text-base text-primary-foreground/90 leading-relaxed mb-6">Commissions are paid out on the 1st of every month once you exceed {formatValue(50)}.</p>
+                            <button className="w-full sm:w-auto px-6 py-3.5 bg-white text-primary font-black rounded-xl hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-widest">
                                 View Policy <ArrowRight className="w-4 h-4" />
                             </button>
                         </div>
@@ -474,7 +474,7 @@ export default function InfluencerHubPage() {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowVerifyModal(false)} />
                     <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="h-1.5 bg-gradient-to-r from-red-500 via-indigo-600 to-red-500" />
+                        <div className="h-1.5 bg-gradient-to-r from-red-500 via-primary to-red-500" />
                         <button onClick={() => setShowVerifyModal(false)} className="absolute top-6 right-6 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-400 transition-colors"><X className="w-5 h-5" /></button>
                         <div className="p-8 md:p-10 text-center">
                             <div className="w-16 h-16 md:w-20 md:h-20 bg-red-500/10 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-8 relative shrink-0">
@@ -486,7 +486,7 @@ export default function InfluencerHubPage() {
                             <div className="space-y-3">
                                 <button
                                     onClick={() => { setShowVerifyModal(false); router.push('/dashboard/influencer-program/verify'); }}
-                                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 group text-xs uppercase tracking-widest"
+                                    className="w-full py-4 bg-primary text-primary-foreground font-black rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 group text-xs uppercase tracking-widest"
                                 >
                                     Verify Now <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </button>

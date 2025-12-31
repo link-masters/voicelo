@@ -4,10 +4,10 @@ import Footer from "@/components/Footer";
 
 export default function PrivacyPolicy() {
     return (
-        <div className="min-h-screen text-foreground selection:bg-indigo-500/30 font-sans text-base leading-relaxed">
+        <div className="min-h-screen text-foreground selection:bg-primary/30 font-sans text-base leading-relaxed">
             {/* Background Ambience */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-indigo-500/20 rounded-full blur-[120px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-primary/20 rounded-full blur-[120px]" />
                 <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] bg-slate-50 dark:bg-blue-500/10 rounded-full blur-[100px]" />
                 <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03] dark:opacity-20" />
             </div>
@@ -37,15 +37,15 @@ export default function PrivacyPolicy() {
                                 </p>
                                 <ul className="space-y-4 text-muted-foreground">
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500 mt-1.5">•</span>
+                                        <span className="text-primary mt-1.5">•</span>
                                         <span><strong className="text-foreground">Account Information:</strong> Name, email address, and authentication credentials through Appwrite.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500 mt-1.5">•</span>
+                                        <span className="text-primary mt-1.5">•</span>
                                         <span><strong className="text-foreground">Payment Information:</strong> Transaction details processed securely through Lemon Squeezy. We do not store your credit card details.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500 mt-1.5">•</span>
+                                        <span className="text-primary mt-1.5">•</span>
                                         <span><strong className="text-foreground">Usage Data:</strong> Information about how you use our service, including the text provided for speech synthesis.</span>
                                     </li>
                                 </ul>
@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
                                         "Communicate updates and security alerts"
                                     ].map((item, i) => (
                                         <div key={i} className="p-4 rounded-xl bg-secondary/30 border border-border flex gap-3 items-center">
-                                            <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                                            <div className="w-2 h-2 rounded-full bg-primary" />
                                             <span className="text-sm font-medium">{item}</span>
                                         </div>
                                     ))}
@@ -85,15 +85,15 @@ export default function PrivacyPolicy() {
                                 </p>
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500">•</span>
+                                        <span className="text-primary">•</span>
                                         <span><strong className="text-foreground">Appwrite:</strong> Authentication and database management.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500">•</span>
+                                        <span className="text-primary">•</span>
                                         <span><strong className="text-foreground">Lemon Squeezy:</strong> Secure payment processing.</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="text-indigo-500">•</span>
+                                        <span className="text-primary">•</span>
                                         <span><strong className="text-foreground">Inworld AI:</strong> Advanced neural voice synthesis.</span>
                                     </li>
                                 </ul>
@@ -106,12 +106,12 @@ export default function PrivacyPolicy() {
                                 </p>
                             </section>
 
-                            <section className="space-y-4 p-8 rounded-3xl bg-indigo-500/5 border border-indigo-500/10">
+                            <section className="space-y-4 p-8 rounded-3xl bg-primary/5 border border-primary/10">
                                 <h2 className="text-2xl font-bold text-foreground">7. Contact Us</h2>
                                 <p className="text-muted-foreground">
                                     If you have any questions about this Privacy Policy, please contact us at:
                                 </p>
-                                <p className="text-indigo-500 font-semibold text-lg">support@voicelo.com</p>
+                                <p className="text-primary font-semibold text-lg">support@voicelo.com</p>
                             </section>
                         </div>
                     </div>

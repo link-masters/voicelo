@@ -42,15 +42,15 @@ export default function LandingPage() {
   const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen text-foreground selection:bg-indigo-500/30 font-sans">
+    <div className="min-h-screen text-foreground selection:bg-primary/30 font-sans">
       <Suspense fallback={null}>
         <AuthErrorWatcher setIsBlockedModalOpen={setIsBlockedModalOpen} />
       </Suspense>
 
       {/* Background Ambience */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-indigo-500/20 rounded-full blur-[120px]" />
-        <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-zinc-50 dark:bg-purple-500/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-primary/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-zinc-50 dark:bg-primary/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] bg-slate-50 dark:bg-blue-500/10 rounded-full blur-[100px]" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03] dark:opacity-20" />
       </div>
@@ -65,7 +65,7 @@ export default function LandingPage() {
 
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight text-foreground leading-tight animate-fade-in-up">
             Voice Synthesis <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-400">Reimagined</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-primary">Reimagined</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-100">
@@ -76,7 +76,7 @@ export default function LandingPage() {
             {user ? (
               <Link
                 href="/dashboard"
-                className="px-8 py-4 rounded-full bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-700 hover:scale-105 transition-all shadow-xl shadow-indigo-500/20 flex items-center gap-3"
+                className="px-8 py-4 rounded-full bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center gap-3"
               >
                 <Play className="w-5 h-5 fill-current" />
                 Start Generating
@@ -84,7 +84,7 @@ export default function LandingPage() {
             ) : (
               <button
                 onClick={() => setIsSignInOpen(true)}
-                className="px-8 py-4 rounded-full bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-700 hover:scale-105 transition-all shadow-xl shadow-indigo-500/20 flex items-center gap-3"
+                className="px-8 py-4 rounded-full bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center gap-3"
               >
                 <Play className="w-5 h-5 fill-current" />
                 Start Generating Free
@@ -118,8 +118,8 @@ export default function LandingPage() {
                   desc: "Your data stays on your device. Zero server latency, maximum security."
                 }
               ].map((feature, i) => (
-                <div key={i} className="p-8 rounded-3xl bg-card/50 dark:bg-black/40 border border-border hover:border-indigo-500/30 transition-colors group">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 dark:bg-indigo-900/20 flex items-center justify-center mb-6 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                <div key={i} className="p-8 rounded-3xl bg-card/50 dark:bg-black/40 border border-border hover:border-primary/30 transition-colors group">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform">
                     <feature.icon className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl font-bold mb-3">{feature.title}</h3>
@@ -134,11 +134,11 @@ export default function LandingPage() {
 
         {/* Pricing CTA */}
         <section className="py-24 relative overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
           <div className="max-w-4xl mx-auto px-6 relative z-10 text-center space-y-8">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
               Ready to give your text <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400">a human voice?</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">a human voice?</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
               Choose the credit pack that fits your needs. No subscriptions, no hidden fees. Just high-quality AI voices at your fingertips.
@@ -146,7 +146,7 @@ export default function LandingPage() {
             <div className="pt-4">
               <Link
                 href="/pricing"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-foreground text-background font-bold text-lg hover:opacity-90 transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 transition-all hover:scale-105 shadow-xl shadow-primary/20"
               >
                 View Pricing Plans
                 <ArrowRight className="w-5 h-5" />

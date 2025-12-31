@@ -629,8 +629,21 @@ export async function deleteNotificationSync(docId: string) {
 
 export async function updateUserSeenBroadcasts(userId: string, seenIds: string[]) {
     try {
+        if (!userId) return;
+
         const { users } = createAdminClient();
         const user = await users.get(userId);
+
+        const currentSeen = (user.prefs.processedBroadcasts as string[]) || [];
+
+        // Simple array comparison to avoid unnecessary updates
+        const setsMatch = currentSeen.length === seenIds.length &&
+            seenIds.every(id => currentSeen.includes(id));
+
+        if (setsMatch) return;
+
+        console.log(`[Broadcasts] Updating seen broadcasts for user ${userId}...`);
+
         await users.updatePrefs(userId, {
             ...user.prefs,
             processedBroadcasts: seenIds

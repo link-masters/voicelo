@@ -12,7 +12,6 @@ import crypto from 'crypto';
  * Sends a welcome email to a new user.
  */
 export async function sendWelcomeEmail(email: string, userName: string) {
-    console.log('DEBUG: sendWelcomeEmail called for:', email);
     try {
         if (!process.env.RESEND_API_KEY) {
             console.error('ERROR: RESEND_API_KEY is missing');

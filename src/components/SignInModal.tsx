@@ -13,13 +13,15 @@ interface SignInModalProps {
 }
 
 export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignInModalProps) {
-    const { login, loginWithGoogle } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [unverifiedUser, setUnverifiedUser] = useState<{ userId: string, userName: string, email: string } | null>(null);
+    const [isResending, setIsResending] = useState(false);
+    const { login, loginWithGoogle, resendVerification } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,8 +37,29 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
             router.push("/dashboard");
         } catch (err: any) {
             setError(err.message || "Failed to sign in. Please check your credentials.");
+            if (err.type === "email_not_verified") {
+                setUnverifiedUser({
+                    userId: err.userId,
+                    userName: err.userName,
+                    email: err.email
+                });
+            }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        if (!unverifiedUser) return;
+        setIsResending(true);
+        try {
+            await resendVerification(unverifiedUser.userId, unverifiedUser.email, unverifiedUser.userName);
+            setError("A new verification link has been sent to your email.");
+            setUnverifiedUser(null);
+        } catch (err: any) {
+            setError(err.message || "Failed to resend verification link.");
+        } finally {
+            setIsResending(false);
         }
     };
 
@@ -79,7 +102,7 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
                     {/* Email Field */}
                     <div className="space-y-2">
                         <label htmlFor="email" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-indigo-500" />
+                            <Mail className="w-4 h-4 text-primary" />
                             Email Address
                         </label>
                         <input
@@ -89,14 +112,14 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
                             required
-                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
+                            className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder-muted-foreground"
                         />
                     </div>
 
                     {/* Password Field */}
                     <div className="space-y-2">
                         <label htmlFor="password" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-indigo-500" />
+                            <Lock className="w-4 h-4 text-primary" />
                             Password
                         </label>
                         <div className="relative">
@@ -107,7 +130,7 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 required
-                                className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-muted-foreground"
+                                className="w-full bg-secondary/50 border border-border text-foreground rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder-muted-foreground"
                             />
                             <button
                                 type="button"
@@ -123,7 +146,7 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
                     <div className="text-right">
                         <button
                             type="button"
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:opacity-80 transition-colors"
+                            className="text-sm text-primary hover:opacity-80 transition-colors"
                         >
                             Forgot password?
                         </button>
@@ -131,8 +154,25 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
 
                     {/* Error Message */}
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
-                            {error}
+                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm space-y-3">
+                            <p>{error}</p>
+                            {unverifiedUser && (
+                                <button
+                                    type="button"
+                                    onClick={handleResendVerification}
+                                    disabled={isResending}
+                                    className="w-full bg-primary/20 hover:bg-primary/30 text-primary py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 border border-primary/30"
+                                >
+                                    {isResending ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                            Resending...
+                                        </>
+                                    ) : (
+                                        "Resend Verification Email"
+                                    )}
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -140,11 +180,11 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full btn bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full btn bg-primary hover:opacity-90 text-primary-foreground py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isLoading ? (
                             <>
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                                 Signing in...
                             </>
                         ) : (
@@ -153,13 +193,10 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
                     </button>
                 </form>
 
-                <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-border"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
-                    </div>
+                <div className="flex items-center my-6 gap-4">
+                    <div className="flex-1 border-t border-border"></div>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">Or continue with</span>
+                    <div className="flex-1 border-t border-border"></div>
                 </div>
 
                 <button
@@ -194,7 +231,7 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp }: SignI
                     <button
                         type="button"
                         onClick={onSwitchToSignUp}
-                        className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 font-medium transition-colors"
+                        className="text-primary font-medium hover:opacity-80 transition-colors"
                     >
                         Sign up
                     </button>
