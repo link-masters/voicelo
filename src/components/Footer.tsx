@@ -1,12 +1,12 @@
 import React from "react";
 import Link from "next/link";
-import { Facebook, Heart, Shield, FileText, RefreshCcw, Cookie, Mic } from "lucide-react";
+import { Heart, Shield, FileText, RefreshCcw, Cookie, Mic, MessageSquare, Mic2, Trophy } from "lucide-react";
 
 export default function Footer() {
     return (
         <footer className="w-full border-t border-border bg-secondary/20 backdrop-blur-sm py-12 mt-auto">
             <div className="container mx-auto px-6">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-12 mb-12">
                     {/* Brand & Description */}
                     <div className="md:col-span-2 space-y-4 text-center md:text-left">
                         <div className="flex flex-col items-center md:items-start gap-1">
@@ -24,12 +24,25 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {/* Product Links */}
                     <div className="flex flex-col items-center md:items-start gap-4">
                         <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground/80">Product</h4>
-                        <Link href="/pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">Pricing</Link>
-                        <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-primary transition-colors">Dashboard</Link>
-                        <Link href="/#features" className="text-sm text-muted-foreground hover:text-primary transition-colors">Features</Link>
+                        <Link href="/text-to-speech" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+                            <MessageSquare className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                            Text To Speech
+                        </Link>
+                        <Link href="/voice-cloning" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+                            <Mic2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                            Voice Cloning
+                        </Link>
+                    </div>
+
+                    {/* Earn With Us Section */}
+                    <div className="flex flex-col items-center md:items-start gap-4">
+                        <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground/80">Earn With Us</h4>
+                        <Link href="/dashboard/influencer-program" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+                            <Trophy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                            Influencer Program
+                        </Link>
                     </div>
 
                     {/* Legal Links */}
@@ -69,25 +82,21 @@ export default function Footer() {
                             </svg>
                             Discord Server
                         </a>
+                        <a href="https://x.com/Voiceloofficial" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+                            <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform fill-current" viewBox="0 0 24 24">
+                                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+                            </svg>
+                            Twitter / X
+                        </a>
                     </div>
                 </div>
 
                 <div className="pt-8 border-t border-border/50 flex flex-col items-center justify-center gap-6">
-                    {/* Copyright & Social */}
+                    {/* Copyright */}
                     <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 text-center">
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                             © {new Date().getFullYear()} VoiceLo. All rights reserved.
                         </p>
-                        <div className="flex items-center gap-5">
-                            <a href="#" className="text-muted-foreground/60 hover:text-foreground transition-all hover:scale-110">
-                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-                                </svg>
-                            </a>
-                            <a href="#" className="text-muted-foreground/60 hover:text-foreground transition-all hover:scale-110">
-                                <Facebook className="w-4 h-4" />
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>
