@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Heart, Shield, FileText, RefreshCcw, Cookie, Mic, MessageSquare, Mic2, Trophy } from "lucide-react";
+import { Heart, Shield, FileText, RefreshCcw, Cookie, AudioWaveform, MessageSquare, Mic2, Trophy } from "lucide-react";
 
 export default function Footer() {
     return (
@@ -12,7 +12,7 @@ export default function Footer() {
                         <div className="flex flex-col items-center md:items-start gap-1">
                             <div className="flex items-center gap-2.5 mb-1 group cursor-default">
                                 <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
-                                    <Mic className="w-5 h-5 text-primary-foreground" />
+                                    <AudioWaveform className="w-5 h-5 text-primary-foreground" />
                                 </div>
                                 <span className="text-xl font-bold text-foreground tracking-tight">
                                     VoiceLo

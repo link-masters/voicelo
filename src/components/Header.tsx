@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Mic, ArrowRight, Sun, Moon } from "lucide-react";
+import { Menu, X, AudioWaveform, ArrowRight, Sun, Moon } from "lucide-react";
 import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";
 import { useAuth } from "@/context/AuthContext";
@@ -47,7 +47,7 @@ export default function Header() {
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-300">
-                            <Mic className="w-6 h-6 text-primary-foreground" />
+                            <AudioWaveform className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <span className="font-bold text-2xl tracking-tight text-foreground">VoiceLo</span>
                     </Link>
