@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getActiveProviderName } from "@/config/payment";
 
 export default function PrivacyPolicy() {
     return (
@@ -42,7 +43,7 @@ export default function PrivacyPolicy() {
                                     </li>
                                     <li className="flex gap-3">
                                         <span className="text-primary mt-1.5">•</span>
-                                        <span><strong className="text-foreground">Payment Information:</strong> Transaction details processed securely through Lemon Squeezy. We do not store your credit card details.</span>
+                                        <span><strong className="text-foreground">Payment Information:</strong> Transaction details processed securely through {getActiveProviderName()}. We do not store your credit card details.</span>
                                     </li>
                                     <li className="flex gap-3">
                                         <span className="text-primary mt-1.5">•</span>
@@ -90,7 +91,7 @@ export default function PrivacyPolicy() {
                                     </li>
                                     <li className="flex gap-3">
                                         <span className="text-primary">•</span>
-                                        <span><strong className="text-foreground">Lemon Squeezy:</strong> Secure payment processing.</span>
+                                        <span><strong className="text-foreground">{getActiveProviderName()}:</strong> Secure payment processing.</span>
                                     </li>
                                     <li className="flex gap-3">
                                         <span className="text-primary">•</span>

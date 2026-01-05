@@ -1,9 +1,12 @@
 "use client";
 
 import { Check, Zap, Rocket, Crown, Loader2, Star, User } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { getPaddleClientConfig, isPaddle } from "@/config/payment";
+import { initializePaddle, Paddle } from "@paddle/paddle-js";
+import { useTheme } from "@/context/ThemeContext";
 
 interface PricingPlan {
     name: string;
@@ -13,11 +16,13 @@ interface PricingPlan {
     description: string;
     features: string[];
     variantId: string;
+    priceId?: string; // Paddle uses priceId
     popular?: boolean;
     icon: any;
     color: string;
     productName?: string;
     discountCode?: string | null;
+    provider?: 'lemonsqueezy' | 'paddle';
 }
 
 const planConfigs: Record<string, any> = {
@@ -56,12 +61,56 @@ const planConfigs: Record<string, any> = {
 
 export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const { user } = useAuth();
+    const { theme } = useTheme();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState<string | null>(null);
     const [plans, setPlans] = useState<PricingPlan[]>([]);
     const [fetching, setFetching] = useState(true);
+    const [paddle, setPaddle] = useState<Paddle>();
 
     const urlDiscount = searchParams.get('discount');
+
+    // Initialize Paddle.js using official package if Paddle is the active provider
+    useEffect(() => {
+        if (!isPaddle()) return;
+
+        const { clientToken, environment } = getPaddleClientConfig();
+        if (!clientToken) {
+            console.warn('[PricingModal] Paddle client token not configured');
+            return;
+        }
+
+        initializePaddle({
+            environment: environment as 'sandbox' | 'production',
+            token: clientToken,
+            eventCallback(event) {
+                console.log('[Paddle Event]:', event.name, event);
+                switch (event.name) {
+                    case 'checkout.completed':
+                        // Auto-close after showing success briefly
+                        setTimeout(() => {
+                            router.push('/dashboard/profile?checkout=success');
+                        }, 1500);
+                        break;
+                    case 'checkout.closed':
+                        setLoading(null);
+                        break;
+                    case 'checkout.error':
+                        console.error('[Paddle] Checkout error:', event);
+                        setLoading(null);
+                        break;
+                }
+            },
+        }).then((paddleInstance) => {
+            if (paddleInstance) {
+                setPaddle(paddleInstance);
+                console.log('[PricingModal] Paddle initialized successfully');
+            }
+        }).catch((error) => {
+            console.error('[PricingModal] Paddle init error:', error);
+        });
+    }, [router]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -116,22 +165,66 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
 
     if (!isOpen) return null;
 
-    const handleSubscribe = async (variantId: string, apiDiscountCode?: string | null) => {
+    const handleSubscribe = async (plan: PricingPlan) => {
         if (!user) {
             alert("Please sign in to subscribe");
             return;
         }
 
-        // Priority logic: URL discount code overrides API-detected code
-        const discountToUse = urlDiscount || apiDiscountCode;
+        const variantId = plan.variantId;
+        const priceId = plan.priceId || plan.variantId;
+        const discountToUse = urlDiscount || plan.discountCode;
 
         setLoading(variantId);
+
         try {
+            // Check if this is a Paddle plan
+            if (plan.provider === 'paddle' || isPaddle()) {
+                // Use Paddle.js for checkout
+                if (!paddle) {
+                    throw new Error('Payment system is loading. Please try again.');
+                }
+
+                const checkoutSettings: any = {
+                    items: [{ priceId: priceId, quantity: 1 }],
+                };
+
+                // Custom data for webhook (userId tracking)
+                if (user.$id) {
+                    checkoutSettings.customData = { userId: user.$id };
+                }
+
+                // Pre-fill customer email
+                if (user.email) {
+                    checkoutSettings.customer = { email: user.email };
+                }
+
+                // Add discount code if provided
+                if (discountToUse) {
+                    checkoutSettings.discountCode = discountToUse;
+                }
+
+                // UI Customization
+                checkoutSettings.settings = {
+                    displayMode: 'overlay',
+                    theme: theme === 'dark' ? 'dark' : 'light',
+                    locale: 'en',
+                    showAddDiscounts: true, // Allow users to enter discount codes
+                    showAddTaxId: false, // Usually not needed for simple packs
+                };
+
+                console.log('[PricingModal] Opening Paddle checkout:', checkoutSettings);
+                paddle.Checkout.open(checkoutSettings);
+                return;
+            }
+
+            // Lemon Squeezy checkout (redirect flow)
             const response = await fetch("/api/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     variantId,
+                    priceId,
                     userId: user.$id,
                     userEmail: user.email,
                     userName: user.name,
@@ -140,15 +233,39 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
             });
 
             const data = await response.json();
-            if (data.url) {
+
+            if (data.provider === 'paddle') {
+                // API returned Paddle config, use Paddle.js
+                if (!paddle) {
+                    throw new Error('Payment system not ready');
+                }
+
+                const checkoutSettings: any = {
+                    items: [{ priceId: data.priceId, quantity: 1 }],
+                };
+
+                if (data.customData) {
+                    checkoutSettings.customData = data.customData;
+                }
+
+                if (data.customer) {
+                    checkoutSettings.customer = data.customer;
+                }
+
+                if (data.discountCode) {
+                    checkoutSettings.discountCode = data.discountCode;
+                }
+
+                paddle.Checkout.open(checkoutSettings);
+            } else if (data.url) {
+                // Lemon Squeezy redirect
                 window.location.href = data.url;
             } else {
                 throw new Error(data.error || "Failed to create checkout");
             }
         } catch (error: any) {
-            console.error(error);
+            console.error('[PricingModal] Checkout error:', error);
             alert(error.message);
-        } finally {
             setLoading(null);
         }
     };
@@ -222,7 +339,6 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                         )}
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-4xl font-bold text-zinc-900 dark:text-white">{plan.price}</span>
-                                            {plan.variantId !== "free" && <span className="text-zinc-500 text-sm">/ mo</span>}
                                             {plan.originalPrice && (
                                                 <span className="text-zinc-500 text-lg font-medium line-through ml-2">
                                                     {plan.originalPrice}
@@ -230,7 +346,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                             )}
                                         </div>
                                         {plan.variantId !== "free" && (
-                                            <span className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1">30-day billing cycle</span>
+                                            <span className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1">One-time Payment. No Auto Renewal</span>
                                         )}
                                     </div>
                                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed text-center">
@@ -249,7 +365,7 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                     </div>
 
                                     <button
-                                        onClick={() => plan.variantId !== "free" && handleSubscribe(plan.variantId, plan.discountCode)}
+                                        onClick={() => plan.variantId !== "free" && handleSubscribe(plan)}
                                         disabled={loading !== null || plan.variantId === "free"}
                                         className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${plan.variantId === "free"
                                             ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-border dark:border-zinc-700"

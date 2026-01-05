@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
+    "@paddle/paddle-js": "^1.6.1",
+    "@paddle/paddle-node-sdk": "^3.5.0",
     "@react-email/components": "^1.0.3",
     "@react-email/render": "^2.0.1",
     "@types/uuid": "^10.0.0",

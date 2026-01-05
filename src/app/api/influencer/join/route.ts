@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { createDiscount } from "@lemonsqueezy/lemonsqueezy.js";
+import { createDiscount as createLemonDiscount } from "@lemonsqueezy/lemonsqueezy.js";
 import { configureLemonSqueezy } from "@/lib/lemonsqueezy";
 import { createAdminClient } from "@/lib/appwrite-server";
+import { paymentConfig, isLemonSqueezy, isPaddle } from "@/config/payment";
+import { paddle } from "@/lib/paddle";
 
 export async function POST(req: Request) {
     try {
@@ -30,32 +32,53 @@ export async function POST(req: Request) {
         const randomStr = Math.random().toString(36).substring(2, 10).toUpperCase();
         const generatedCode = (prefix + randomStr).slice(0, 8);
 
-        // 3. Create discount in Lemon Squeezy
-        configureLemonSqueezy();
-        const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
-        if (!storeId) {
-            console.error("Missing LEMON_SQUEEZY_STORE_ID in environment variables");
-            return NextResponse.json({ error: "Store configuration missing" }, { status: 500 });
-        }
-
-        console.log(`[Influencer] Creating discount code "${generatedCode}" for user ${user.name}...`);
-
+        // 3. Create discount in Payment Gateway
         const discountRate = Number(prefs?.influencer_discount_rate) || 10;
         const commissionRate = Number(prefs?.influencer_commission_rate) || 30;
 
-        const { data, error } = await createDiscount({
-            storeId: storeId,
-            name: `Influencer: ${user.name} (${user.email})`,
-            code: generatedCode,
-            amount: discountRate,
-            amountType: 'percent',
-            isLimitedRedemptions: true,
-            maxRedemptions: 1000
-        });
+        if (isLemonSqueezy()) {
+            configureLemonSqueezy();
+            const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
+            if (!storeId) {
+                console.error("Missing LEMON_SQUEEZY_STORE_ID in environment variables");
+                return NextResponse.json({ error: "Store configuration missing" }, { status: 500 });
+            }
 
-        if (error) {
-            console.error("Lemon Squeezy Create Discount Error:", error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            console.log(`[Influencer] Creating LS discount code "${generatedCode}" for user ${user.name}...`);
+
+            const { data, error } = await createLemonDiscount({
+                storeId: storeId,
+                name: `Influencer: ${user.name} (${user.email})`,
+                code: generatedCode,
+                amount: discountRate,
+                amountType: 'percent',
+                isLimitedRedemptions: true,
+                maxRedemptions: 1000
+            });
+
+            if (error) {
+                console.error("Lemon Squeezy Create Discount Error:", error);
+                return NextResponse.json({ error: error.message }, { status: 500 });
+            }
+        } else if (isPaddle()) {
+            console.log(`[Influencer] Creating Paddle discount code "${generatedCode}" for user ${user.name}...`);
+            try {
+                await paddle.discounts.create({
+                    amount: discountRate.toString(),
+                    type: "percentage",
+                    description: `Influencer: ${user.name} (${user.email})`,
+                    enabledForCheckout: true,
+                    code: generatedCode,
+                    recur: false,
+                    usageLimit: 1000
+                });
+            } catch (error: any) {
+                console.error("Paddle Create Discount Error:", error);
+                return NextResponse.json({ error: error.message || "Failed to create Paddle discount" }, { status: 500 });
+            }
+        } else {
+            console.error(`[Influencer] Discount creation not yet implemented for ${paymentConfig.activeProvider}`);
+            return NextResponse.json({ error: `Influencer program is not yet compatible with ${paymentConfig.activeProvider}.` }, { status: 501 });
         }
 
         // 4. Update user prefs in Appwrite to store the code

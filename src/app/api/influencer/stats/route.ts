@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { listDiscounts, listDiscountRedemptions, getOrder } from "@lemonsqueezy/lemonsqueezy.js";
 import { configureLemonSqueezy } from "@/lib/lemonsqueezy";
 import { createAdminClient } from "@/lib/appwrite-server";
+import { paymentConfig, isLemonSqueezy, isPaddle } from "@/config/payment";
+import { paddle } from "@/lib/paddle";
 
 // Global cache for influencer stats per user
 interface CachedStats {
@@ -37,6 +39,62 @@ export async function GET(req: Request) {
 
         if (!influencerCode) {
             return NextResponse.json({ error: "User is not an influencer" }, { status: 403 });
+        }
+
+        if (!isLemonSqueezy()) {
+            if (isPaddle()) {
+                try {
+                    console.log(`[Influencer API] Fetching Paddle stats for code: ${influencerCode}`);
+
+                    let paddleDiscount: any = null;
+                    const discountsCollection = paddle.discounts.list();
+
+                    for await (const discount of discountsCollection) {
+                        if (discount.code && discount.code.toUpperCase() === influencerCode.toUpperCase()) {
+                            paddleDiscount = discount;
+                            break;
+                        }
+                    }
+
+                    const userPrefs = user.prefs as any;
+                    const redemptions = userPrefs.redemptions || [];
+
+                    // Note: Paddle uses 'timesUsed' for usage count
+                    const usageCount = paddleDiscount ? paddleDiscount.timesUsed : (userPrefs.totalRedemptions || 0);
+                    const usageLimit = paddleDiscount ? paddleDiscount.usageLimit : null;
+
+                    const responseData = {
+                        totalRedemptions: usageCount,
+                        totalEarnings: Number(userPrefs.totalEarningsRevenue) || 0,
+                        approvedCommission: Number(userPrefs.approvedCommission) || 0,
+                        redemptions: redemptions,
+                        usageLimit: usageLimit,
+                        usageCount: usageCount,
+                        influencerCode,
+                        currency: "USD",
+                        message: paddleDiscount ? undefined : "Discount details synced from local records."
+                    };
+
+                    // Update Cache
+                    statsCache[userId] = {
+                        timestamp: Date.now(),
+                        data: responseData
+                    };
+
+                    return NextResponse.json(responseData);
+                } catch (err) {
+                    console.error("[Influencer API] Paddle stats error:", err);
+                    // Fallback to cached/stored data if Paddle API fails
+                }
+            }
+
+            console.warn(`[Influencer API] Influencer stats not yet fully implemented for ${paymentConfig.activeProvider}`);
+            return NextResponse.json({
+                totalRedemptions: (user.prefs as any)?.totalRedemptions || 0,
+                totalEarnings: (user.prefs as any)?.totalEarningsRevenue || 0,
+                redemptions: (user.prefs as any)?.redemptions || [],
+                message: `Influencer statistics are currently using local records for ${paymentConfig.activeProvider}.`
+            });
         }
 
         configureLemonSqueezy();

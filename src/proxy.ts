@@ -1,7 +1,6 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export default function handler(request: NextRequest) {
     // Maintenance Mode Logic
     const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
     const bypassKey = process.env.MAINTENANCE_BYPASS_KEY || 'secret_bypass_key_123';

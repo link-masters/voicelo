@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getActiveProviderName } from "@/config/payment";
 
 export default function CookiePolicy() {
     return (
@@ -38,7 +39,7 @@ export default function CookiePolicy() {
                                 <div className="grid gap-6 mt-6">
                                     <div className="p-6 rounded-2xl bg-secondary/30 border border-border">
                                         <h3 className="font-bold mb-2">Essential Cookies</h3>
-                                        <p className="text-sm text-muted-foreground">These are necessary for the website to function. They include cookies for authentication (Appwrite) and secure payments (Lemon Squeezy).</p>
+                                        <p className="text-sm text-muted-foreground">These are necessary for the website to function. They include cookies for authentication (Appwrite) and secure payments ({getActiveProviderName()}).</p>
                                     </div>
                                     <div className="p-6 rounded-2xl bg-secondary/30 border border-border">
                                         <h3 className="font-bold mb-2">Performance & Analytics</h3>
@@ -65,7 +66,7 @@ export default function CookiePolicy() {
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground text-sm">
                                     <li><strong>Appwrite:</strong> Used for managing your session and security.</li>
-                                    <li><strong>Lemon Squeezy:</strong> Used for processing payments and preventing fraud.</li>
+                                    <li><strong>{getActiveProviderName()}:</strong> Used for processing payments and preventing fraud.</li>
                                 </ul>
                             </section>
 

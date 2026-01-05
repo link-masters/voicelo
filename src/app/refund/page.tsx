@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getActiveProviderName } from "@/config/payment";
 
 export default function RefundPolicy() {
     return (
@@ -58,7 +59,7 @@ export default function RefundPolicy() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold">4. How to Request a Refund</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    To request a refund, please contact us at support@voicelo.com with your order number (from Lemon Squeezy) and the reason for your request. We aim to process all requests within 5-10 business days.
+                                    To request a refund, please contact us at support@voicelo.com with your order number (from {getActiveProviderName()}) and the reason for your request. We aim to process all requests within 5-10 business days.
                                 </p>
                             </section>
 
@@ -70,9 +71,9 @@ export default function RefundPolicy() {
                             </section>
 
                             <section className="space-y-4">
-                                <h2 className="text-2xl font-bold">6. Lemon Squeezy</h2>
+                                <h2 className="text-2xl font-bold">6. {getActiveProviderName()}</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    All transactions are handled by Lemon Squeezy, our Merchant of Record. Some refund rules may be governed by their own terms and conditions in addition to ours.
+                                    All transactions are handled by {getActiveProviderName()}, our Merchant of Record. Some refund rules may be governed by their own terms and conditions in addition to ours.
                                 </p>
                             </section>
                         </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getActiveProviderName } from "@/config/payment";
 
 export default function TermsOfService() {
     return (
@@ -51,7 +52,7 @@ export default function TermsOfService() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground">3. Credits and Payments</h2>
                                 <p className="text-muted-foreground">
-                                    Our service operates on a credit-based system managed through Lemon Squeezy:
+                                    Our service operates on a credit-based system managed through {getActiveProviderName()}:
                                 </p>
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex gap-3">

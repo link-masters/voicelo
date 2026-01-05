@@ -3,9 +3,14 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { Check, Zap, Rocket, Crown, Loader2, ArrowRight, Star, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getPaddleClientConfig, isPaddle } from "@/config/payment";
+import { initializePaddle, Paddle } from "@paddle/paddle-js";
+import { useTheme } from "@/context/ThemeContext";
+import SignInModal from "@/components/SignInModal";
+import SignUpModal from "@/components/SignUpModal";
 
 interface PricingPlan {
     name: string;
@@ -15,11 +20,14 @@ interface PricingPlan {
     description: string;
     features: string[];
     variantId: string;
+    priceId?: string;
     popular?: boolean;
     icon: any;
     color: string;
     productName?: string;
     discountCode?: string | null;
+    provider?: 'lemonsqueezy' | 'paddle';
+    recurring?: boolean;
 }
 
 const planConfigs: Record<string, any> = {
@@ -61,12 +69,60 @@ const planConfigs: Record<string, any> = {
 
 function PricingContent() {
     const { user } = useAuth();
+    const { theme } = useTheme();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState<string | null>(null);
     const [plans, setPlans] = useState<PricingPlan[]>([]);
     const [fetching, setFetching] = useState(true);
+    const [paddle, setPaddle] = useState<Paddle>();
+    const [isSignInOpen, setIsSignInOpen] = useState(false);
+    const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
     const urlDiscount = searchParams.get('discount');
+
+    // Initialize Paddle.js using official package if Paddle is the active provider
+    useEffect(() => {
+        if (!isPaddle()) return;
+
+        const { clientToken, environment } = getPaddleClientConfig();
+        if (!clientToken) {
+            console.warn('[PricingPage] Paddle client token not configured');
+            return;
+        }
+
+        // initializePaddle handles singleton initialization - safe to call multiple times
+        initializePaddle({
+            environment: environment as 'sandbox' | 'production',
+            token: clientToken,
+            eventCallback(event) {
+                console.log('[Paddle Event]:', event.name, event);
+                switch (event.name) {
+                    case 'checkout.completed':
+                        // Close the checkout modal first, then redirect after a short delay
+                        // This prevents the success message from sticking on screen
+                        setTimeout(() => {
+                            router.push('/dashboard/profile?checkout=success');
+                        }, 1500); // Wait 1.5 seconds to show success briefly
+                        break;
+                    case 'checkout.closed':
+                        setLoading(null);
+                        break;
+                    case 'checkout.error':
+                        console.error('[Paddle] Checkout error:', event);
+                        setLoading(null);
+                        break;
+                }
+            },
+        }).then((paddleInstance) => {
+            if (paddleInstance) {
+                setPaddle(paddleInstance);
+                console.log('[PricingPage] Paddle initialized successfully');
+            }
+        }).catch((error) => {
+            console.error('[PricingPage] Paddle init error:', error);
+        });
+    }, [router]);
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -80,6 +136,12 @@ function PricingContent() {
                 }
 
                 const response = await fetch(`/api/products?currency=${userCurrency}${urlDiscount ? `&discountCode=${urlDiscount}` : ''}`);
+
+                if (!response.ok) {
+                    console.error(`[PricingPage] Products API error: ${response.status}`);
+                    return;
+                }
+
                 const data = await response.json();
 
                 if (Array.isArray(data)) {
@@ -103,6 +165,7 @@ function PricingContent() {
                         description: "",
                         ...planConfigs.free_plan,
                         variantId: "free",
+                        recurring: false,
                     };
 
                     setPlans([freePlan, ...mappedPlans]);
@@ -117,22 +180,68 @@ function PricingContent() {
         fetchPlans();
     }, []);
 
-    const handleSubscribe = async (variantId: string, apiDiscountCode?: string | null) => {
+    const handleSubscribe = async (plan: PricingPlan) => {
         if (!user) {
-            alert("Please sign in to purchase a plan");
+            setIsSignUpOpen(true);
             return;
         }
 
-        // Priority logic: URL discount code overrides API-detected code
-        const discountToUse = urlDiscount || apiDiscountCode;
+        const variantId = plan.variantId;
+        const priceId = plan.priceId || plan.variantId;
+        const discountToUse = urlDiscount || plan.discountCode;
 
         setLoading(variantId);
+
         try {
+            // Check if this is a Paddle plan
+            if (plan.provider === 'paddle' || isPaddle()) {
+                if (!paddle) {
+                    throw new Error('Payment system is loading. Please try again.');
+                }
+
+                // Build checkout settings following Paddle.js v2 API
+                const checkoutSettings: any = {
+                    items: [{ priceId: priceId, quantity: 1 }],
+                };
+
+                // Custom data for webhook (userId tracking)
+                if (user.$id) {
+                    checkoutSettings.customData = { userId: user.$id };
+                }
+
+                // Pre-fill customer email
+                if (user.email) {
+                    checkoutSettings.customer = { email: user.email };
+                }
+
+                // Add discount code if provided
+                if (discountToUse) {
+                    checkoutSettings.discountCode = discountToUse;
+                }
+
+                // UI Customization
+                checkoutSettings.settings = {
+                    displayMode: 'overlay',
+                    theme: theme === 'dark' ? 'dark' : 'light',
+                    locale: 'en',
+                    showAddDiscounts: true, // Allow users to enter discount codes
+                    showAddTaxId: false, // Usually not needed for simple packs
+                };
+
+                console.log('[PricingPage] Checkout priceId:', priceId);
+                console.log('[PricingPage] Opening Paddle checkout:', JSON.stringify(checkoutSettings, null, 2));
+
+                paddle.Checkout.open(checkoutSettings);
+                return;
+            }
+
+            // Lemon Squeezy checkout (redirect flow)
             const response = await fetch("/api/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     variantId,
+                    priceId,
                     userId: user.$id,
                     userEmail: user.email,
                     userName: user.name,
@@ -141,15 +250,37 @@ function PricingContent() {
             });
 
             const data = await response.json();
-            if (data.url) {
+
+            if (data.provider === 'paddle') {
+                if (!paddle) {
+                    throw new Error('Payment system not ready');
+                }
+
+                const checkoutSettings: any = {
+                    items: [{ priceId: data.priceId, quantity: 1 }],
+                };
+
+                if (data.customData) {
+                    checkoutSettings.customData = data.customData;
+                }
+
+                if (data.customer) {
+                    checkoutSettings.customer = data.customer;
+                }
+
+                if (data.discountCode) {
+                    checkoutSettings.discountCode = data.discountCode;
+                }
+
+                paddle.Checkout.open(checkoutSettings);
+            } else if (data.url) {
                 window.location.href = data.url;
             } else {
                 throw new Error(data.error || "Failed to create checkout");
             }
         } catch (error: any) {
-            console.error(error);
+            console.error('[PricingPage] Checkout error:', error);
             alert(error.message);
-        } finally {
             setLoading(null);
         }
     };
@@ -231,15 +362,14 @@ function PricingContent() {
 
                                     <div className="flex flex-col items-center mb-6 text-center">
                                         {plan.discountPercent && (
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-500 text-sm font-bold uppercase tracking-wide">
                                                     {plan.discountPercent}% Off
                                                 </span>
                                             </div>
                                         )}
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-5xl font-extrabold text-foreground">{plan.price}</span>
-                                            {plan.variantId !== "free" && <span className="text-muted-foreground text-lg">/ mo</span>}
                                             {plan.originalPrice && (
                                                 <span className="text-zinc-500 text-xl font-medium line-through decoration-zinc-600/50 ml-2">
                                                     {plan.originalPrice}
@@ -247,7 +377,7 @@ function PricingContent() {
                                             )}
                                         </div>
                                         {plan.variantId !== "free" && (
-                                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-2 px-2 py-0.5 rounded-full bg-secondary/50 border border-border">30-day billing cycle</span>
+                                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-2 px-2 py-0.5 rounded-full bg-secondary/50 border border-border">One-time Payment. No Auto Renewal</span>
                                         )}
                                     </div>
 
@@ -267,9 +397,9 @@ function PricingContent() {
                                     </div>
 
                                     <button
-                                        onClick={() => plan.variantId !== "free" && handleSubscribe(plan.variantId, plan.discountCode)}
-                                        disabled={loading !== null || plan.variantId === "free"}
-                                        className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group/btn ${plan.variantId === "free"
+                                        onClick={() => plan.variantId === "free" ? (!user && setIsSignUpOpen(true)) : handleSubscribe(plan)}
+                                        disabled={loading !== null || (!!user && plan.variantId === "free")}
+                                        className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group/btn ${plan.variantId === "free" && user
                                             ? "bg-secondary text-muted-foreground border border-border cursor-not-allowed"
                                             : plan.popular
                                                 ? "bg-primary text-primary-foreground hover:opacity-90 shadow-xl shadow-primary/30"
@@ -280,8 +410,8 @@ function PricingContent() {
                                             <Loader2 className="w-5 h-5 animate-spin" />
                                         ) : (
                                             <>
-                                                {plan.variantId === "free" ? "Default Pack" : "Get Started"}
-                                                {plan.variantId !== "free" && <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />}
+                                                {plan.variantId === "free" ? (user ? "Current Plan" : "Get Started") : "Get Started"}
+                                                {(plan.variantId !== "free" || !user) && <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />}
                                             </>
                                         )}
                                     </button>
@@ -304,7 +434,10 @@ function PricingContent() {
                             Join our community of developers, podcasters, and filmmakers who use VoiceLo to bring their text to life.
                             Questions? Our team is here to help.
                         </p>
-                        <button className="text-primary font-semibold hover:opacity-80 transition-colors flex items-center gap-2 mx-auto">
+                        <button
+                            onClick={() => window.location.href = 'mailto:support@voicelo.com'}
+                            className="text-primary font-semibold hover:opacity-80 transition-colors flex items-center gap-2 mx-auto"
+                        >
                             Contact Support <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
@@ -312,7 +445,25 @@ function PricingContent() {
             </main>
 
             <Footer />
-        </div>
+
+            <SignInModal
+                isOpen={isSignInOpen}
+                onClose={() => setIsSignInOpen(false)}
+                onSwitchToSignUp={() => {
+                    setIsSignInOpen(false);
+                    setIsSignUpOpen(true);
+                }}
+            />
+
+            <SignUpModal
+                isOpen={isSignUpOpen}
+                onClose={() => setIsSignUpOpen(false)}
+                onSwitchToSignIn={() => {
+                    setIsSignUpOpen(false);
+                    setIsSignInOpen(true);
+                }}
+            />
+        </div >
     );
 }
 

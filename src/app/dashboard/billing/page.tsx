@@ -108,7 +108,7 @@ export default function BillingPage() {
                                     [...transactions].reverse().map((tx: any, idx: number) => {
                                         const txExpired = new Date(tx.expiresAt) < new Date();
                                         return (
-                                            <tr key={tx.id || idx} className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.01] transition-colors group">
+                                            <tr key={tx.id ? `${tx.id}-${idx}` : idx} className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.01] transition-colors group">
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">

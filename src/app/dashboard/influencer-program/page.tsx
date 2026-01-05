@@ -152,7 +152,7 @@ export default function InfluencerHubPage() {
     }, [user?.$id]);
 
     const totalRedemptions = lsData?.totalRedemptions || (user?.prefs as any)?.totalRedemptions || 0;
-    const approvedCommission = lsData?.approvedCommission || 0;
+    const approvedCommission = lsData?.approvedCommission || (user?.prefs as any)?.approvedCommission || 0;
     const redemptionsList = lsData?.redemptions || (user?.prefs as any)?.redemptions || [];
     const usageLimit = lsData?.usageLimit ? Number(lsData.usageLimit) : null;
     const usageCount = Math.max(lsData?.usageCount ? Number(lsData.usageCount) : 0, totalRedemptions);
