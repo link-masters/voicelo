@@ -3,11 +3,6 @@
 import { useEffect, useCallback, useState } from "react";
 import { Loader2 } from "lucide-react";
 
-declare global {
-    interface Window {
-        Paddle: any;
-    }
-}
 
 interface PaddleCheckoutProps {
     clientToken: string;
@@ -52,7 +47,7 @@ export function usePaddleCheckout({
             script.onload = () => {
                 try {
                     // Initialize Paddle - environment is determined by token prefix (test_ vs live_)
-                    window.Paddle.Initialize({
+                    window.Paddle!.Initialize({
                         token: clientToken,
                         eventCallback: (event: any) => {
                             console.log('[Paddle Event]:', event.name, event);
@@ -169,7 +164,7 @@ export function PaddleProvider({
             script.onload = () => {
                 try {
                     // Environment is determined by token prefix (test_ vs live_)
-                    window.Paddle.Initialize({
+                    window.Paddle!.Initialize({
                         token: clientToken,
                     });
                     console.log('[Paddle Provider] Initialized');
