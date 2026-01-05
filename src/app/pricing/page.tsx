@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { Check, Zap, Rocket, Crown, Loader2, ArrowRight, Star, User } from "lucide-react";
+import { Check, Zap, Rocket, Loader2, ArrowRight, User, Minus, ChevronDown, Star } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -78,6 +78,39 @@ function PricingContent() {
     const [paddle, setPaddle] = useState<Paddle>();
     const [isSignInOpen, setIsSignInOpen] = useState(false);
     const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+    const faqs = [
+        {
+            q: "How are credits calculated?",
+            a: "1 credit equals approximately 1 word of generated speech. Our system calculates based on character count to ensure maximum transparency and value for every generation."
+        },
+        {
+            q: "Do my credits expire?",
+            a: "Credits in the Free Pack expire after 30 days. However, all paid packs (Starter & Turbo) come with No Expiration—your credits stay in your account until you use them."
+        },
+        {
+            q: "Do you offer refunds?",
+            a: "We offer refunds for unused credits if requested within 14 days of purchase. However, once credits are partially used for speech generation, the transaction becomes non-refundable."
+        },
+        {
+            q: "Can I monetize my content?",
+            a: "Yes! The Turbo Pack includes full commercial rights. This allows you to use your generated audio in monetized YouTube videos, podcasts, radio ads, and corporate projects."
+        },
+        {
+            q: "Is the checkout process secure?",
+            a: "Absolutely. We partner with Paddle and Lemon Squeezy, world leaders in SaaS payments, to ensure your transaction is encrypted and your data remains private."
+        }
+    ];
+
+    const comparisonFeatures = [
+        { name: "Monthly Credits", free: "1,000", starter: "10,000", turbo: "50,000" },
+        { name: "Neural Voices", free: "Standard", starter: "Standard", turbo: "All Premium" },
+        { name: "Credit Expiration", free: "30 Days", starter: "Never", turbo: "Never" },
+        { name: "Private generations", free: false, starter: true, turbo: true },
+        { name: "Commercial Rights", free: false, starter: false, turbo: true },
+        { name: "Priority Queue", free: false, starter: false, turbo: true },
+    ];
 
     const urlDiscount = searchParams.get('discount');
 
@@ -420,26 +453,115 @@ function PricingContent() {
                         )}
                     </div>
 
-                    {/* FAQ or Trust Section */}
-                    <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-primary/5 border border-border text-center space-y-6 animate-fade-in-up delay-300">
-                        <div className="flex justify-center -space-x-3">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="w-12 h-12 rounded-full border-4 border-black bg-zinc-800 flex items-center justify-center overflow-hidden">
-                                    <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="avatar" />
+                    {/* Detailed Comparison Table */}
+                    <div className="mt-32 mb-32 animate-fade-in-up delay-200">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold mb-4">Complete Feature Comparison</h2>
+                            <p className="text-muted-foreground">Compare our packages and find the perfect fit for your workflow.</p>
+                        </div>
+
+                        <div className="overflow-x-auto pb-4">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b border-border">
+                                        <th className="py-6 px-4 text-left font-semibold text-muted-foreground uppercase tracking-widest text-xs">Features</th>
+                                        <th className="py-6 px-4 text-center font-bold text-lg">Free</th>
+                                        <th className="py-6 px-4 text-center font-bold text-lg text-amber-500">Starter</th>
+                                        <th className="py-6 px-4 text-center font-bold text-lg text-primary">Turbo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {comparisonFeatures.map((feature, i) => (
+                                        <tr key={i} className="border-b border-border/50 hover:bg-secondary/20 transition-colors">
+                                            <td className="py-5 px-4 font-medium text-foreground">{feature.name}</td>
+                                            <td className="py-5 px-4 text-center">
+                                                {typeof feature.free === 'string' ? (
+                                                    <span className="text-sm font-semibold">{feature.free}</span>
+                                                ) : feature.free ? (
+                                                    <Check className="w-5 h-5 text-emerald-500 mx-auto" />
+                                                ) : (
+                                                    <Minus className="w-5 h-5 text-muted-foreground/30 mx-auto" />
+                                                )}
+                                            </td>
+                                            <td className="py-5 px-4 text-center">
+                                                {typeof feature.starter === 'string' ? (
+                                                    <span className="text-sm font-semibold">{feature.starter}</span>
+                                                ) : feature.starter ? (
+                                                    <Check className="w-5 h-5 text-amber-500 mx-auto" />
+                                                ) : (
+                                                    <Minus className="w-5 h-5 text-muted-foreground/30 mx-auto" />
+                                                )}
+                                            </td>
+                                            <td className="py-5 px-4 text-center">
+                                                {typeof feature.turbo === 'string' ? (
+                                                    <span className="text-sm font-semibold">{feature.turbo}</span>
+                                                ) : feature.turbo ? (
+                                                    <Check className="w-5 h-5 text-primary mx-auto" />
+                                                ) : (
+                                                    <Minus className="w-5 h-5 text-muted-foreground/30 mx-auto" />
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* FAQ Section */}
+                    <div className="max-w-4xl mx-auto mb-32 animate-fade-in-up delay-300">
+                        <div className="text-center mb-16 space-y-4">
+                            <h2 className="text-4xl font-extrabold">Have Questions? <br /><span className="text-muted-foreground">We've Got Answers.</span></h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {faqs.map((faq, i) => (
+                                <div
+                                    key={i}
+                                    className="rounded-[2rem] bg-card/50 dark:bg-zinc-900/40 border border-border overflow-hidden transition-all duration-300"
+                                >
+                                    <button
+                                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                        className="w-full p-6 text-left flex items-center justify-between group"
+                                    >
+                                        <span className="font-bold text-lg group-hover:text-primary transition-colors">{faq.q}</span>
+                                        <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-primary' : 'text-muted-foreground'}`} />
+                                    </button>
+                                    <div
+                                        className={`transition-all duration-300 ease-in-out ${openFaq === i ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}
+                                    >
+                                        <div className="p-6 pt-0 text-muted-foreground leading-relaxed">
+                                            {faq.a}
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                        <h2 className="text-3xl font-bold text-foreground">Trusted by 10,000+ creators</h2>
-                        <p className="text-muted-foreground">
-                            Join our community of developers, podcasters, and filmmakers who use VoiceLo to bring their text to life.
-                            Questions? Our team is here to help.
-                        </p>
-                        <button
-                            onClick={() => window.location.href = 'mailto:support@voicelo.com'}
-                            className="text-primary font-semibold hover:opacity-80 transition-colors flex items-center gap-2 mx-auto"
-                        >
-                            Contact Support <ArrowRight className="w-4 h-4" />
-                        </button>
+                    </div>
+
+
+                    {/* Final CTA */}
+                    <div className="max-w-4xl mx-auto p-12 rounded-[3.5rem] bg-gradient-to-br from-primary/10 via-blue-600/5 to-primary/10 border border-primary/20 text-center space-y-8 animate-fade-in-up">
+                        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto text-primary outline outline-8 outline-primary/5">
+                            <Rocket className="w-10 h-10" />
+                        </div>
+                        <div className="space-y-4">
+                            <h2 className="text-4xl font-extrabold text-foreground tracking-tight">Ready to amplify your content?</h2>
+                            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+                                Choose a pack and start generating studio-quality voiceovers in less than 60 seconds.
+                            </p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            {!user && (
+                                <button
+                                    onClick={() => setIsSignUpOpen(true)}
+                                    className="px-8 py-4 rounded-full bg-primary text-primary-foreground font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/30 min-w-[200px]"
+                                >
+                                    Get Started Free
+                                </button>
+                            )}
+
+                        </div>
                     </div>
                 </div>
             </main>

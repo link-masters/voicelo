@@ -234,7 +234,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
 
                         <p className="text-center text-xs text-muted-foreground mt-4">
                             By signing up, you agree to our{" "}
-                            <button className="text-primary hover:opacity-80 transition-colors">Terms of Service</button>
+                            <button className="text-primary hover:opacity-80 transition-colors">Terms & Conditions</button>
                             {" "}and{" "}
                             <button className="text-primary hover:opacity-80 transition-colors">Privacy Policy</button>
                         </p>

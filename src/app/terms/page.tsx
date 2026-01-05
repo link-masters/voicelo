@@ -1,9 +1,15 @@
 import React from "react";
+import { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getActiveProviderName } from "@/config/payment";
 
-export default function TermsOfService() {
+export const metadata: Metadata = {
+    title: "Terms & Conditions | VoiceLo",
+    description: "Terms and conditions for using VoiceLo voice synthesis platform.",
+};
+
+export default function TermsAndConditions() {
     return (
         <div className="min-h-screen text-foreground selection:bg-primary/30 font-sans text-base leading-relaxed">
             {/* Background Ambience */}
@@ -19,7 +25,7 @@ export default function TermsOfService() {
                 <main className="flex-1 max-w-4xl mx-auto px-6 py-24 sm:py-32 w-full">
                     <div className="space-y-16">
                         <header className="space-y-4">
-                            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground">Terms of Service</h1>
+                            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground">Terms & Conditions</h1>
                             <p className="text-muted-foreground text-lg">Last Updated: December 28, 2025</p>
                         </header>
 
@@ -27,7 +33,7 @@ export default function TermsOfService() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground">1. Agreement to Terms</h2>
                                 <p className="text-muted-foreground">
-                                    By accessing or using VoiceLo, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services.
+                                    By accessing or using VoiceLo, you agree to be bound by these Terms & Conditions. If you do not agree to all of these terms, do not use our services.
                                 </p>
                             </section>
 

@@ -54,7 +54,7 @@ export default function Footer() {
                         </Link>
                         <Link href="/terms" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
                             <FileText className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                            Terms of Service
+                            Terms & Conditions
                         </Link>
                         <Link href="/refund" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
                             <RefreshCcw className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
