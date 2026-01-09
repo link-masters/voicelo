@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, Mic, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X } from "lucide-react";
+import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X, User } from "lucide-react";
 import VoiceSelectionModal from "./VoiceSelectionModal";
 import { getInworldVoices, getCommunityVoices, synthesizeInworldSpeech } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
@@ -27,10 +27,11 @@ interface HistoryItem {
     voiceId: string;
     voiceName: string;
     timestamp: string;
+    audioData?: string; // Base64 encoded audio data
     settings: {
         rate: number;
         pitch: number;
-        volume: number;
+        textNormalization: 'APPLY_TEXT_NORMALIZATION_UNSPECIFIED' | 'ON' | 'OFF';
     };
 }
 
@@ -50,7 +51,7 @@ export default function TTSTool() {
     const [isPaused, setIsPaused] = useState(false);
     const [rate, setRate] = useState(1);
     const [pitch, setPitch] = useState(1);
-    const [volume, setVolume] = useState(1);
+    const [textNormalization, setTextNormalization] = useState<'APPLY_TEXT_NORMALIZATION_UNSPECIFIED' | 'ON' | 'OFF'>('APPLY_TEXT_NORMALIZATION_UNSPECIFIED');
     const [autoplay, setAutoplay] = useState(true);
 
     // Audio Player State
@@ -59,6 +60,7 @@ export default function TTSTool() {
     const [duration, setDuration] = useState(0);
     const [playerVolume, setPlayerVolume] = useState(1);
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+    const [isNormalizationOpen, setIsNormalizationOpen] = useState(false);
 
     // Refs
     const synth = useRef<SpeechSynthesis | null>(null);
@@ -112,8 +114,8 @@ export default function TTSTool() {
                 const settings = JSON.parse(savedSettings);
                 setRate(settings.rate || 1);
                 setPitch(settings.pitch || 1);
-                setVolume(settings.volume || 1);
-                setPlayerVolume(settings.volume || 1);
+                setTextNormalization(settings.textNormalization || 'APPLY_TEXT_NORMALIZATION_UNSPECIFIED');
+                setPlayerVolume(settings.playerVolume || 1);
                 setAutoplay(settings.autoplay !== undefined ? settings.autoplay : true);
             } catch (e) {
                 console.error("Failed to parse settings", e);
@@ -176,14 +178,15 @@ export default function TTSTool() {
         handleStop();
 
         // --- Add to History Function ---
-        const addToHistory = () => {
+        const addToHistory = (base64Audio?: string) => {
             const newItem: HistoryItem = {
                 id: Date.now().toString(),
                 text: text,
                 voiceId: selectedVoice.id,
                 voiceName: selectedVoice.name,
                 timestamp: new Date().toLocaleString(),
-                settings: { rate, pitch, volume }
+                audioData: base64Audio,
+                settings: { rate, pitch, textNormalization }
             };
             setGenerationHistory(prev => [newItem, ...prev].slice(0, 50)); // Keep last 50
         };
@@ -198,7 +201,8 @@ export default function TTSTool() {
 
                 const result = await synthesizeInworldSpeech(text, selectedVoice.inworldId, user.$id, {
                     speed: rate,
-                    pitch: pitch
+                    pitch: pitch,
+                    applyTextNormalization: textNormalization
                 });
 
                 if (result.audioContent) {
@@ -219,7 +223,8 @@ export default function TTSTool() {
                         }, 100);
                     }
 
-                    addToHistory();
+                    // Save the base64 audio data (not blob URL) to history
+                    addToHistory(result.audioContent);
                     await refreshUser();
                 }
             } catch (err: any) {
@@ -238,7 +243,7 @@ export default function TTSTool() {
             utterance.voice = selectedVoice.nativeVoice;
             utterance.rate = rate;
             utterance.pitch = pitch;
-            utterance.volume = volume;
+            utterance.volume = playerVolume;
 
             utterance.onstart = () => {
                 setIsSpeaking(true);
@@ -293,11 +298,11 @@ export default function TTSTool() {
     };
 
     const restoreHistoryItem = (item: HistoryItem) => {
-        const charLimit = (user?.prefs as any)?.plan === "Pro User" ? 5000 : 500;
+        const charLimit = (user?.prefs as any)?.plan === "Pro User" ? 25000 : 1000;
         setText(item.text.slice(0, charLimit));
         setRate(item.settings.rate);
         setPitch(item.settings.pitch);
-        setVolume(item.settings.volume);
+        setTextNormalization(item.settings.textNormalization || 'APPLY_TEXT_NORMALIZATION_UNSPECIFIED');
 
         const voice = voices.find(v => v.id === item.voiceId);
         if (voice) {
@@ -317,6 +322,62 @@ export default function TTSTool() {
         navigator.clipboard.writeText(textToCopy);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const downloadHistoryItem = (e: React.MouseEvent, item: HistoryItem) => {
+        e.stopPropagation();
+        if (item.audioData) {
+            try {
+                // Convert base64 to blob
+                const binaryString = window.atob(item.audioData);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: 'audio/mp3' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `voicelo_${item.voiceName.replace(/[^a-zA-Z0-9]/g, '_')}_${item.id}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Clean up the blob URL
+                URL.revokeObjectURL(url);
+
+                addNotification({
+                    title: "Download Started",
+                    message: "Your audio file is being downloaded.",
+                    type: "info"
+                });
+            } catch (err) {
+                console.error("Download failed:", err);
+                addNotification({
+                    title: "Download Failed",
+                    message: "Failed to download audio. Please try regenerating.",
+                    type: "error"
+                });
+            }
+        } else {
+            addNotification({
+                title: "Audio Not Available",
+                message: "This history item doesn't have audio saved. Please regenerate it.",
+                type: "warning"
+            });
+        }
+    };
+
+    const handleResetSettings = () => {
+        setRate(1);
+        setPitch(1);
+        setTextNormalization('APPLY_TEXT_NORMALIZATION_UNSPECIFIED');
+        addNotification({
+            title: "Settings Reset",
+            message: "Voice settings have been reset to default.",
+            type: "info"
+        });
     };
 
     return (
@@ -342,15 +403,15 @@ export default function TTSTool() {
             <div className="w-full flex flex-col lg:grid lg:grid-cols-12 gap-6 relative z-10 h-full">
 
                 {/* Left Side: Main Card */}
-                <div className="lg:col-span-8 xl:col-span-9 w-full glass-panel rounded-2xl md:rounded-3xl overflow-hidden shadow-xl border border-border dark:border-white/5 flex flex-col lg:h-[calc(100vh-140px)] min-h-[500px] md:min-h-[600px]">
+                <div className="lg:col-span-8 xl:col-span-9 w-full glass-panel rounded-2xl md:rounded-3xl shadow-xl border border-border dark:border-white/5 flex flex-col lg:h-[calc(100vh-140px)] min-h-[500px] md:min-h-[600px] relative">
 
                     {/* Editor Area */}
-                    <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+                    <div className="flex flex-col md:flex-row flex-1 overflow-visible">
 
                         {/* Left: Input */}
-                        <div className="flex-1 p-4 md:p-6 lg:p-8 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative group bg-zinc-50/50 dark:bg-zinc-900/40 min-h-[300px] md:min-h-0">
+                        <div className="flex-1 p-4 md:p-6 lg:p-8 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative group bg-zinc-50/50 dark:bg-zinc-900/40 min-h-[300px] md:min-h-0 rounded-t-2xl md:rounded-t-0 md:rounded-tl-3xl">
                             {(() => {
-                                const charLimit = (user?.prefs as any)?.plan === "Pro User" ? 5000 : 500;
+                                const charLimit = (user?.prefs as any)?.plan === "Pro User" ? 25000 : 1000;
                                 return (
                                     <>
                                         <div className="absolute top-4 md:top-6 left-4 md:left-8 flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 text-[10px] md:text-xs font-mono uppercase tracking-widest opacity-50 select-none pointer-events-none">
@@ -377,14 +438,23 @@ export default function TTSTool() {
                         </div>
 
                         {/* Right: Controls */}
-                        <div className="w-full md:w-72 lg:w-80 bg-white/50 dark:bg-zinc-900/60 p-4 md:p-6 lg:p-8 flex flex-col gap-4 md:gap-6 backdrop-blur-md border-t md:border-t-0 md:border-l border-border dark:border-white/5">
+                        <div className="w-full md:w-72 lg:w-80 bg-white/50 dark:bg-zinc-900/60 p-4 md:p-6 lg:p-8 flex flex-col gap-4 md:gap-6 backdrop-blur-md border-t md:border-t-0 md:border-l border-border dark:border-white/5 md:rounded-tr-3xl">
 
                             {/* Voice Actor Selection */}
                             <div className="space-y-2 md:space-y-3">
-                                <label className="flex items-center text-[10px] md:text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                                    <Mic className="w-3 h-3 mr-2" />
-                                    Voice Actor
-                                </label>
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center text-[10px] md:text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                        <User className="w-3 h-3 mr-2" />
+                                        Voice Actor
+                                    </label>
+                                    <button
+                                        onClick={handleResetSettings}
+                                        title="Reset all settings to default"
+                                        className="text-zinc-400 hover:text-primary transition-colors p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
+                                    >
+                                        <RotateCcw className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                                    </button>
+                                </div>
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsVoiceModalOpen(true)}
@@ -436,18 +506,133 @@ export default function TTSTool() {
                                     />
                                 </div>
 
-                                {/* Volume */}
+                                {/* Text Normalization */}
                                 <div className="space-y-2 md:space-y-3">
-                                    <div className="flex justify-between text-[10px] md:text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                                        <span>Volume</span>
-                                        <span>{Math.round(volume * 100)}%</span>
+                                    <label className="flex items-center text-[10px] md:text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                        <Wand2 className="w-3 h-3 mr-2" />
+                                        Text Normalization
+                                    </label>
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setIsNormalizationOpen(!isNormalizationOpen)}
+                                            className="w-full flex items-center justify-between bg-white dark:bg-zinc-800/80 border border-border dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-200 text-sm rounded-xl px-4 py-2.5 md:py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all shadow-sm dark:shadow-lg text-left hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <span className={`w-2 h-2 rounded-full ${textNormalization === 'ON'
+                                                    ? 'bg-emerald-500'
+                                                    : textNormalization === 'OFF'
+                                                        ? 'bg-zinc-400'
+                                                        : 'bg-primary'
+                                                    }`} />
+                                                <span className="truncate">
+                                                    {textNormalization === 'ON'
+                                                        ? 'On - Expand text'
+                                                        : textNormalization === 'OFF'
+                                                            ? 'Off - Exact text'
+                                                            : 'Auto (Recommended)'}
+                                                </span>
+                                            </div>
+                                            <ChevronDown className={`w-4 h-4 text-zinc-500 shrink-0 transition-transform duration-200 ${isNormalizationOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        {isNormalizationOpen && (
+                                            <>
+                                                {/* Backdrop */}
+                                                <div
+                                                    className="fixed inset-0 z-40"
+                                                    onClick={() => setIsNormalizationOpen(false)}
+                                                />
+
+                                                {/* Options */}
+                                                <div className="absolute z-50 w-full bottom-full mb-2 bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700/50 rounded-xl shadow-xl dark:shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                                    {/* Auto Option */}
+                                                    <button
+                                                        onClick={() => {
+                                                            setTextNormalization('APPLY_TEXT_NORMALIZATION_UNSPECIFIED');
+                                                            setIsNormalizationOpen(false);
+                                                        }}
+                                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-primary/5 dark:hover:bg-primary/10 ${textNormalization === 'APPLY_TEXT_NORMALIZATION_UNSPECIFIED'
+                                                            ? 'bg-primary/5 dark:bg-primary/10'
+                                                            : ''
+                                                            }`}
+                                                    >
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0 ${textNormalization === 'APPLY_TEXT_NORMALIZATION_UNSPECIFIED'
+                                                            ? 'border-primary bg-primary'
+                                                            : 'border-zinc-300 dark:border-zinc-600'
+                                                            }`}>
+                                                            {textNormalization === 'APPLY_TEXT_NORMALIZATION_UNSPECIFIED' && (
+                                                                <Check className="w-3 h-3 text-white" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">Auto</span>
+                                                                <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-full font-medium">Recommended</span>
+                                                            </div>
+                                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Automatically decides when to normalize</p>
+                                                        </div>
+                                                    </button>
+
+                                                    {/* On Option */}
+                                                    <button
+                                                        onClick={() => {
+                                                            setTextNormalization('ON');
+                                                            setIsNormalizationOpen(false);
+                                                        }}
+                                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-primary/5 dark:hover:bg-primary/10 border-t border-zinc-100 dark:border-zinc-700/50 ${textNormalization === 'ON'
+                                                            ? 'bg-primary/5 dark:bg-primary/10'
+                                                            : ''
+                                                            }`}
+                                                    >
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0 ${textNormalization === 'ON'
+                                                            ? 'border-emerald-500 bg-emerald-500'
+                                                            : 'border-zinc-300 dark:border-zinc-600'
+                                                            }`}>
+                                                            {textNormalization === 'ON' && (
+                                                                <Check className="w-3 h-3 text-white" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">On - Expand Text</span>
+                                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                                                "Dr. Smith" → "Doctor Smith"<br />
+                                                                "3/10/25" → "March tenth, twenty twenty-five"
+                                                            </p>
+                                                        </div>
+                                                    </button>
+
+                                                    {/* Off Option */}
+                                                    <button
+                                                        onClick={() => {
+                                                            setTextNormalization('OFF');
+                                                            setIsNormalizationOpen(false);
+                                                        }}
+                                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-primary/5 dark:hover:bg-primary/10 border-t border-zinc-100 dark:border-zinc-700/50 ${textNormalization === 'OFF'
+                                                            ? 'bg-primary/5 dark:bg-primary/10'
+                                                            : ''
+                                                            }`}
+                                                    >
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0 ${textNormalization === 'OFF'
+                                                            ? 'border-zinc-500 bg-zinc-500'
+                                                            : 'border-zinc-300 dark:border-zinc-600'
+                                                            }`}>
+                                                            {textNormalization === 'OFF' && (
+                                                                <Check className="w-3 h-3 text-white" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">Off - Exact Text</span>
+                                                                <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full font-medium whitespace-nowrap">Lower latency</span>
+                                                            </div>
+                                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Reads text exactly as written</p>
+                                                        </div>
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
-                                    <input
-                                        type="range" min="0" max="1" step="0.1"
-                                        value={volume}
-                                        onChange={(e) => setVolume(parseFloat(e.target.value))}
-                                        className="slider"
-                                    />
                                 </div>
                             </div>
 
@@ -475,7 +660,7 @@ export default function TTSTool() {
                     </div>
 
                     {/* Modern Audio Player Footer */}
-                    <div className="h-auto md:h-20 py-4 md:py-0 bg-white/90 dark:bg-zinc-950/80 border-t border-border dark:border-white/5 flex flex-col md:flex-row items-center px-4 md:px-8 gap-4 md:gap-6 backdrop-blur-md">
+                    <div className="h-auto md:h-20 py-4 md:py-0 bg-white/90 dark:bg-zinc-950/80 border-t border-border dark:border-white/5 flex flex-col md:flex-row items-center px-4 md:px-8 gap-4 md:gap-6 backdrop-blur-md rounded-b-2xl md:rounded-b-3xl">
                         {audioUrl ? (
                             <>
                                 <div className="w-full flex items-center gap-4 md:w-auto">
@@ -582,7 +767,7 @@ export default function TTSTool() {
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex items-center gap-2 overflow-hidden flex-1">
                                                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                                    <Mic className="w-3 h-3 text-primary" />
+                                                    <User className="w-3 h-3 text-primary" />
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 truncate">
@@ -618,6 +803,15 @@ export default function TTSTool() {
                                             </div>
 
                                             <div className="flex items-center gap-1">
+                                                {item.audioData && (
+                                                    <button
+                                                        onClick={(e) => downloadHistoryItem(e, item)}
+                                                        className="p-1.5 hover:bg-emerald-500/10 text-zinc-400 dark:text-zinc-400 hover:text-emerald-500 rounded-lg transition-colors"
+                                                        title="Download Audio"
+                                                    >
+                                                        <Download className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={(e) => copyText(e, item.text, item.id)}
                                                     className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-400 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-colors flex items-center gap-1.5"

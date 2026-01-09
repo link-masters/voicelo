@@ -1,4 +1,4 @@
-export type PaymentProvider = 'lemonsqueezy' | 'paddle';
+export type PaymentProvider = 'lemonsqueezy' | 'paddle' | 'creem';
 
 export interface PaymentConfig {
     /**
@@ -22,6 +22,15 @@ export interface PaymentConfig {
         environment: 'sandbox' | 'production';
         clientToken: string;
     };
+
+    /**
+     * Creem specific configuration
+     */
+    creem: {
+        apiKey: string;
+        webhookSecret: string;
+        environment: 'test' | 'production';
+    };
 }
 
 /**
@@ -40,6 +49,12 @@ export const paymentConfig: PaymentConfig = {
         vendorId: process.env.PADDLE_VENDOR_ID || '',
         environment: (process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
         clientToken: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || '',
+    },
+
+    creem: {
+        apiKey: process.env.CREEM_API_KEY || '',
+        webhookSecret: process.env.CREEM_WEBHOOK_SECRET || '',
+        environment: (process.env.NEXT_PUBLIC_CREEM_ENVIRONMENT as 'test' | 'production') || 'production',
     }
 };
 
@@ -48,6 +63,7 @@ export const paymentConfig: PaymentConfig = {
  */
 export const isLemonSqueezy = () => paymentConfig.activeProvider === 'lemonsqueezy';
 export const isPaddle = () => paymentConfig.activeProvider === 'paddle';
+export const isCreem = () => paymentConfig.activeProvider === 'creem';
 
 /**
  * Get the human-readable name of the active provider
@@ -58,6 +74,8 @@ export const getActiveProviderName = () => {
             return 'Lemon Squeezy';
         case 'paddle':
             return 'Paddle';
+        case 'creem':
+            return 'Creem';
         default:
             return 'our payment processor';
     }
@@ -81,6 +99,9 @@ export const isPaymentConfigured = (): boolean => {
     }
     if (isPaddle()) {
         return Boolean(paymentConfig.paddle.clientToken);
+    }
+    if (isCreem()) {
+        return Boolean(paymentConfig.creem.apiKey);
     }
     return false;
 };

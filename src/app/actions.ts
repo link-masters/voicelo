@@ -15,6 +15,84 @@ const APPWRITE_VOICES_TABLE_ID = process.env.NEXT_PUBLIC_APPWRITE_VOICES_TABLE_I
 const APPWRITE_BROADCASTS_ID = process.env.NEXT_PUBLIC_APPWRITE_BROADCASTS_ID || 'broadcasts';
 const APPWRITE_USER_NOTIFICATIONS_ID = process.env.NEXT_PUBLIC_APPWRITE_USER_NOTIFICATIONS_ID || 'user_notifications';
 
+// --- Long Form TTS Constants ---
+const MIN_CHUNK_SIZE = 500;
+const MAX_CHUNK_SIZE = 1900; // Inworld Max is 2000, using 1900 for safety
+const MAX_CONCURRENT_REQUESTS = 2; // Keep it low to avoid rate limits
+const SPLICE_BREAK_MS = 300; // Small silence between chunks in ms
+
+interface TextChunk {
+    text: string;
+    start: number;
+    end: number;
+}
+
+function findBreakPoint(text: string, minPos: number, maxPos: number): number {
+    const searchText = text.slice(0, maxPos);
+
+    // 1. Paragraph breaks (\n\n)
+    let idx = searchText.lastIndexOf('\n\n');
+    if (idx >= minPos) return idx + 2;
+
+    // 2. Single line breaks (\n)
+    idx = searchText.lastIndexOf('\n');
+    if (idx >= minPos) return idx + 1;
+
+    // 3. Sentence endings
+    const sentenceMatch = searchText.match(/[.!?]["']?\s+|[.!?]["']?$/g);
+    if (sentenceMatch) {
+        // Find the last sentence end that is after minPos
+        for (let i = searchText.length; i >= minPos; i--) {
+            const char = searchText[i];
+            const nextChar = searchText[i + 1];
+            if (['.', '!', '?'].includes(char)) {
+                // Check if it's followed by space or end of string
+                if (!nextChar || /\s/.test(nextChar)) {
+                    return i + 1;
+                }
+            }
+        }
+    }
+
+    // 4. Last resort: last space
+    idx = searchText.lastIndexOf(' ');
+    if (idx >= minPos) return idx + 1;
+
+    // 5. Hard cut
+    return maxPos;
+}
+
+function chunkText(text: string): TextChunk[] {
+    const chunks: TextChunk[] = [];
+    let currentPos = 0;
+
+    while (currentPos < text.length) {
+        const remaining = text.slice(currentPos);
+
+        if (remaining.length <= MAX_CHUNK_SIZE) {
+            chunks.push({
+                text: remaining.trim(),
+                start: currentPos,
+                end: text.length
+            });
+            break;
+        }
+
+        const breakPoint = findBreakPoint(remaining, MIN_CHUNK_SIZE, MAX_CHUNK_SIZE);
+        const chunkText = remaining.slice(0, breakPoint).trim();
+
+        if (chunkText) {
+            chunks.push({
+                text: chunkText,
+                start: currentPos,
+                end: currentPos + breakPoint
+            });
+        }
+        currentPos += breakPoint;
+    }
+    return chunks;
+}
+
 import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "@/lib/appwrite-server";
 import { OFFICIAL_VOICE_METADATA } from "@/config/voiceMetadata";
@@ -69,11 +147,12 @@ export async function getInworldVoices() {
 export async function synthesizeInworldSpeech(
     text: string,
     voiceId: string,
-    userId: string, // Pass userId for tracking
+    userId: string,
     options: {
         pitch?: number;
         speed?: number;
         isPreview?: boolean;
+        applyTextNormalization?: 'APPLY_TEXT_NORMALIZATION_UNSPECIFIED' | 'ON' | 'OFF';
     } = {}
 ) {
     if (!options.isPreview && (!userId || typeof userId !== 'string')) {
@@ -83,7 +162,6 @@ export async function synthesizeInworldSpeech(
 
     try {
         let user: any = null;
-        let creditsTotal = 0;
         let users: any = null;
 
         if (!options.isPreview) {
@@ -91,16 +169,13 @@ export async function synthesizeInworldSpeech(
             users = clientData.users;
             user = await users.get(userId);
 
-            creditsTotal = (user.prefs.creditsTotal as number) || 0;
             const billingCycleEnd = user.prefs.billingCycleEnd ? new Date(user.prefs.billingCycleEnd) : null;
             const now = new Date();
 
-            // 1. Check if billing cycle has expired (Professional Locked State)
             if (user.prefs.lastPurchaseDate && billingCycleEnd && billingCycleEnd < now) {
                 throw new Error("Your 30-day billing cycle has ended. Please purchase a new package to unlock and use your remaining credits.");
             }
 
-            // 2. Check if user has enough credits
             const creditCost = text.length;
             const creditsBalance = ((user.prefs.creditsTotal as number) || 0) - ((user.prefs.creditsUsed as number) || 0);
             if (creditsBalance < creditCost) {
@@ -108,33 +183,60 @@ export async function synthesizeInworldSpeech(
             }
         }
 
-        const body = {
-            text,
-            voiceId,
-            modelId: 'inworld-tts-1',
-            speakingRate: options.speed || 1.0,
-            pitch: options.pitch || 1.0,
-            audioEncoding: 'MP3',
+        const chunks = chunkText(text);
+        console.log(`[TTS] Processing ${chunks.length} chunks for ${text.length} chars...`);
+
+        // Helper to synthesize a single chunk
+        const synthesizeChunk = async (chunkText: string) => {
+            const body: any = {
+                text: chunkText,
+                voiceId,
+                modelId: 'inworld-tts-1',
+                speakingRate: options.speed || 1.0,
+                pitch: options.pitch || 1.0,
+                audioEncoding: 'MP3',
+            };
+
+            // Add text normalization if specified
+            if (options.applyTextNormalization) {
+                body.applyTextNormalization = options.applyTextNormalization;
+            }
+
+            const response = await fetch(`${BASE_URL}/voice`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': getAuthHeader(),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Inworld API Error: ${errorText}`);
+            }
+
+            const data = await response.json();
+            return Buffer.from(data.audioContent, 'base64');
         };
 
-        const response = await fetch(`${BASE_URL}/voice`, {
-            method: 'POST',
-            headers: {
-                'Authorization': getAuthHeader(),
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-        });
+        let resultBuffer: Buffer;
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Synthesize error:", response.status, errorText);
-            throw new Error(`Inworld API Error: ${errorText}`);
+        if (chunks.length === 1) {
+            resultBuffer = await synthesizeChunk(chunks[0].text);
+        } else {
+            // Process chunks with limited concurrency
+            const results: Buffer[] = [];
+            for (let i = 0; i < chunks.length; i += MAX_CONCURRENT_REQUESTS) {
+                const batch = chunks.slice(i, i + MAX_CONCURRENT_REQUESTS);
+                const batchResults = await Promise.all(
+                    batch.map(chunk => synthesizeChunk(chunk.text))
+                );
+                results.push(...batchResults);
+            }
+            resultBuffer = Buffer.concat(results);
         }
 
-        const data = await response.json();
-
-        // 3. Deduct credits on success (only if not a preview)
         if (!options.isPreview && users && user) {
             const creditCost = text.length;
             await users.updatePrefs(userId, {
@@ -142,8 +244,6 @@ export async function synthesizeInworldSpeech(
                 creditsUsed: Number(user.prefs.creditsUsed || 0) + creditCost
             });
 
-            // 4. Increment usage if it's a community voice
-            // We can check if this voiceId exists in our Appwrite table
             try {
                 const { databases } = createAdminClient();
                 const sharedVoices = await databases.listDocuments(
@@ -166,7 +266,9 @@ export async function synthesizeInworldSpeech(
             }
         }
 
-        return data;
+        return {
+            audioContent: resultBuffer.toString('base64')
+        };
     } catch (error) {
         console.error('synthesizeInworldSpeech error:', error);
         throw error;
@@ -217,7 +319,7 @@ export async function cloneInworldVoice(formData: {
         const body = {
             displayName: formData.displayName,
             description: enrichedDescription,
-            langCode: formData.langCode || 'EN_US',
+            langCode: formData.langCode || 'EN',
             voiceSamples: [
                 {
                     audioData: formData.audioData,
@@ -259,7 +361,7 @@ export async function cloneInworldVoice(formData: {
             creatorName: user.name,
             creatorId: formData.userId,
             isPublic: formData.isPublic || false,
-            langCode: formData.langCode || 'EN_US',
+            langCode: formData.langCode || 'EN',
             gender: formData.gender || 'MALE'
         });
 
@@ -422,7 +524,7 @@ export async function toggleCommunityVoiceLike(voiceId: string, userId: string, 
                     description: `Official Inworld voice: ${metadata.displayName}`,
                     creatorName: 'Inworld AI',
                     creatorId: 'system',
-                    langCode: 'EN_US',
+                    langCode: 'EN',
                     gender: metadata.gender || 'NEUTRAL',
                     likes: 1,
                     likedBy: [userId],

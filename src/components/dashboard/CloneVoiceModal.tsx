@@ -12,17 +12,17 @@ interface CloneVoiceModalProps {
 }
 
 const LANGUAGES = [
-    { code: "EN_US", label: "English (US)" },
-    { code: "ZH_CN", label: "Chinese" },
-    { code: "KO_KR", label: "Korean" },
-    { code: "JA_JP", label: "Japanese" },
-    { code: "RU_RU", label: "Russian" },
-    { code: "IT_IT", label: "Italian" },
-    { code: "ES_ES", label: "Spanish" },
-    { code: "PT_BR", label: "Portuguese" },
-    { code: "DE_DE", label: "German" },
-    { code: "FR_FR", label: "French" },
-    { code: "HI_IN", label: "Hindi" },
+    { code: "EN", label: "English (US)" },
+    { code: "ZH", label: "Chinese" },
+    { code: "KO", label: "Korean" },
+    { code: "JA", label: "Japanese" },
+    { code: "RU", label: "Russian" },
+    { code: "IT", label: "Italian" },
+    { code: "ES", label: "Spanish" },
+    { code: "PT", label: "Portuguese" },
+    { code: "DE", label: "German" },
+    { code: "FR", label: "French" },
+    { code: "HI", label: "Hindi" },
 ];
 
 export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoiceModalProps) {
@@ -35,7 +35,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
     const [formData, setFormData] = useState({
         displayName: "",
         description: "",
-        langCode: "EN_US",
+        langCode: "EN",
         audioData: "", // base64
         fileName: ""
     });
@@ -112,7 +112,7 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                 setFormData({
                     displayName: "",
                     description: "",
-                    langCode: "EN_US",
+                    langCode: "EN",
                     audioData: "",
                     fileName: ""
                 });

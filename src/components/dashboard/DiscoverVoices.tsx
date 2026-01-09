@@ -340,7 +340,7 @@ export default function DiscoverVoices() {
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                                                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-white/5 border border-border dark:border-white/5 text-zinc-500 dark:text-zinc-400">
                                                         <Globe className="w-3 h-3" />
-                                                        {(voice.languages && voice.languages[0]?.toUpperCase()) || "EN"}
+                                                        {(voice.languages && voice.languages[0]?.split('_')[0]?.toUpperCase()) || "EN"}
                                                     </div>
                                                     <span className="text-zinc-300 dark:text-zinc-700 font-normal">•</span>
                                                     <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border

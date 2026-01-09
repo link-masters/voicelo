@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, AudioWaveform, ArrowRight, Sun, Moon } from "lucide-react";
+import { Menu, X, AudioWaveform, ArrowRight, Sun, Moon, Home, Sparkles, CircleDollarSign, ChevronRight } from "lucide-react";
 import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";
 import { useAuth } from "@/context/AuthContext";
@@ -30,9 +30,9 @@ export default function Header() {
     }, []);
 
     const navLinks = [
-        { name: "Text To Speech", href: "/text-to-speech" },
-        { name: "Voice Cloning", href: "/voice-cloning" },
-        { name: "Pricing", href: "/pricing" },
+        { name: "Home", href: "/", icon: Home },
+        { name: "Features", href: "/#features", icon: Sparkles },
+        { name: "Pricing", href: "/pricing", icon: CircleDollarSign },
     ];
 
     return (
@@ -60,11 +60,12 @@ export default function Header() {
                                 <Link
                                     key={link.name}
                                     href={link.href}
-                                    className={`relative text-sm font-medium transition-colors py-1 group outline-none ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground focus-visible:text-foreground"
+                                    className={`relative text-sm font-medium transition-all py-1.5 px-3 rounded-xl group outline-none flex items-center gap-2 ${isActive ? "text-primary bg-primary/5 shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 focus-visible:text-foreground"
                                         }`}
                                 >
+                                    <link.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`} />
                                     {link.name}
-                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary rounded-full transition-all duration-300 ease-in-out ${isActive ? "w-full" : "w-0 group-hover:w-full group-focus-visible:w-full"
+                                    <span className={`absolute -bottom-1 left-3 right-3 h-0.5 bg-primary rounded-full transition-all duration-300 ease-in-out ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                                         }`} />
                                 </Link>
                             );
@@ -122,13 +123,17 @@ export default function Header() {
                                 <Link
                                     key={link.name}
                                     href={link.href}
-                                    className={`relative text-lg font-medium transition-colors w-fit group ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                                    className={`relative text-xl font-semibold transition-all w-full flex items-center gap-4 p-4 rounded-2xl group ${isActive ? "text-primary bg-primary/5 border border-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                                         }`}
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-secondary text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground"}`}>
+                                        <link.icon className="w-5 h-5" />
+                                    </div>
                                     {link.name}
-                                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary rounded-full transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"
-                                        }`} />
+                                    <span className={`ml-auto transition-transform ${isActive ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"}`}>
+                                        <ChevronRight className="w-5 h-5" />
+                                    </span>
                                 </Link>
                             );
                         })}

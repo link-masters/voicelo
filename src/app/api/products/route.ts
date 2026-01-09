@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { listVariants, listProducts, getStore, createCheckout, listDiscounts } from "@lemonsqueezy/lemonsqueezy.js";
 import { configureLemonSqueezy } from "@/lib/lemonsqueezy";
-import { paymentConfig, isLemonSqueezy, isPaddle } from "@/config/payment";
+import { paymentConfig, isLemonSqueezy, isPaddle, isCreem } from "@/config/payment";
+import { getCreemBaseUrl } from "@/lib/creem";
 
 // Cache for exchange rates
 let cachedRates: any = null;
@@ -14,7 +15,7 @@ interface CachedPlans {
     data: any[];
 }
 const plansCache: Record<string, CachedPlans> = {};
-const PLANS_CACHE_DURATION = 600 * 1000; // 10 minutes
+const PLANS_CACHE_DURATION = 120 * 1000; // 2 minutes
 
 // Prevent "Cache Stampede" by tracking pending requests
 const pendingRequests: Record<string, Promise<any> | null> = {};
@@ -108,6 +109,78 @@ async function fetchPaddleProducts(): Promise<any[]> {
     } catch (error) {
         console.error("[Paddle Products] Error fetching products:", error);
         return [];
+    }
+}
+
+// Cache for Creem products
+let cachedCreemProducts: any[] | null = null;
+let lastCreemProductsFetch = 0;
+const CREEM_PRODUCTS_CACHE_DURATION = 120 * 1000; // 2 minutes
+
+/**
+ * Fetch Creem products from Creem API
+ */
+async function fetchCreemProducts(): Promise<any[]> {
+    if (cachedCreemProducts && (Date.now() - lastCreemProductsFetch < CREEM_PRODUCTS_CACHE_DURATION)) {
+        console.log("[Creem Products] Returning cached products");
+        return cachedCreemProducts;
+    }
+
+    try {
+        const apiKey = process.env.CREEM_API_KEY;
+        if (!apiKey) {
+            console.error("[Creem Products] CREEM_API_KEY not configured");
+            return [];
+        }
+
+        const baseUrl = getCreemBaseUrl();
+        console.log(`[Creem Products] Fetching from ${baseUrl}`);
+
+        // Use /products/search to list products
+        const response = await fetch(`${baseUrl}/products/search`, {
+            headers: {
+                'x-api-key': apiKey,
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("[Creem Products] Failed to fetch products:", response.status, errorText);
+            return [];
+        }
+
+        const data = await response.json();
+        const products = Array.isArray(data) ? data : (data.items || data.data || []);
+
+        console.log(`[Creem Products] Fetched ${products.length} products`);
+
+        cachedCreemProducts = products;
+        lastCreemProductsFetch = Date.now();
+        return products;
+    } catch (error) {
+        console.error("[Creem Products] Error fetching products:", error);
+        return [];
+    }
+}
+
+/**
+ * Fetch specific Creem discount by code
+ */
+async function fetchCreemDiscount(code: string): Promise<any | null> {
+    try {
+        const apiKey = process.env.CREEM_API_KEY;
+        if (!apiKey) return null;
+
+        const baseUrl = getCreemBaseUrl();
+        const response = await fetch(`${baseUrl}/discounts?discount_code=${encodeURIComponent(code)}`, {
+            headers: { 'x-api-key': apiKey },
+        });
+
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (error) {
+        console.error("[Creem Discount] Error fetching discount:", error);
+        return null;
     }
 }
 
@@ -494,6 +567,144 @@ export async function GET(req: Request) {
                     return formattedPlans;
                 } catch (paddleError) {
                     console.error("[Pricing API] Error fetching Paddle products:", paddleError);
+                    return [];
+                }
+            }
+
+            if (isCreem()) {
+                console.log("[Pricing API] Fetching Creem products...");
+                try {
+                    const creemProducts = await fetchCreemProducts();
+                    const rates = await getExchangeRates();
+
+                    if (!creemProducts || creemProducts.length === 0) {
+                        console.warn("[Pricing API] No Creem products found");
+                        return [];
+                    }
+
+                    // Check for discount code: Override > Env Default
+                    const codeToApply = overrideCode || process.env.CREEM_DEFAULT_DISCOUNT_CODE;
+                    let activeDiscount: any = null;
+
+                    if (codeToApply) {
+                        console.log(`[Pricing API] Checking Creem discount: ${codeToApply}`);
+                        activeDiscount = await fetchCreemDiscount(codeToApply);
+                        if (activeDiscount) {
+                            console.log(`[Pricing API] Found active discount: ${activeDiscount.code} (${activeDiscount.type === 'percentage' ? activeDiscount.percentage + '%' : '$' + (activeDiscount.amount / 100)})`);
+                        }
+                    }
+
+                    const targetProductNames = ['starter', 'turbo'];
+
+                    // Filter and format products
+                    const formattedPlans = creemProducts
+                        .filter((product: any) => {
+                            const name = product.name?.toLowerCase() || '';
+                            return targetProductNames.some(target => name.includes(target));
+                        })
+                        .map((product: any) => {
+                            // Handle different price structures
+                            let amount = 0;
+                            let currency = 'USD';
+
+                            if (typeof product.price === 'number') {
+                                amount = product.price;
+                                currency = product.currency || 'USD';
+                            } else if (typeof product.price === 'object' && product.price !== null) {
+                                amount = product.price.amount || 0;
+                                currency = product.price.currency || product.currency || 'USD';
+                            } else {
+                                console.warn('[Pricing API] Unknown price format for product:', product.id, product.price);
+                            }
+
+                            let displayPrice = amount / 100;
+                            let displayCurrency = currency;
+                            let finalPrice = displayPrice;
+
+                            // Discount Calculation
+                            let originalPriceDisplay: string | null = null;
+                            let discountPercent: number | null = null;
+                            let discountCode: string | null = null;
+
+                            if (activeDiscount) {
+                                // Check if discount applies to this product
+                                const validProduct = !activeDiscount.applies_to_products ||
+                                    activeDiscount.applies_to_products.length === 0 ||
+                                    activeDiscount.applies_to_products.includes(product.id);
+
+                                if (validProduct) {
+                                    if (activeDiscount.type === 'percentage') {
+                                        const pct = activeDiscount.percentage;
+                                        finalPrice = displayPrice * (1 - pct / 100);
+                                        discountPercent = pct;
+                                    } else if (activeDiscount.type === 'fixed') {
+                                        const deduction = (activeDiscount.amount || 0) / 100;
+                                        finalPrice = Math.max(0, displayPrice - deduction);
+                                        discountPercent = Math.round(((displayPrice - finalPrice) / displayPrice) * 100);
+                                    }
+
+                                    discountCode = activeDiscount.code;
+                                }
+                            }
+
+                            // Currency Conversion
+                            if (targetCurrency !== currency && rates && rates[targetCurrency]) {
+                                const convert = (val: number) => {
+                                    if (currency !== 'USD' && rates[currency]) {
+                                        return (val / rates[currency]) * rates[targetCurrency];
+                                    }
+                                    return val * rates[targetCurrency];
+                                };
+
+                                displayPrice = convert(displayPrice);
+                                finalPrice = convert(finalPrice);
+                                displayCurrency = targetCurrency;
+                            }
+
+                            // Formatting
+                            const fmt = (val: number) => val.toLocaleString('en-US', {
+                                style: 'currency',
+                                currency: displayCurrency,
+                                minimumFractionDigits: val % 1 === 0 ? 0 : 2,
+                                maximumFractionDigits: 2,
+                            });
+
+                            const priceDisplay = fmt(finalPrice);
+
+                            // Only set original price if discount was applied
+                            if (discountCode && finalPrice < displayPrice) {
+                                originalPriceDisplay = fmt(displayPrice);
+                            }
+
+                            const productName = product.name?.toLowerCase().includes('starter')
+                                ? 'starter_pack'
+                                : product.name?.toLowerCase().includes('turbo')
+                                    ? 'turbo_pack'
+                                    : product.name;
+
+                            return {
+                                id: product.id,
+                                name: product.name,
+                                productName: productName,
+                                price: priceDisplay,
+                                originalPrice: originalPriceDisplay,
+                                discountPercent: discountPercent,
+                                description: product.description || "",
+                                variantId: product.id,
+                                priceId: product.id,
+                                provider: 'creem',
+                                recurring: false,
+                                discountCode: discountCode
+                            };
+                        });
+
+                    if (formattedPlans.length > 0) {
+                        plansCache[cacheKey] = { timestamp: Date.now(), data: formattedPlans };
+                    }
+                    return formattedPlans;
+
+                } catch (creemError) {
+                    console.error("[Pricing API] Error processing Creem products:", creemError);
                     return [];
                 }
             }

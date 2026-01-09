@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mic, Settings, User, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X, ShieldAlert, AudioWaveform } from 'lucide-react';
+import { Mic, Settings, Home, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X, ShieldAlert, AudioWaveform, Plus, AudioLines, LayoutGrid, BadgeCheck } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -17,9 +17,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { theme, toggleTheme } = useTheme();
     const { user } = useAuth();
     const [isCloneMenuOpen, setIsCloneMenuOpen] = useState(pathname.includes('voice-clone') || pathname.includes('my-voices'));
-    const [isEarningsMenuOpen, setIsEarningsMenuOpen] = useState(pathname.includes('influencer-program'));
+    // HIDDEN: Uncomment when re-enabling Influencer Program section
+    // const [isEarningsMenuOpen, setIsEarningsMenuOpen] = useState(pathname.includes('influencer-program'));
 
-    const influencerCode = (user?.prefs as any)?.influencerCode;
+    // HIDDEN: Uncomment when re-enabling Influencer Program section
+    // const influencerCode = (user?.prefs as any)?.influencerCode;
 
     const isActive = (path: string) => pathname === path;
 
@@ -138,34 +140,30 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 <Link
                                     href="/dashboard/voice-clone"
                                     onClick={onClose}
-                                    className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/voice-clone')
+                                    className={`flex items-center gap-2 px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/voice-clone')
                                         ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
+                                    <Plus className="w-4 h-4" />
                                     Clone New
                                 </Link>
                                 <Link
                                     href="/dashboard/my-voices"
                                     onClick={onClose}
-                                    className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/my-voices')
+                                    className={`flex items-center gap-2 px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/my-voices')
                                         ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
+                                    <AudioLines className="w-4 h-4" />
                                     My Voices
-                                </Link>
-                                <Link
-                                    href="#"
-                                    className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all text-zinc-400 cursor-not-allowed opacity-50`}
-                                >
-                                    Voice Settings
                                 </Link>
                             </div>
                         </div>
                     </div>
 
-                    {/* Earnings Section - Multi-level */}
+                    {/* HIDDEN: Earnings/Influencer Program Section - To re-enable, uncomment this block
                     <div className="space-y-1">
                         <div className="px-4 mb-3">
                             <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
@@ -173,7 +171,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             </h2>
                         </div>
 
-                        {/* Parent Menu Item - Link + Toggle */}
                         <div className="relative group">
                             <Link
                                 href="/dashboard/influencer-program"
@@ -192,7 +189,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 </div>
                             </Link>
 
-                            {/* Dedicated Toggle Button */}
                             <button
                                 onClick={(e) => {
                                     e.preventDefault();
@@ -204,32 +200,34 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             </button>
                         </div>
 
-                        {/* Submenu Items */}
                         <div className={`overflow-hidden transition-all duration-300 ${isEarningsMenuOpen ? 'max-h-64 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
                             <div className="space-y-1 py-1">
                                 <Link
                                     href="/dashboard/influencer-program"
                                     onClick={onClose}
-                                    className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/influencer-program')
+                                    className={`flex items-center gap-2 px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/influencer-program')
                                         ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
+                                    <LayoutGrid className="w-4 h-4" />
                                     Overview
                                 </Link>
                                 <Link
                                     href="/dashboard/influencer-program/verify"
                                     onClick={onClose}
-                                    className={`flex items-center px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/influencer-program/verify')
+                                    className={`flex items-center gap-2 px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/influencer-program/verify')
                                         ? 'text-primary bg-primary/5'
                                         : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
                                         }`}
                                 >
+                                    <BadgeCheck className="w-4 h-4" />
                                     Verify
                                 </Link>
                             </div>
                         </div>
                     </div>
+                    */}
                     {/* Admin Section */}
                     {((user?.prefs as any)?.isAdmin === true || (user?.prefs as any)?.isAdmin === "true") && (
                         <div className="space-y-2">
@@ -283,7 +281,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
                     <Link href="/" onClick={onClose} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 font-medium transition-all group">
-                        <User className="w-5 h-5" />
+                        <Home className="w-5 h-5" />
                         <span>Back to Home</span>
                     </Link>
                 </div>

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createCheckout } from "@lemonsqueezy/lemonsqueezy.js";
 import { configureLemonSqueezy } from "@/lib/lemonsqueezy";
-import { paymentConfig, isLemonSqueezy, isPaddle } from "@/config/payment";
+import { paymentConfig, isLemonSqueezy, isPaddle, isCreem } from "@/config/payment";
+import { getCreemBaseUrl } from "@/lib/creem";
 
 export async function POST(req: Request) {
     try {
@@ -83,6 +84,66 @@ export async function POST(req: Request) {
                 },
                 successUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/profile?checkout=success`,
                 ...(discountCode && { discountCode }),
+            });
+        }
+
+        if (isCreem()) {
+            const creemProductId = priceId || variantId;
+
+            if (!creemProductId) {
+                return NextResponse.json({
+                    error: "Product ID is required for Creem checkout."
+                }, { status: 400 });
+            }
+
+            console.log(`[Checkout API] Creating Creem checkout for product: ${creemProductId}`);
+
+            const apiKey = process.env.CREEM_API_KEY;
+            if (!apiKey) {
+                console.error("[Checkout API Error] CREEM_API_KEY not configured");
+                return NextResponse.json({ error: "Payment provider configuration error." }, { status: 500 });
+            }
+
+            const baseUrl = getCreemBaseUrl();
+            const response = await fetch(`${baseUrl}/checkouts`, {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    product_id: creemProductId,
+                    customer: {
+                        email: userEmail,
+                    },
+                    metadata: {
+                        userId: userId,
+                    },
+                    success_url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/profile?checkout=success`,
+                    ...(discountCode && { discount_code: discountCode }),
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("[Checkout API Error] Creem API error:", response.status, errorText);
+                return NextResponse.json({ error: "Failed to create checkout session." }, { status: 500 });
+            }
+
+            const data = await response.json();
+            // Assuming response structure has { checkout_url: "..." } or similar
+            // Inspecting docs or search result [1]: "This action generates a checkout URL"
+            // Often it's `url` or `checkoutUrl`.
+            const url = data.checkout_url || data.url;
+
+            if (!url) {
+                console.error("[Checkout API Error] Creem did not return a checkout URL:", JSON.stringify(data));
+                return NextResponse.json({ error: "Invalid response from payment provider." }, { status: 500 });
+            }
+
+            return NextResponse.json({
+                url: url,
+                provider: 'creem'
             });
         }
 

@@ -46,7 +46,7 @@ export default async function SharedVoicePage({ params }: Props) {
     }
 
     const { displayName, creator, description, gender, languages, likes, uses, createdAt } = voice;
-    const lang = languages?.[0]?.toUpperCase() || "EN";
+    const lang = languages?.[0]?.split('_')[0]?.toUpperCase() || "EN";
     const date = new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
     return (

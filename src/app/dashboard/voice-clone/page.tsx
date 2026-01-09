@@ -8,21 +8,21 @@ import { useAuth } from "@/context/AuthContext";
 import Toast, { ToastType } from "@/components/dashboard/Toast";
 
 const LANGUAGES = [
-    { code: "EN_US", label: "English" },
-    { code: "ZH_CN", label: "Chinese" },
-    { code: "JA_JP", label: "Japanese" },
-    { code: "KO_KR", label: "Korean" },
-    { code: "RU_RU", label: "Russian" },
-    { code: "IT_IT", label: "Italian" },
-    { code: "ES_ES", label: "Spanish" },
-    { code: "PT_BR", label: "Portuguese" },
-    { code: "DE_DE", label: "German" },
-    { code: "FR_FR", label: "French" },
-    { code: "AR_SA", label: "Arabic" },
-    { code: "HI_IN", label: "Hindi" },
-    { code: "HE_IL", label: "Hebrew" },
-    { code: "PL_PL", label: "Polish" },
-    { code: "NL_NL", label: "Dutch" },
+    { code: "EN", label: "English" },
+    { code: "ZH", label: "Chinese" },
+    { code: "JA", label: "Japanese" },
+    { code: "KO", label: "Korean" },
+    { code: "RU", label: "Russian" },
+    { code: "IT", label: "Italian" },
+    { code: "ES", label: "Spanish" },
+    { code: "PT", label: "Portuguese" },
+    { code: "DE", label: "German" },
+    { code: "FR", label: "French" },
+    { code: "AR", label: "Arabic" },
+    { code: "HI", label: "Hindi" },
+    { code: "HE", label: "Hebrew" },
+    { code: "PL", label: "Polish" },
+    { code: "NL", label: "Dutch" },
 ];
 
 export default function VoiceClonePage() {

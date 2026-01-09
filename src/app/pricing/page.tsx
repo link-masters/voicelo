@@ -191,7 +191,7 @@ function PricingContent() {
                         };
                     });
 
-                    // Add Free Pack at the beginning
+                    // Add Free Pack
                     const freePlan: PricingPlan = {
                         name: "Free Pack",
                         price: "$0",
@@ -201,7 +201,26 @@ function PricingContent() {
                         recurring: false,
                     };
 
-                    setPlans([freePlan, ...mappedPlans]);
+                    const allPlans = [freePlan, ...mappedPlans];
+
+                    // Sort plans: Free -> Starter -> Turbo -> Others
+                    allPlans.sort((a, b) => {
+                        const nameA = a.productName?.toLowerCase() || a.name.toLowerCase();
+                        const nameB = b.productName?.toLowerCase() || b.name.toLowerCase();
+
+                        if (nameA.includes('free')) return -1;
+                        if (nameB.includes('free')) return 1;
+
+                        if (nameA.includes('starter')) return -1;
+                        if (nameB.includes('starter')) return 1;
+
+                        if (nameA.includes('turbo')) return -1;
+                        if (nameB.includes('turbo')) return 1;
+
+                        return 0;
+                    });
+
+                    setPlans(allPlans);
                 }
             } catch (error) {
                 console.error("Failed to fetch plans:", error);
@@ -211,7 +230,7 @@ function PricingContent() {
         };
 
         fetchPlans();
-    }, []);
+    }, [urlDiscount]);
 
     const handleSubscribe = async (plan: PricingPlan) => {
         if (!user) {

@@ -18,12 +18,15 @@ import {
     Database,
     CheckCircle2
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function SettingsPage() {
     const { user, refreshUser } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { addNotification } = useNotifications();
+
+    // Active tab state
+    const [activeTab, setActiveTab] = useState('appearance');
 
     // Local settings state (persisted in localStorage)
     const [ttsDefaults, setTtsDefaults] = useState({
@@ -38,6 +41,23 @@ export default function SettingsPage() {
         security: true,
         usage: true
     });
+
+    // Tab navigation items
+    const tabs = [
+        { id: 'appearance', label: 'Appearance', icon: Sun },
+        { id: 'tts', label: 'Voice Studio', icon: Volume2 },
+        { id: 'notifications', label: 'Notifications', icon: Bell },
+        { id: 'data', label: 'Data & Privacy', icon: Database },
+    ];
+
+    // Handle tab click - scroll to section
+    const handleTabClick = (tabId: string) => {
+        setActiveTab(tabId);
+        const element = document.getElementById(`section-${tabId}`);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
     // Load settings on mount
     useEffect(() => {
@@ -58,6 +78,28 @@ export default function SettingsPage() {
                 console.error("Failed to load notifications", e);
             }
         }
+    }, []);
+
+    // Intersection observer to update active tab on scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id.replace('section-', '');
+                        setActiveTab(id);
+                    }
+                });
+            },
+            { threshold: 0.5, rootMargin: '-100px 0px -50% 0px' }
+        );
+
+        tabs.forEach((tab) => {
+            const element = document.getElementById(`section-${tab.id}`);
+            if (element) observer.observe(element);
+        });
+
+        return () => observer.disconnect();
     }, []);
 
     // Save functions
@@ -112,20 +154,15 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Sidebar Navigation (Visual Only for now) */}
-                <div className="space-y-1">
-                    {[
-                        { id: 'general', label: 'General', icon: User },
-                        { id: 'appearance', label: 'Appearance', icon: Sun },
-                        { id: 'tts', label: 'Voice Studio', icon: Volume2 },
-                        { id: 'notifications', label: 'Notifications', icon: Bell },
-                        { id: 'data', label: 'Data & Privacy', icon: Database },
-                    ].map((item) => (
+                {/* Sidebar Navigation */}
+                <div className="space-y-1 md:sticky md:top-24 md:self-start">
+                    {tabs.map((item) => (
                         <button
                             key={item.id}
-                            className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all ${item.id === 'general'
+                            onClick={() => handleTabClick(item.id)}
+                            className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-medium transition-all ${activeTab === item.id
                                 ? 'bg-primary/10 text-primary border border-primary/20'
-                                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5'
+                                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                 }`}
                         >
                             <item.icon className="w-4 h-4" />
@@ -138,7 +175,7 @@ export default function SettingsPage() {
                 <div className="md:col-span-2 space-y-8">
 
                     {/* Appearance */}
-                    <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
+                    <section id="section-appearance" className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm scroll-mt-8">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                                 <Monitor className="w-5 h-5 text-primary" /> Appearance
@@ -171,7 +208,7 @@ export default function SettingsPage() {
                     </section>
 
                     {/* TTS Studio Defaults */}
-                    <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
+                    <section id="section-tts" className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm scroll-mt-8">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5 flex items-center justify-between">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                                 <Volume2 className="w-5 h-5 text-primary" /> Voice Studio Defaults
@@ -239,7 +276,7 @@ export default function SettingsPage() {
                     </section>
 
                     {/* Notifications */}
-                    <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
+                    <section id="section-notifications" className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm scroll-mt-8">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                                 <Bell className="w-5 h-5 text-primary" /> Notifications
@@ -268,7 +305,7 @@ export default function SettingsPage() {
                     </section>
 
                     {/* Data & Privacy */}
-                    <section className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
+                    <section id="section-data" className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm scroll-mt-8">
                         <div className="p-6 border-b border-zinc-100 dark:border-white/5">
                             <h2 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-primary" /> Data & Privacy

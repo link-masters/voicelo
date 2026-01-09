@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Mic, Search, Play, Zap, Loader2, Pause, Heart, Share2, MoreHorizontal, Shield, ShieldOff, Globe, Trash2, Calendar, User, X, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { Mic, Search, Play, Zap, Loader2, Pause, Heart, Share2, MoreHorizontal, Shield, ShieldOff, Globe, Trash2, Calendar, User, X, ChevronLeft, ChevronRight, Info, AlertTriangle } from "lucide-react";
 import { getUserVoices, synthesizeInworldSpeech, toggleCommunityVoiceLike, updateVoicePrivacy, deleteUserVoice } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
@@ -45,6 +45,11 @@ export default function MyVoicesPage() {
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [sharingVoice, setSharingVoice] = useState<{ name: string, url: string } | null>(null);
 
+    // Delete Confirmation Modal State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [voiceToDelete, setVoiceToDelete] = useState<Voice | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const fetchUserVoices = async () => {
         if (!user?.$id) return;
         setLoading(true);
@@ -70,6 +75,17 @@ export default function MyVoicesPage() {
             }
         };
     }, []);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (activeMenu && !(e.target as Element).closest('.menu-container')) {
+                setActiveMenu(null);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [activeMenu]);
 
     const playAudio = async (url: string, voiceId: string) => {
         if (audioRef.current) audioRef.current.pause();
@@ -153,21 +169,34 @@ export default function MyVoicesPage() {
         }
     };
 
-    const handleDeleteVoice = async (voice: Voice) => {
-        if (!voice.docId) return;
-
-        const confirmed = window.confirm(`Are you sure you want to delete "${voice.displayName}"? This action cannot be undone.`);
-        if (!confirmed) return;
-
-        setVoices(prev => prev.filter(v => v.docId !== voice.docId));
+    const openDeleteModal = (voice: Voice) => {
+        setVoiceToDelete(voice);
+        setIsDeleteModalOpen(true);
         setActiveMenu(null);
+    };
+
+    const closeDeleteModal = () => {
+        setIsDeleteModalOpen(false);
+        setVoiceToDelete(null);
+    };
+
+    const confirmDeleteVoice = async () => {
+        if (!voiceToDelete?.docId) return;
+
+        setIsDeleting(true);
+
+        // Optimistic update
+        setVoices(prev => prev.filter(v => v.docId !== voiceToDelete.docId));
 
         try {
-            await deleteUserVoice(voice.docId);
+            await deleteUserVoice(voiceToDelete.docId);
+            closeDeleteModal();
         } catch (error) {
             console.error("Delete failed", error);
             fetchUserVoices();
             alert("Failed to delete voice. Please try again.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -277,74 +306,73 @@ export default function MyVoicesPage() {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-zinc-50/50 dark:bg-white/[0.02] border-b border-zinc-100 dark:border-white/5">
-                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Voice</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center leading-none">Privacy</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center leading-none">Created</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Metrics</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Actions</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none text-left">Voice</th>
+                                        <th className="px-4 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center leading-none">Status</th>
+                                        <th className="px-4 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center leading-none hidden xl:table-cell">Created</th>
+                                        <th className="px-4 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center leading-none">Stats</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-100 dark:divide-white/5">
                                     {currentVoices.map((voice) => (
                                         <tr key={voice.voiceId} className="group hover:bg-zinc-50/80 dark:hover:bg-white/[0.01] transition-colors">
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg shrink-0
+                                            <td className="px-6 py-5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md shrink-0
                                                         ${voice.gender === 'MALE' ? 'bg-blue-600 shadow-blue-500/20' :
                                                             voice.gender === 'FEMALE' ? 'bg-pink-600 shadow-pink-500/20' : 'bg-primary shadow-primary/20'}
                                                     `}>
                                                         {voice.displayName.charAt(0).toUpperCase()}
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <h3 className="font-bold text-zinc-900 dark:text-white truncate">{voice.displayName}</h3>
-                                                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                                                            <span>{voice.gender}</span>
-                                                            <span className="text-zinc-200 dark:text-zinc-800">•</span>
-                                                            <span>{voice.languages?.[0] || 'EN'}</span>
+                                                        <h3 className="font-bold text-zinc-900 dark:text-white truncate text-sm">{voice.displayName}</h3>
+                                                        <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-400">
+                                                            <span>{voice.gender || 'N/A'}</span>
+                                                            <span>•</span>
+                                                            <span>{voice.languages?.[0]?.split('_')[0]?.toUpperCase() || 'EN'}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 text-center">
+                                            <td className="px-4 py-5 text-center">
                                                 <button
                                                     onClick={() => handleTogglePrivacy(voice)}
-                                                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${voice.isPublic
+                                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wide whitespace-nowrap transition-all ${voice.isPublic
                                                         ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20 hover:scale-105'
-                                                        : 'bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-white/10 hover:scale-105'
+                                                        : 'bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-white/10 hover:scale-105'
                                                         }`}
                                                 >
                                                     {voice.isPublic ? <Globe className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
                                                     {voice.isPublic ? 'Public' : 'Private'}
                                                 </button>
                                             </td>
-                                            <td className="px-8 py-6 text-center">
-                                                <span className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">
+                                            <td className="px-4 py-5 text-center hidden xl:table-cell">
+                                                <span className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">
                                                     {voice.createdAt ? new Date(voice.createdAt).toLocaleDateString(undefined, {
                                                         month: 'short', day: 'numeric', year: 'numeric'
                                                     }) : 'N/A'}
                                                 </span>
                                             </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center justify-end gap-6 text-right">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Likes</span>
-                                                        <span className="font-black text-zinc-900 dark:text-white">{voice.likes || 0}</span>
+                                            <td className="px-4 py-5">
+                                                <div className="flex items-center justify-center gap-4">
+                                                    <div className="flex items-center gap-1.5 text-zinc-500">
+                                                        <Heart className="w-3.5 h-3.5" />
+                                                        <span className="font-bold text-zinc-900 dark:text-white text-sm">{voice.likes || 0}</span>
                                                     </div>
-                                                    <div className="flex flex-col items-end min-w-[50px]">
-                                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Uses</span>
-                                                        <span className="font-black text-zinc-900 dark:text-white">{voice.uses || 0}</span>
+                                                    <div className="flex items-center gap-1.5 text-zinc-500">
+                                                        <Zap className="w-3.5 h-3.5" />
+                                                        <span className="font-bold text-zinc-900 dark:text-white text-sm">{voice.uses || 0}</span>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 text-right relative">
-                                                <div className="flex items-center justify-end gap-2">
+                                            <td className="px-6 py-5 text-right">
+                                                <div className="flex items-center justify-end gap-1.5">
                                                     <button
                                                         onClick={() => handlePreview(voice)}
-                                                        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all
+                                                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all
                                                             ${playingVoiceId === voice.voiceId
-                                                                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                                                                : 'bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-primary dark:hover:text-primary hover:bg-zinc-100 dark:hover:bg-primary/10 border border-zinc-200 dark:border-white/10'}
-                                                        `}
+                                                                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                                                                : 'bg-zinc-100 dark:bg-white/5 text-zinc-500 hover:text-primary dark:hover:text-primary hover:bg-zinc-200 dark:hover:bg-white/10'}`}
                                                     >
                                                         {isPreviewLoading === voice.voiceId ? (
                                                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -356,30 +384,37 @@ export default function MyVoicesPage() {
                                                     </button>
                                                     <button
                                                         onClick={() => handleShare(voice)}
-                                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-primary dark:hover:text-primary border border-zinc-200 dark:border-white/10 transition-all hover:bg-zinc-100 dark:hover:bg-primary/10"
+                                                        className="w-9 h-9 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-white/5 text-zinc-500 hover:text-primary dark:hover:text-primary transition-all hover:bg-zinc-200 dark:hover:bg-white/10"
                                                     >
                                                         <Share2 className="w-4 h-4" />
                                                     </button>
                                                     <Link
                                                         href={`/dashboard?voiceId=${voice.voiceId}`}
-                                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg shadow-primary/20 active:scale-95"
+                                                        className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md shadow-primary/20"
                                                     >
                                                         <Zap className="w-4 h-4 fill-current" />
                                                     </Link>
-                                                    <div className="relative group/menu">
+                                                    <div className="relative menu-container">
                                                         <button
-                                                            onClick={() => setActiveMenu(activeMenu === voice.voiceId ? null : voice.voiceId)}
-                                                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-white/5 text-zinc-400 hover:text-primary dark:hover:text-primary border border-zinc-200 dark:border-white/10 transition-all"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveMenu(activeMenu === voice.voiceId ? null : voice.voiceId);
+                                                            }}
+                                                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-white/5 text-zinc-500 hover:text-zinc-700 dark:hover:text-white transition-all hover:bg-zinc-200 dark:hover:bg-white/10"
                                                         >
                                                             <MoreHorizontal className="w-4 h-4" />
                                                         </button>
                                                         {activeMenu === voice.voiceId && (
-                                                            <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                                            <div className="absolute right-0 bottom-full mb-2 w-40 bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/30 z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                                                                 <button
-                                                                    onClick={() => handleDeleteVoice(voice)}
-                                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors uppercase tracking-widest text-[9px]"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openDeleteModal(voice);
+                                                                    }}
+                                                                    className="w-full flex items-center gap-2 px-3 py-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-sm font-medium"
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" /> Delete Voice
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                    Delete Voice
                                                                 </button>
                                                             </div>
                                                         )}
@@ -410,7 +445,7 @@ export default function MyVoicesPage() {
                                             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-1">
                                                 <span>{voice.gender}</span>
                                                 <span className="text-zinc-200 dark:text-zinc-800">•</span>
-                                                <span>{voice.languages?.[0] || 'EN'}</span>
+                                                <span>{voice.languages?.[0]?.split('_')[0]?.toUpperCase() || 'EN'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -475,7 +510,7 @@ export default function MyVoicesPage() {
                                             <Zap className="w-4 h-4 fill-current" />
                                         </Link>
                                         <button
-                                            onClick={() => handleDeleteVoice(voice)}
+                                            onClick={() => openDeleteModal(voice)}
                                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 border border-red-100 dark:border-red-500/20 active:scale-95 transition-all"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -544,6 +579,89 @@ export default function MyVoicesPage() {
                     voiceName={sharingVoice.name}
                     shareUrl={sharingVoice.url}
                 />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && voiceToDelete && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+                        onClick={closeDeleteModal}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/10 shadow-2xl w-full max-w-md p-8 animate-in zoom-in-95 fade-in duration-300">
+                        {/* Close Button */}
+                        <button
+                            onClick={closeDeleteModal}
+                            className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        {/* Warning Icon */}
+                        <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-6">
+                            <AlertTriangle className="w-8 h-8 text-red-500" />
+                        </div>
+
+                        {/* Content */}
+                        <div className="text-center mb-8">
+                            <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2">
+                                Delete Voice?
+                            </h3>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                                Are you sure you want to delete <span className="font-bold text-zinc-900 dark:text-white">"{voiceToDelete.displayName}"</span>? This action cannot be undone.
+                            </p>
+                        </div>
+
+                        {/* Voice Info */}
+                        <div className="bg-zinc-50 dark:bg-white/5 rounded-2xl p-4 mb-6 flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-lg shrink-0
+                                ${voiceToDelete.gender === 'MALE' ? 'bg-blue-600' :
+                                    voiceToDelete.gender === 'FEMALE' ? 'bg-pink-600' : 'bg-primary'}
+                            `}>
+                                {voiceToDelete.displayName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="font-bold text-zinc-900 dark:text-white truncate">{voiceToDelete.displayName}</p>
+                                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                    <span>{voiceToDelete.likes || 0} likes</span>
+                                    <span>•</span>
+                                    <span>{voiceToDelete.uses || 0} uses</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={closeDeleteModal}
+                                disabled={isDeleting}
+                                className="flex-1 py-3.5 px-6 rounded-2xl font-black text-xs uppercase tracking-widest bg-zinc-100 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/20 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteVoice}
+                                disabled={isDeleting}
+                                className="flex-1 py-3.5 px-6 rounded-2xl font-black text-xs uppercase tracking-widest bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Deleting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
