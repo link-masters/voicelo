@@ -175,7 +175,7 @@ export async function GET(req: Request) {
             // This handles the 'starter_pack' slug seen in your image
             const nameMapping: Record<string, string> = {
                 "starter_pack": "Starter Pack",
-                "turbo_pack": "Turbo Pack",
+                "plus_pack": "Plus Pack",
                 "elite_pack": "Elite Pack",
                 "test50": "Standard Pack" // Force it away from the code name if it somehow leaks here
             };
@@ -202,7 +202,7 @@ export async function GET(req: Request) {
         // Define your standard DISCOUNTED prices for your packs
         const priceStandards: Record<string, number> = {
             "Starter Pack": 1.25,
-            "Turbo Pack": 1.78,
+            "Plus Pack": 1.78,
             "Elite Pack": 5.00 // Example
         };
 

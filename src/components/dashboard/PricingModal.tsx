@@ -45,7 +45,7 @@ const planConfigs: Record<string, any> = {
             "Private generations",
         ],
     },
-    "turbo_pack": {
+    "plus_pack": {
         icon: Rocket,
         color: "primary",
         popular: true,

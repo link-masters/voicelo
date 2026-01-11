@@ -87,7 +87,7 @@ export const getCreditsFromPaddleProduct = (productName: string): number => {
 
     // Specific product mappings based on name keywords
     if (name.includes('starter')) return 10000;
-    if (name.includes('turbo') || name.includes('pro')) return 50000;
+    if (name.includes('plus') || name.includes('turbo') || name.includes('pro')) return 50000;
     if (name.includes('elite') || name.includes('enterprise')) return 200000;
 
     // Direct credit amount detection (e.g. "10,000 Credits")

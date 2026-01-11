@@ -18,16 +18,33 @@ export default function Header() {
     const [signUpModalOpen, setSignUpModalOpen] = useState(false);
     const pathname = usePathname();
 
+    const [currentHash, setCurrentHash] = useState("");
+
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
         };
+        const handleHashChange = () => {
+            setCurrentHash(window.location.hash);
+        };
+
+        // Initial checks
+        handleScroll();
+        handleHashChange();
+
         window.addEventListener("scroll", handleScroll);
+        window.addEventListener("hashchange", handleHashChange);
 
         return () => {
             window.removeEventListener("scroll", handleScroll);
+            window.removeEventListener("hashchange", handleHashChange);
         };
     }, []);
+
+    // Update hash on pathname change as well (e.g. navigation)
+    useEffect(() => {
+        setCurrentHash(window.location.hash);
+    }, [pathname]);
 
     const navLinks = [
         { name: "Home", href: "/", icon: Home },
@@ -55,13 +72,21 @@ export default function Header() {
                     {/* Desktop Nav */}
                     <div className="hidden md:flex items-center gap-8">
                         {navLinks.map((link) => {
-                            const isActive = pathname === link.href;
+                            let isActive = pathname === link.href;
+
+                            if (link.href === "/#features") {
+                                isActive = pathname === "/" && currentHash === "#features";
+                            } else if (link.href === "/") {
+                                isActive = pathname === "/" && currentHash !== "#features";
+                            }
+
                             return (
                                 <Link
                                     key={link.name}
                                     href={link.href}
                                     className={`relative text-sm font-medium transition-all py-1.5 px-3 rounded-xl group outline-none flex items-center gap-2 ${isActive ? "text-primary bg-primary/5 shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 focus-visible:text-foreground"
                                         }`}
+                                    onClick={() => setCurrentHash(link.href.includes('#') ? '#features' : '')}
                                 >
                                     <link.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`} />
                                     {link.name}
@@ -118,14 +143,23 @@ export default function Header() {
                 {mobileMenuOpen && (
                     <div className="absolute top-full left-0 right-0 bg-background/95 backdrop-blur-xl border-b border-border md:hidden p-6 flex flex-col gap-6 animate-in slide-in-from-top-5 shadow-2xl">
                         {navLinks.map((link) => {
-                            const isActive = pathname === link.href;
+                            let isActive = pathname === link.href;
+
+                            if (link.href === "/#features") {
+                                isActive = pathname === "/" && currentHash === "#features";
+                            } else if (link.href === "/") {
+                                isActive = pathname === "/" && currentHash !== "#features";
+                            }
                             return (
                                 <Link
                                     key={link.name}
                                     href={link.href}
                                     className={`relative text-xl font-semibold transition-all w-full flex items-center gap-4 p-4 rounded-2xl group ${isActive ? "text-primary bg-primary/5 border border-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                                         }`}
-                                    onClick={() => setMobileMenuOpen(false)}
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                        setCurrentHash(link.href.includes('#') ? '#features' : '');
+                                    }}
                                 >
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-secondary text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground"}`}>
                                         <link.icon className="w-5 h-5" />

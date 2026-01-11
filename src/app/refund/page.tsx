@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getActiveProviderName } from "@/config/payment";
@@ -27,31 +28,32 @@ export default function RefundPolicy() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold">1. Digital Products Policy</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    VoiceLo provides digital goods (credits) that are consumed upon use. As such, <strong className="text-foreground">all orders that are completed successfully without error are non-refundable</strong>. Please refer to section 3 for a full list of non-refundable conditions.
+                                    VoiceLo provides digital goods (credits) that are consumed upon use. As such, refunds are provided solely at our discretion and must meet specific eligibility criteria regarding timeframe and usage. Please refer to section 2 for eligibility details and section 3 for non-refundable conditions.
                                 </p>
                             </section>
 
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold">2. Eligibility for Refunds</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    You may be eligible for a refund under the following circumstances:
+                                    You are eligible for a refund only if <strong>both</strong> of the following conditions are met:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li><strong>Technical Issues:</strong> If a technical failure on our end prevents you from using your purchased credits.</li>
-                                    <li><strong>Duplicate Purchase:</strong> If you accidentally purchased the same credit pack twice due to a system error.</li>
-                                    <li><strong>Unused Credits:</strong> If you requested a refund within 14 days of purchase and have not used any of the credits from that specific transaction.</li>
+                                    <li><strong>Timeframe:</strong> The refund request is made within 7 days of the payment date.</li>
+                                    <li><strong>Usage:</strong> Less than 10% of the purchased credits have been used.</li>
                                 </ul>
+                                <p className="text-muted-foreground leading-relaxed mt-4">
+                                    Technical failures that prevent service usage are exempt from these limits and handled on a case-by-case basis.
+                                </p>
                             </section>
 
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold">3. Non-Refundable Items</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    The following are non-refundable:
+                                    Refunds will <strong>not</strong> be processed under the following conditions:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Successfully completed orders where no technical error occurred during the transaction.</li>
-                                    <li>Credits that have already been partially or fully used for speech generation.</li>
-                                    <li>Payments made more than 14 days prior to the refund request.</li>
+                                    <li><strong>Usage Limit Exceeded:</strong> If more than 10% of the credits from the purchase have been used.</li>
+                                    <li><strong>Time Limit Exceeded:</strong> If more than 7 days have passed since the payment, even if zero credits were used.</li>
                                     <li>Charges resulting from unauthorized access to your account (it is your responsibility to secure your account).</li>
                                 </ul>
                             </section>
@@ -59,7 +61,7 @@ export default function RefundPolicy() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold">4. How to Request a Refund</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    To request a refund, please contact us at support@voicelo.com with your order number (from {getActiveProviderName()}) and the reason for your request. We aim to process all requests within 5-10 business days.
+                                    To request a refund, please contact us via <Link href="/contact" className="text-primary hover:underline">Contact Form</Link> or via mail at <span className="text-primary font-medium">support@voicelo.app</span> with your order number (from {getActiveProviderName()}) and the reason for your request. We aim to process all requests within 5-10 business days.
                                 </p>
                             </section>
 
@@ -73,8 +75,16 @@ export default function RefundPolicy() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold">6. {getActiveProviderName()}</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    All transactions are handled by {getActiveProviderName()}, our Merchant of Record. Some refund rules may be governed by their own terms and conditions in addition to ours.
+                                    All transactions are handled by <Link href="https://creem.io" target="_blank" className="text-primary hover:underline">{getActiveProviderName()}</Link>, our Merchant of Record. Some refund rules may be governed by their own terms and conditions in addition to ours.
                                 </p>
+                            </section>
+
+                            <section className="space-y-4 p-8 rounded-3xl bg-primary/5 border border-primary/10 text-center">
+                                <h2 className="text-2xl font-bold text-foreground">Contact Us</h2>
+                                <p className="text-muted-foreground">
+                                    If you have any questions about this Refund Policy, please contact us at:
+                                </p>
+                                <p className="text-primary font-semibold text-lg">support@voicelo.app</p>
                             </section>
                         </div>
                     </div>

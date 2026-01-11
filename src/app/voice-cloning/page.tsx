@@ -160,7 +160,7 @@ export default function VoiceCloningPage() {
                                     <span className="text-primary font-black">Neural Architecture</span>
                                 </h2>
                                 <p className="text-lg text-muted-foreground">
-                                    We use proprietary zero-shot learning techniques that understand the fundamental components of human speech, allowing for instant replication from minimal data.
+                                    We use proprietary zero-shot learning techniques that understand the fundamental components of authentic speech, allowing for instant replication from minimal data.
                                 </p>
                                 <ul className="space-y-4">
                                     {[

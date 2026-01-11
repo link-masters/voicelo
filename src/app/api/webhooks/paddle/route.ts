@@ -71,7 +71,7 @@ export async function POST(req: Request) {
                         if (credits === 10000) {
                             packageDisplayName = "starter_pack";
                         } else if (credits === 50000) {
-                            packageDisplayName = "turbo_pack";
+                            packageDisplayName = "plus_pack";
                         } else if (credits === 200000) {
                             packageDisplayName = "elite_pack";
                         } else if (priceName && priceName.length > 5 && !priceName.startsWith('(')) {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
                 }
 
                 if (!packageDisplayName) {
-                    packageDisplayName = totalCredits >= 50000 ? "turbo_pack" : "starter_pack";
+                    packageDisplayName = totalCredits >= 50000 ? "plus_pack" : "starter_pack";
                 }
 
                 if (totalCredits === 0) {

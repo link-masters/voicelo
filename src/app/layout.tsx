@@ -12,8 +12,8 @@ import { NotificationProvider } from "../context/NotificationContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VoiceLo - Modern TTS",
-  description: "Next-generation Text to Speech Interface",
+  title: "VoiceLo - High Quality AI Voice Generator",
+  description: "Text To Speech AI Voice generator with premium voices in 15+ different native languages with custom instant voice cloning.",
 };
 
 export default function RootLayout({

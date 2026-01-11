@@ -6,7 +6,7 @@ export async function GET() {
     try {
         configureLemonSqueezy();
         const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
-        const variantId = "1161786"; // Turbo Pack
+        const variantId = "1161786"; // Plus Pack
         const code = "AZNDQ2MQ";
 
         const checkout = await createCheckout(storeId!, variantId, {

@@ -38,7 +38,7 @@ export const POST = Webhook({
                 const amount = checkout.amount || 0; // cents
                 if (amount >= 1000) { // $10+
                     totalCredits = 50000;
-                    packageDisplayName = 'turbo_pack';
+                    packageDisplayName = 'plus_pack';
                 } else if (amount >= 500) { // $5+
                     totalCredits = 10000;
                     packageDisplayName = 'starter_pack';
@@ -47,7 +47,7 @@ export const POST = Webhook({
 
             if (!packageDisplayName) {
                 if (totalCredits === 10000) packageDisplayName = "starter_pack";
-                else if (totalCredits === 50000) packageDisplayName = "turbo_pack";
+                else if (totalCredits === 50000) packageDisplayName = "plus_pack";
                 else if (totalCredits === 200000) packageDisplayName = "elite_pack";
                 else packageDisplayName = productName || "unknown_pack";
             }

@@ -39,7 +39,7 @@ export default function CookiePolicy() {
                                 <div className="grid gap-6 mt-6">
                                     <div className="p-6 rounded-2xl bg-secondary/30 border border-border">
                                         <h3 className="font-bold mb-2">Essential Cookies</h3>
-                                        <p className="text-sm text-muted-foreground">These are necessary for the website to function. They include cookies for authentication (Appwrite) and secure payments ({getActiveProviderName()}).</p>
+                                        <p className="text-sm text-muted-foreground">These are necessary for the website to function. They include cookies for authentication (Appwrite Cloud) and secure payments ({getActiveProviderName()}).</p>
                                     </div>
                                     <div className="p-6 rounded-2xl bg-secondary/30 border border-border">
                                         <h3 className="font-bold mb-2">Performance & Analytics</h3>
@@ -62,11 +62,12 @@ export default function CookiePolicy() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold">4. Third-Party Cookies</h2>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    In addition to our own cookies, we may also use various third-party cookies to report usage statistics of the Service, deliver advertisements on and through the Service, and so on.
+                                    In addition to our own cookies, we may also use various third-party cookies for backend-as-a-service (BaaS) and Merchant of record, and so on.
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground text-sm">
-                                    <li><strong>Appwrite:</strong> Used for managing your session and security.</li>
-                                    <li><strong>{getActiveProviderName()}:</strong> Used for processing payments and preventing fraud.</li>
+                                    <li><strong>Appwrite Cloud:</strong> Used for managing your session and security.</li>
+                                    <li><strong>{getActiveProviderName()} (Merchant of record):</strong> Used for processing payments and preventing fraud.</li>
+                                    <li><strong>Vercel:</strong> Used for performance analytics and speed insights.</li>
                                 </ul>
                             </section>
 

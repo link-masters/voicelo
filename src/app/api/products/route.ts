@@ -233,7 +233,7 @@ export async function GET(req: Request) {
                 const allVariants = variantsResponse.data?.data || [];
                 const allDiscounts = discountsResponse.data?.data || [];
 
-                const targetProducts = ['starter_pack', 'turbo_pack'];
+                const targetProducts = ['starter_pack', 'plus_pack'];
 
                 const activeDiscounts = allDiscounts.filter((d: any) => {
                     const attr = d?.attributes;
@@ -337,13 +337,13 @@ export async function GET(req: Request) {
                         });
                     }
 
-                    const name = attr.name === "Default" || attr.name === "starter_pack" || attr.name === "turbo_pack"
+                    const name = attr.name === "Default" || attr.name === "starter_pack" || attr.name === "plus_pack" || attr.name === "turbo_pack"
                         ? product?.attributes?.name
                         : attr.name;
 
                     return {
                         id: variant.id,
-                        name: name === "starter_pack" ? "Starter Pack" : name === "turbo_pack" ? "Turbo Pack" : (name || "Plan"),
+                        name: name === "starter_pack" ? "Starter Pack" : name === "plus_pack" ? "Plus Pack" : (name || "Plan"),
                         productName: product?.attributes?.name,
                         price: priceDisplay,
                         originalPrice: originalPriceDisplay,
@@ -422,7 +422,7 @@ export async function GET(req: Request) {
                         console.error("[Pricing API] Error fetching Paddle discounts:", discountError);
                     }
 
-                    const targetProductNames = ['starter', 'turbo'];
+                    const targetProductNames = ['starter', 'plus'];
 
                     console.log(`[Pricing API] Filtering ${paddleProducts.length} Paddle products for: ${targetProductNames.join(', ')}`);
 
@@ -537,8 +537,8 @@ export async function GET(req: Request) {
                                 // Determine product name for mapping to features
                                 const productName = product.name?.toLowerCase().includes('starter')
                                     ? 'starter_pack'
-                                    : product.name?.toLowerCase().includes('turbo')
-                                        ? 'turbo_pack'
+                                    : product.name?.toLowerCase().includes('plus')
+                                        ? 'plus_pack'
                                         : product.name;
 
                                 return {
@@ -594,7 +594,7 @@ export async function GET(req: Request) {
                         }
                     }
 
-                    const targetProductNames = ['starter', 'turbo'];
+                    const targetProductNames = ['starter', 'plus'];
 
                     // Filter and format products
                     const formattedPlans = creemProducts
@@ -678,8 +678,8 @@ export async function GET(req: Request) {
 
                             const productName = product.name?.toLowerCase().includes('starter')
                                 ? 'starter_pack'
-                                : product.name?.toLowerCase().includes('turbo')
-                                    ? 'turbo_pack'
+                                : product.name?.toLowerCase().includes('plus')
+                                    ? 'plus_pack'
                                     : product.name;
 
                             return {

@@ -1,15 +1,16 @@
 import React from "react";
+import Link from "next/link";
 import { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getActiveProviderName } from "@/config/payment";
 
 export const metadata: Metadata = {
-    title: "Terms & Conditions | VoiceLo",
+    title: "Terms Of Service | VoiceLo",
     description: "Terms and conditions for using VoiceLo voice synthesis platform.",
 };
 
-export default function TermsAndConditions() {
+export default function TermsOfService() {
     return (
         <div className="min-h-screen text-foreground selection:bg-primary/30 font-sans text-base leading-relaxed">
             {/* Background Ambience */}
@@ -22,10 +23,10 @@ export default function TermsAndConditions() {
             <div className="relative z-10 flex flex-col min-h-screen">
                 <Header />
 
-                <main className="flex-1 max-w-4xl mx-auto px-6 py-24 sm:py-32 w-full">
-                    <div className="space-y-16">
+                <main className="flex-1 w-full">
+                    <div className="max-w-4xl mx-auto px-6 py-24 sm:pb-16 sm:pt-32 space-y-16">
                         <header className="space-y-4">
-                            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground">Terms & Conditions</h1>
+                            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground">Terms Of Service</h1>
                             <p className="text-muted-foreground text-lg">Last Updated: December 28, 2025</p>
                         </header>
 
@@ -33,47 +34,49 @@ export default function TermsAndConditions() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground">1. Agreement to Terms</h2>
                                 <p className="text-muted-foreground">
-                                    By accessing or using VoiceLo, you agree to be bound by these Terms & Conditions. If you do not agree to all of these terms, do not use our services.
+                                    By accessing or using VoiceLo, you agree to be bound by these Terms Of Service. If you do not agree to all of these terms, do not use our services.
                                 </p>
                             </section>
 
                             <section className="space-y-6">
-                                <h2 className="text-2xl font-bold text-foreground">2. Use of Service</h2>
-                                <p className="text-muted-foreground">
-                                    VoiceLo provides a platform for generating speech from text using artificial intelligence. You are responsible for any content you provide.
-                                </p>
-                                <div className="grid sm:grid-cols-3 gap-4">
-                                    {[
-                                        "Must be 13+ years old",
-                                        "Provide accurate info",
-                                        "Maintain account security"
-                                    ].map((item, i) => (
-                                        <div key={i} className="p-4 rounded-xl bg-secondary/30 border border-border text-center text-sm font-medium">
-                                            {item}
-                                        </div>
-                                    ))}
+                                <h2 className="text-2xl font-bold text-foreground">2. Eligibility and Use Restrictions</h2>
+                                <div className="space-y-4 text-muted-foreground">
+                                    <h3 className="text-lg font-bold text-foreground">2.1 Age</h3>
+                                    <p>If you are under 18 years of age (or the age of legal majority where you live), you may not use our Services.</p>
+
+                                    <h3 className="text-lg font-bold text-foreground mt-4">2.2 Authorization</h3>
+                                    <p>If you register, access or use our Services on behalf of another person or entity:</p>
+                                    <ul className="list-disc pl-6 space-y-2">
+                                        <li>You represent that you are authorized to enter into these Terms on their behalf.</li>
+                                        <li>You agree that they are also responsible to us if these Terms are violated.</li>
+                                        <li>If you are an entity, you are responsible for your employees' usage and compliance.</li>
+                                    </ul>
+
+                                    <h3 className="text-lg font-bold text-foreground mt-4">2.3 Usage & Commercial Rights</h3>
+                                    <ul className="list-disc pl-6 space-y-2">
+                                        <li><strong>Free Users:</strong> May only use the Services and Output for <strong>non-commercial</strong> purposes.</li>
+                                        <li><strong>Paid Users:</strong> May use the Services and Output for <strong>commercial</strong> purposes.</li>
+                                        <li>In all cases, usage must comply with our Prohibited Use Policy.</li>
+                                    </ul>
                                 </div>
                             </section>
 
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground">3. Credits and Payments</h2>
-                                <p className="text-muted-foreground">
-                                    Our service operates on a credit-based system managed through {getActiveProviderName()}:
-                                </p>
-                                <ul className="space-y-3 text-muted-foreground">
-                                    <li className="flex gap-3">
-                                        <span className="text-primary">•</span>
-                                        <span>Credits are consumed based on the length of the text processed.</span>
-                                    </li>
-                                    <li className="flex gap-3">
-                                        <span className="text-primary">•</span>
-                                        <span>Credits are non-transferable and have no cash value.</span>
-                                    </li>
-                                    <li className="flex gap-3">
-                                        <span className="text-primary">•</span>
-                                        <span>We reserve the right to change our pricing at any time.</span>
-                                    </li>
-                                </ul>
+                                <div className="space-y-4 text-muted-foreground">
+                                    <p>Our service operates primarily on a credit-based system handled by our Merchant of Record, {getActiveProviderName()}.</p>
+
+                                    <h3 className="text-lg font-bold text-foreground mt-4">3.1. Payment Terms</h3>
+                                    <ul className="list-disc pl-6 space-y-2">
+                                        <li><strong>One-Time Payments:</strong> Our "Starter" and "Plus" packs are one-time purchases and do not automatically renew. You are charged only once per transaction.</li>
+                                        <li><strong>Currency:</strong> All prices are in the currency displayed at checkout (typically USD) and include applicable taxes unless stated otherwise.</li>
+                                    </ul>
+
+                                    <h3 className="text-lg font-bold text-foreground mt-4">3.2. Refund Policy</h3>
+                                    <p>
+                                        Refunds are governed by our specific <Link href="/refund" className="text-primary font-medium hover:underline">Refund Policy</Link>. Generally, refunds are only available within 7 days of purchase if less than 10% of credits have been used. Please review the full Refund Policy page for details.
+                                    </p>
+                                </div>
                             </section>
 
                             <section className="space-y-4">
@@ -102,16 +105,23 @@ export default function TermsAndConditions() {
                             </section>
 
                             <section className="space-y-4">
-                                <h2 className="text-2xl font-bold text-foreground">5. Intellectual Property</h2>
-                                <p className="text-muted-foreground">
-                                    VoiceLo and its original content, features, and functionality are owned by us. You retain ownership of the original text you provide, but we grant you a license to use the generated audio for your projects according to your plan level.
-                                </p>
+                                <h2 className="text-2xl font-bold text-foreground">5. Intellectual Property & Licensing</h2>
+                                <div className="space-y-4 text-muted-foreground">
+                                    <p>
+                                        VoiceLo and its original content are owned by us. However, your rights to the generated content depend on your subscription plan:
+                                    </p>
+                                    <ul className="list-disc pl-6 space-y-2">
+                                        <li><strong>Free Plan:</strong> You are granted a non-exclusive, non-commercial license to use the generated audio. Attribution to VoiceLo is required for public usage.</li>
+                                        <li><strong>Paid Plans (Starter / Plus):</strong> You are granted a non-exclusive, perpetual, commercial license to use the generated audio for any legal purpose, including monetization (e.g., YouTube, Podcasts, Audiobooks).</li>
+                                    </ul>
+                                    <p>
+                                        You retain full ownership of the text scripts you upload. By using the service, you grant VoiceLo a limited license to process these scripts solely for the purpose of generating audio.
+                                    </p>
+                                </div>
                             </section>
 
                             <section className="space-y-6">
-                                <div className="p-1 px-4 rounded-full bg-primary/10 border border-primary/20 w-fit text-primary text-xs font-bold uppercase tracking-widest">
-                                    Special Addendum
-                                </div>
+
                                 <h2 className="text-2xl font-bold text-foreground">6. Voice Cloning Policy</h2>
                                 <p className="text-muted-foreground">
                                     Our Voice Cloning feature allows you to create a digital replica of a voice. By using this feature, you agree to the following strict conditions:
@@ -125,10 +135,7 @@ export default function TermsAndConditions() {
                                         <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                         <span><strong className="text-foreground">Ethical Use:</strong> You agree not to use cloned voices to deceive, defraud, or harass individuals. This includes but is not limited to creating "Deepfakes" for misinformation.</span>
                                     </li>
-                                    <li className="flex gap-3">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
-                                        <span><strong className="text-foreground">Biometric Data:</strong> You acknowledge that voice cloning involves the processing of biometric indicators. We handle this data with extreme care as outlined in our Privacy Policy.</span>
-                                    </li>
+
                                     <li className="flex gap-3">
                                         <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                                         <span><strong className="text-foreground">Indemnification:</strong> You agree to indemnify and hold VoiceLo harmless from any legal claims arising from your use of a cloned voice without proper authorization.</span>
@@ -137,21 +144,40 @@ export default function TermsAndConditions() {
                             </section>
 
                             <section className="space-y-4">
-                                <h2 className="text-2xl font-bold text-foreground">7. Limitation of Liability</h2>
+                                <h2 className="text-2xl font-bold text-foreground">7. User Generated Content</h2>
                                 <p className="text-muted-foreground">
-                                    In no event shall VoiceLo be liable for any indirect, incidental, special, or consequential damages resulting from your use or inability to use the service.
+                                    You are solely responsible for the content (text and voice samples) you upload. VoiceLo does not endorse any user-generated content. We reserve the right to remove any content that violates these Terms or is deemed inappropriate, without prior notice.
                                 </p>
                             </section>
 
-                            <section className="space-y-4 p-8 rounded-3xl bg-primary/5 border border-primary/10">
-                                <h2 className="text-2xl font-bold text-foreground">8. Contact Us</h2>
+                            <section className="space-y-4">
+                                <h2 className="text-2xl font-bold text-foreground">8. Termination</h2>
                                 <p className="text-muted-foreground">
-                                    For legal inquiries or questions regarding these terms:
+                                    We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. Upon termination, your right to use the Service will cease immediately.
                                 </p>
-                                <p className="text-primary font-semibold text-lg">legal@voicelo.com</p>
                             </section>
+
+                            <section className="space-y-4">
+                                <h2 className="text-2xl font-bold text-foreground">9. Disclaimer and Limitation of Liability</h2>
+                                <p className="text-muted-foreground">
+                                    The service is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. VoiceLo makes no warranties, whether express or implied, regarding the uptime or availability of the service. In no event shall VoiceLo be liable for any indirect, incidental, special, or consequential damages resulting from your use or inability to use the service.
+                                </p>
+                            </section>
+
+                            <section className="space-y-4 p-8 rounded-3xl bg-primary/5 border border-primary/10 text-center">
+                                <h2 className="text-2xl font-bold text-foreground">Contact Us</h2>
+                                <p className="text-muted-foreground">
+                                    If you have any questions about this Terms of Service, please contact us at:
+                                </p>
+                                <p className="text-primary font-semibold text-lg">support@voicelo.app</p>
+                            </section>
+
+
+
                         </div>
                     </div>
+
+
                 </main>
 
                 <Footer />

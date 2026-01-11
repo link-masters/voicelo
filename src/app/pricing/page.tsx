@@ -35,35 +35,39 @@ const planConfigs: Record<string, any> = {
         icon: User,
         color: "zinc",
         features: [
-            "1,000 Initial Credits",
-            "Standard Neural Voices",
-            "Community shared voices",
-            "Basic support",
+            "1,000 Credits",
+            "Standard Quality Audio",
+            "1,000 char input limit",
+            "Community Support",
+            "Personal Use Only",
         ],
     },
     "starter_pack": {
         icon: Zap,
         color: "amber",
         features: [
-            "10,000 Credits",
-            "No expiration on credits",
-            "Standard Neural Voices",
-            "Private generations",
-            "Basic support",
+            "50,000 Credits",
+            "Enhanced Quality Audio",
+            "10 Instant Voice Clones",
+            "Commercial rights",
+            "5,000 char input limit",
+            "Standard Support",
         ],
+        description: "One-time Payment · No Auto Renewal",
     },
-    "turbo_pack": {
+    "plus_pack": {
         icon: Rocket,
         color: "primary",
         popular: true,
         features: [
-            "50,000 Credits",
-            "No expiration on credits",
-            "All Premium Voices",
-            "Full Commercial rights",
-            "Priority generation queue",
-            "Advanced settings access",
+            "100,000 Credits",
+            "Studio Quality Audio",
+            "Unlimited Voice Clones",
+            "Commercial rights",
+            "15,000 input length",
+            "Priority Support",
         ],
+        description: "One-time Payment · No Auto Renewal",
     },
 };
 
@@ -87,29 +91,39 @@ function PricingContent() {
         },
         {
             q: "Do my credits expire?",
-            a: "Credits in the Free Pack expire after 30 days. However, all paid packs (Starter & Turbo) come with No Expiration—your credits stay in your account until you use them."
+            a: "Yes, credits expire since each package is valid for one month, but credits can be purchased again at any time."
         },
         {
             q: "Do you offer refunds?",
             a: "We offer refunds for unused credits if requested within 14 days of purchase. However, once credits are partially used for speech generation, the transaction becomes non-refundable."
         },
-        {
-            q: "Can I monetize my content?",
-            a: "Yes! The Turbo Pack includes full commercial rights. This allows you to use your generated audio in monetized YouTube videos, podcasts, radio ads, and corporate projects."
-        },
+
         {
             q: "Is the checkout process secure?",
-            a: "Absolutely. We partner with Paddle and Lemon Squeezy, world leaders in SaaS payments, to ensure your transaction is encrypted and your data remains private."
-        }
+            a: (
+                <>
+                    Absolutely. All transactions are handled by{" "}
+                    <a
+                        href="https://creem.io"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                    >
+                        Creem
+                    </a>
+                    , our Merchant of Record, to ensure your transaction is encrypted and your data remains private.
+                </>
+            ),
+        },
     ];
 
     const comparisonFeatures = [
-        { name: "Monthly Credits", free: "1,000", starter: "10,000", turbo: "50,000" },
-        { name: "Neural Voices", free: "Standard", starter: "Standard", turbo: "All Premium" },
-        { name: "Credit Expiration", free: "30 Days", starter: "Never", turbo: "Never" },
-        { name: "Private generations", free: false, starter: true, turbo: true },
-        { name: "Commercial Rights", free: false, starter: false, turbo: true },
-        { name: "Priority Queue", free: false, starter: false, turbo: true },
+        { name: "Number of credits", free: "1,000", starter: "10,000", plus: "50,000" },
+        { name: "Audio quality", free: "Standard", starter: "Enhanced", plus: "Studio" },
+        { name: "Instant voice clones", free: false, starter: "10 Clones", plus: "Unlimited" },
+        { name: "Text input length", free: "1,000 chars", starter: "5,000 chars", plus: "15,000 chars" },
+        { name: "Support included", free: true, starter: true, plus: true },
+        { name: "Commercial use", free: false, starter: true, plus: true },
     ];
 
     const urlDiscount = searchParams.get('discount');
@@ -185,9 +199,15 @@ function PricingContent() {
                             features: ["Premium Access", "Cloud Storage", "Priority Support"]
                         };
 
+                        let displayName = plan.name || plan.productName;
+                        if (displayName && !displayName.toLowerCase().includes('pack')) {
+                            displayName = `${displayName} Pack`;
+                        }
+
                         return {
                             ...plan,
                             ...config,
+                            name: displayName,
                         };
                     });
 
@@ -203,7 +223,7 @@ function PricingContent() {
 
                     const allPlans = [freePlan, ...mappedPlans];
 
-                    // Sort plans: Free -> Starter -> Turbo -> Others
+                    // Sort plans: Free -> Starter -> Plus -> Others
                     allPlans.sort((a, b) => {
                         const nameA = a.productName?.toLowerCase() || a.name.toLowerCase();
                         const nameB = b.productName?.toLowerCase() || b.name.toLowerCase();
@@ -214,8 +234,8 @@ function PricingContent() {
                         if (nameA.includes('starter')) return -1;
                         if (nameB.includes('starter')) return 1;
 
-                        if (nameA.includes('turbo')) return -1;
-                        if (nameB.includes('turbo')) return 1;
+                        if (nameA.includes('plus')) return -1;
+                        if (nameB.includes('plus')) return 1;
 
                         return 0;
                     });
@@ -359,10 +379,7 @@ function PricingContent() {
                 <div className="max-w-7xl mx-auto px-6">
                     {/* Header Section */}
                     <div className="text-center mb-20 space-y-4 animate-fade-in-up">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-border text-primary text-xs font-bold tracking-wider uppercase">
-                            <Star className="w-3 h-3 fill-current" />
-                            Pricing Plans
-                        </div>
+
                         {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && (
                             <div className="flex justify-center">
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-sm font-bold animate-pulse">
@@ -373,10 +390,10 @@ function PricingContent() {
                         )}
                         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground">
                             Simple, Transparent <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-primary">Credit Packages</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-primary">Monthly Credit Packages</span>
                         </h1>
                         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                            Choose the perfect credit package for your monthly creative needs. Professional tools with transparent, predictable pricing.
+                            Choose the perfect credit package for your creative needs.
                         </p>
                     </div>
 
@@ -422,20 +439,22 @@ function PricingContent() {
                                         )}
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-5xl font-extrabold text-foreground">{plan.price}</span>
+                                            <span className="text-xl text-muted-foreground font-medium">/ mo</span>
                                             {plan.originalPrice && (
                                                 <span className="text-zinc-500 text-xl font-medium line-through decoration-zinc-600/50 ml-2">
                                                     {plan.originalPrice}
                                                 </span>
                                             )}
                                         </div>
-                                        {plan.variantId !== "free" && (
-                                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-2 px-2 py-0.5 rounded-full bg-secondary/50 border border-border">One-time Payment. No Auto Renewal</span>
-                                        )}
                                     </div>
 
-                                    <p className="text-muted-foreground mb-8 text-sm leading-relaxed text-center">
-                                        {plan.description}
-                                    </p>
+                                    <div className="flex justify-center mb-8 h-8">
+                                        {plan.description ? (
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/80 border border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                                {plan.description}
+                                            </span>
+                                        ) : <div className="h-full" />}
+                                    </div>
 
                                     <div className="space-y-4 mb-10">
                                         {plan.features.map((feature) => (
@@ -462,7 +481,7 @@ function PricingContent() {
                                             <Loader2 className="w-5 h-5 animate-spin" />
                                         ) : (
                                             <>
-                                                {plan.variantId === "free" ? (user ? "Current Plan" : "Get Started") : "Get Started"}
+                                                {plan.variantId === "free" ? (user ? "Current Active" : "Get Started") : "Buy Credits"}
                                                 {(plan.variantId !== "free" || !user) && <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />}
                                             </>
                                         )}
@@ -474,56 +493,78 @@ function PricingContent() {
 
                     {/* Detailed Comparison Table */}
                     <div className="mt-32 mb-32 animate-fade-in-up delay-200">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl font-bold mb-4">Complete Feature Comparison</h2>
-                            <p className="text-muted-foreground">Compare our packages and find the perfect fit for your workflow.</p>
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Compare Features</h2>
+                            <p className="text-muted-foreground text-lg">Detailed breakdown of what's included.</p>
                         </div>
 
-                        <div className="overflow-x-auto pb-4">
-                            <table className="w-full border-collapse">
-                                <thead>
-                                    <tr className="border-b border-border">
-                                        <th className="py-6 px-4 text-left font-semibold text-muted-foreground uppercase tracking-widest text-xs">Features</th>
-                                        <th className="py-6 px-4 text-center font-bold text-lg">Free</th>
-                                        <th className="py-6 px-4 text-center font-bold text-lg text-amber-500">Starter</th>
-                                        <th className="py-6 px-4 text-center font-bold text-lg text-primary">Turbo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {comparisonFeatures.map((feature, i) => (
-                                        <tr key={i} className="border-b border-border/50 hover:bg-secondary/20 transition-colors">
-                                            <td className="py-5 px-4 font-medium text-foreground">{feature.name}</td>
-                                            <td className="py-5 px-4 text-center">
-                                                {typeof feature.free === 'string' ? (
-                                                    <span className="text-sm font-semibold">{feature.free}</span>
-                                                ) : feature.free ? (
-                                                    <Check className="w-5 h-5 text-emerald-500 mx-auto" />
-                                                ) : (
-                                                    <Minus className="w-5 h-5 text-muted-foreground/30 mx-auto" />
-                                                )}
-                                            </td>
-                                            <td className="py-5 px-4 text-center">
-                                                {typeof feature.starter === 'string' ? (
-                                                    <span className="text-sm font-semibold">{feature.starter}</span>
-                                                ) : feature.starter ? (
-                                                    <Check className="w-5 h-5 text-amber-500 mx-auto" />
-                                                ) : (
-                                                    <Minus className="w-5 h-5 text-muted-foreground/30 mx-auto" />
-                                                )}
-                                            </td>
-                                            <td className="py-5 px-4 text-center">
-                                                {typeof feature.turbo === 'string' ? (
-                                                    <span className="text-sm font-semibold">{feature.turbo}</span>
-                                                ) : feature.turbo ? (
-                                                    <Check className="w-5 h-5 text-primary mx-auto" />
-                                                ) : (
-                                                    <Minus className="w-5 h-5 text-muted-foreground/30 mx-auto" />
-                                                )}
-                                            </td>
+                        <div className="overflow-hidden rounded-[2.5rem] bg-card/30 dark:bg-zinc-900/20 border border-border/50 backdrop-blur-xl relative shadow-2xl shadow-black/5">
+                            {/* Gloss Effect */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-[640px]">
+                                    <thead>
+                                        <tr className="border-b border-border/50 bg-secondary/20">
+                                            <th className="py-8 px-8 text-left text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-widest w-1/3">Features</th>
+                                            <th className="py-8 px-6 text-center w-1/5">
+                                                <div className="font-extrabold text-lg md:text-xl mb-1">Free</div>
+                                                <div className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider">Pack</div>
+                                            </th>
+                                            <th className="py-8 px-6 text-center w-1/5">
+                                                <div className="font-extrabold text-lg md:text-xl text-amber-500 mb-1">Starter</div>
+                                                <div className="text-[10px] md:text-xs font-bold text-amber-500/80 uppercase tracking-wider">Pack</div>
+                                            </th>
+                                            <th className="py-8 px-6 text-center w-1/5">
+                                                <div className="font-extrabold text-lg md:text-xl text-primary mb-1">Plus</div>
+                                                <div className="text-[10px] md:text-xs font-bold text-primary/80 uppercase tracking-wider">Pack</div>
+                                            </th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-border/30">
+                                        {comparisonFeatures.map((feature, i) => (
+                                            <tr key={i} className="group hover:bg-primary/5 transition-colors duration-300">
+                                                <td className="py-6 px-8 font-semibold text-foreground/80 group-hover:text-foreground transition-colors text-sm md:text-base">
+                                                    {feature.name}
+                                                </td>
+                                                <td className="py-6 px-6 text-center">
+                                                    {typeof feature.free === 'string' ? (
+                                                        <span className="font-bold text-foreground text-sm">{feature.free}</span>
+                                                    ) : feature.free ? (
+                                                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
+                                                            <Check className="w-4 h-4 text-emerald-500" />
+                                                        </div>
+                                                    ) : (
+                                                        <Minus className="w-5 h-5 text-muted-foreground/20 mx-auto" />
+                                                    )}
+                                                </td>
+                                                <td className="py-6 px-6 text-center">
+                                                    {typeof feature.starter === 'string' ? (
+                                                        <span className="font-bold text-foreground text-sm">{feature.starter}</span>
+                                                    ) : feature.starter ? (
+                                                        <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
+                                                            <Check className="w-4 h-4 text-amber-500" />
+                                                        </div>
+                                                    ) : (
+                                                        <Minus className="w-5 h-5 text-muted-foreground/20 mx-auto" />
+                                                    )}
+                                                </td>
+                                                <td className="py-6 px-6 text-center">
+                                                    {typeof feature.plus === 'string' ? (
+                                                        <span className="font-bold text-foreground text-sm">{feature.plus}</span>
+                                                    ) : feature.plus ? (
+                                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                                                            <Check className="w-4 h-4 text-primary" />
+                                                        </div>
+                                                    ) : (
+                                                        <Minus className="w-5 h-5 text-muted-foreground/20 mx-auto" />
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
@@ -567,7 +608,7 @@ function PricingContent() {
                         <div className="space-y-4">
                             <h2 className="text-4xl font-extrabold text-foreground tracking-tight">Ready to amplify your content?</h2>
                             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                                Choose a pack and start generating studio-quality voiceovers in less than 60 seconds.
+                                Choose a suitable credits pack and start generating studio-quality voiceovers instantly.
                             </p>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -46,7 +46,7 @@ export async function POST(req: Request) {
                 const searchStr = `${productName} ${variantName}`.toLowerCase();
 
                 if (searchStr.includes("starter")) creditsToAdd = 10000;
-                else if (searchStr.includes("turbo") || searchStr.includes("pro")) creditsToAdd = 50000;
+                else if (searchStr.includes("plus") || searchStr.includes("turbo") || searchStr.includes("pro")) creditsToAdd = 50000;
                 else if (searchStr.includes("elite")) creditsToAdd = 200000;
 
                 console.log(`💰 Adding ${creditsToAdd} credits. Search string: "${searchStr}"`);
