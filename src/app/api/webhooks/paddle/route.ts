@@ -113,6 +113,24 @@ export async function POST(req: Request) {
                     return NextResponse.json({ error: "User not found" }, { status: 404 });
                 }
 
+                // Deduplication Check
+                const isLastPurchase = user.prefs?.lastPurchaseId === transactionId;
+                let isDbRecorded = false;
+                const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                if (transactionsCollectionId && databases) {
+                    const existingDocs = await databases.listDocuments(
+                        databaseId,
+                        transactionsCollectionId,
+                        [Query.equal('transactionId', transactionId)]
+                    );
+                    if (existingDocs.total > 0) isDbRecorded = true;
+                }
+
+                if (isLastPurchase || isDbRecorded) {
+                    console.log(`[Paddle Webhook] ⚠️ Transaction ${transactionId} already processed. Skipping.`);
+                    return NextResponse.json({ received: true, message: "Transaction already processed" });
+                }
+
                 // Update credits
                 const currentTotal = Number(user.prefs?.creditsTotal) || 0;
                 const thirtyDaysFromNow = new Date();
@@ -132,9 +150,9 @@ export async function POST(req: Request) {
                 });
 
                 // Create Transaction Record in new Table
-                const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
-                if (transactionsCollectionId && databases) {
-                    await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
+                const dbTxColId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                if (dbTxColId && databases) {
+                    await createTransactionRecord(databases, databaseId, dbTxColId, {
                         userId: user.$id,
                         transactionId: transactionId,
                         credits: totalCredits,

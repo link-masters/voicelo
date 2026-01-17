@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/appwrite-server";
 import { Query, ID } from "node-appwrite";
 import { paymentConfig } from "@/config/payment";
 import { createTransactionRecord } from "@/lib/transactions";
+import { NextResponse } from "next/server";
 
 export const POST = Webhook({
     webhookSecret: paymentConfig.creem.webhookSecret,
@@ -36,64 +37,77 @@ export const POST = Webhook({
                 }
 
                 if (user) {
-                    const existingTransactions = Array.isArray(user.prefs?.transactions) ? user.prefs.transactions : [];
-                    const isTransactionProcessed = existingTransactions.some((t: any) => t.id === checkoutId);
+                    // Deduplication 1: Check lastPurchaseId in prefs (Fastest)
+                    const isLastPurchase = user.prefs?.lastPurchaseId === checkoutId;
 
-                    if (!isTransactionProcessed) {
-                        const productName = product?.name || "";
-                        let totalCredits = getCreditsFromCreemProduct(productName);
-                        let packageDisplayName = "";
-
-                        console.log(`[Creem Debug] Product: "${productName}", Initial Credits: ${totalCredits}`);
-                        console.log(`[Creem Debug] Env Var STARTER: "${process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK}"`);
-
-                        const starterCredits = Number((process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK || '').replace(/,/g, '')) || 10000;
-                        const plusCredits = Number((process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK || '').replace(/,/g, '')) || 50000;
-
-                        if (totalCredits === 0) {
-                            const amount = checkout.subtotal || checkout.total || checkout.amount || 0;
-                            if (amount >= 1000) { totalCredits = plusCredits; packageDisplayName = 'plus_pack'; }
-                            else if (amount >= 500) { totalCredits = starterCredits; packageDisplayName = 'starter_pack'; }
-                        }
-
-                        if (!packageDisplayName) {
-                            if (totalCredits === starterCredits) packageDisplayName = "starter_pack";
-                            else if (totalCredits === plusCredits) packageDisplayName = "plus_pack";
-                            else if (totalCredits === 200000) packageDisplayName = "elite_pack";
-                            else packageDisplayName = productName || "unknown_pack";
-                        }
-
-                        // ... (in the handler)
-
-                        const thirtyDaysFromNow = new Date();
-                        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-                        // 1. Update User Credits (without adding transaction object to prefs)
-                        await users.updatePrefs(user.$id, {
-                            ...user.prefs,
-                            plan: "Pro User",
-                            creditsTotal: (Number(user.prefs?.creditsTotal) || 0) + totalCredits,
-                            lastPurchaseId: checkoutId,
-                        });
-
-                        // 2. Create Transaction Record in new Table
-                        const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
-                        if (transactionsCollectionId) {
-                            await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
-                                userId: user.$id,
-                                transactionId: checkoutId,
-                                credits: totalCredits,
-                                packageName: packageDisplayName,
-                                provider: "creem",
-                                status: "active",
-                                purchasedAt: new Date().toISOString(),
-                                expiresAt: thirtyDaysFromNow.toISOString()
-                            });
-                        } else {
-                            console.error("[Creem Webhook] Missing NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID");
-                        }
-                        console.log(`[Creem Webhook] ✅ Credits added successfully for user ${user.$id}.`);
+                    // Deduplication 2: Check DB (Most Robust)
+                    let isDbRecorded = false;
+                    const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                    if (transactionsCollectionId) {
+                        const existingDocs = await databases.listDocuments(
+                            databaseId,
+                            transactionsCollectionId,
+                            [Query.equal('transactionId', checkoutId)]
+                        );
+                        if (existingDocs.total > 0) isDbRecorded = true;
                     }
+
+                    if (isLastPurchase || isDbRecorded) {
+                        console.log(`[Creem Webhook] ⚠️ Transaction ${checkoutId} already processed. Skipping.`);
+                        return; // Library handles the response, so we just exit
+                    }
+
+                    // Process Transaction
+                    const productName = product?.name || "";
+                    let totalCredits = getCreditsFromCreemProduct(productName);
+                    let packageDisplayName = "";
+
+                    console.log(`[Creem Debug] Product: "${productName}", Initial Credits: ${totalCredits}`);
+                    console.log(`[Creem Debug] Env Var STARTER: "${process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK}"`);
+
+                    const starterCredits = Number((process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK || '').replace(/,/g, '')) || 10000;
+                    const plusCredits = Number((process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK || '').replace(/,/g, '')) || 50000;
+
+                    if (totalCredits === 0) {
+                        const amount = checkout.subtotal || checkout.total || checkout.amount || 0;
+                        if (amount >= 1000) { totalCredits = plusCredits; packageDisplayName = 'plus_pack'; }
+                        else if (amount >= 500) { totalCredits = starterCredits; packageDisplayName = 'starter_pack'; }
+                    }
+
+                    if (!packageDisplayName) {
+                        if (totalCredits === starterCredits) packageDisplayName = "starter_pack";
+                        else if (totalCredits === plusCredits) packageDisplayName = "plus_pack";
+                        else if (totalCredits === 200000) packageDisplayName = "elite_pack";
+                        else packageDisplayName = productName || "unknown_pack";
+                    }
+
+                    const thirtyDaysFromNow = new Date();
+                    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+                    // 1. Update User Credits
+                    await users.updatePrefs(user.$id, {
+                        ...user.prefs,
+                        plan: "Pro User",
+                        creditsTotal: (Number(user.prefs?.creditsTotal) || 0) + totalCredits,
+                        lastPurchaseId: checkoutId,
+                    });
+
+                    // 2. Create Transaction Record in new Table
+                    if (transactionsCollectionId) {
+                        await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
+                            userId: user.$id,
+                            transactionId: checkoutId,
+                            credits: totalCredits,
+                            packageName: packageDisplayName,
+                            provider: "creem",
+                            status: "active",
+                            purchasedAt: new Date().toISOString(),
+                            expiresAt: thirtyDaysFromNow.toISOString()
+                        });
+                    } else {
+                        console.error("[Creem Webhook] Missing NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID");
+                    }
+                    console.log(`[Creem Webhook] ✅ Credits added successfully for user ${user.$id}.`);
                 }
             }
 

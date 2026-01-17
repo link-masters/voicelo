@@ -62,6 +62,26 @@ export async function POST(req: Request) {
                 }
 
                 const user = await users.get(userId);
+
+                // Deduplication Check (Fix for double credits)
+                const processingTxId = payload.data.id;
+                const isLastPurchase = user.prefs?.lastPurchaseId === processingTxId;
+                let isDbRecorded = false;
+                const txCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+
+                if (txCollectionId) {
+                    const existingDocs = await databases.listDocuments(
+                        databaseId,
+                        txCollectionId,
+                        [Query.equal('transactionId', processingTxId)]
+                    );
+                    if (existingDocs.total > 0) isDbRecorded = true;
+                }
+
+                if (isLastPurchase || isDbRecorded) {
+                    console.log(`[LemonSqueezy] ⚠️ Transaction ${processingTxId} already processed. Skipping.`);
+                    return NextResponse.json({ success: true, message: "Transaction already processed" });
+                }
                 // Force currentTotal and creditsToAdd to be numbers to avoid concatenation
                 const currentTotal = Number(user.prefs.creditsTotal) || 0;
                 const validatedCreditsToAdd = Number(creditsToAdd);
