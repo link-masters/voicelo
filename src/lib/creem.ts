@@ -48,18 +48,28 @@ export const formatCreemPrice = (
 export const getCreditsFromCreemProduct = (productName: string): number => {
     const name = productName.toLowerCase();
 
+    // Get credit values from environment variables
+    const starterCredits = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 10000;
+    const plusCredits = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 50000;
+    const eliteCredits = 200000; // Keep elite hardcoded or add to env if needed later
+
     // Specific product mappings based on name keywords
-    if (name.includes('starter')) return 10000;
-    if (name.includes('plus') || name.includes('turbo') || name.includes('pro')) return 50000;
-    if (name.includes('elite') || name.includes('enterprise')) return 200000;
+    if (name.includes('starter')) return starterCredits;
+    if (name.includes('plus') || name.includes('turbo') || name.includes('pro')) return plusCredits;
+    if (name.includes('elite') || name.includes('enterprise')) return eliteCredits;
 
     // Direct credit amount detection (e.g. "10,000 Credits")
-    if (name.includes('10,000') || name.includes('10000')) return 10000;
-    if (name.includes('50,000') || name.includes('50000')) return 50000;
-    if (name.includes('200,000') || name.includes('200000')) return 200000;
+    // Note: This logic overrides the env vars if the name explicitly contains numbers.
+    // We keep this for flexibility, but the keyword match above takes precedence if found first within the name check logic.
+    // Actually, to fully respect the user's wish to "use env vars instead of assuming",
+    // we should prioritize the env vars for known pack names.
+
+    if (name.includes('10,000') || name.includes('10000')) return starterCredits;
+    if (name.includes('50,000') || name.includes('50000')) return plusCredits;
+    if (name.includes('200,000') || name.includes('200000')) return eliteCredits;
 
     // Testing/Fallback mappings
-    if (name.includes('test') || name.includes('pack')) return 10000;
+    if (name.includes('test') || name.includes('pack')) return starterCredits;
 
     console.warn(`[Creem] Unknown product name mapping: ${productName}`);
     return 0;

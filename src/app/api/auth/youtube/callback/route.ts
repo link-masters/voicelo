@@ -1,86 +1,109 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/appwrite-server";
+import { createInfluencerCode } from "@/lib/influencer";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
-    const userId = searchParams.get('state'); // Retrieve userId from state
+    const state = searchParams.get('state');
 
-    if (!code || !userId) {
-        return NextResponse.json({ error: "Invalid request: code or state missing" }, { status: 400 });
+    if (!code || !state) {
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/influencer-program?error=missing_params`);
+    }
+
+    // state contains userId payload (passed directly from login route)
+    const userId = state;
+    if (!userId) {
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/influencer-program?error=missing_user_id`);
     }
 
     try {
-        const clientId = process.env.GOOGLE_CLIENT_ID;
-        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-        const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/youtube/callback`;
-
         // 1. Exchange code for access token
-        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
                 code,
-                client_id: clientId!,
-                client_secret: clientSecret!,
-                redirect_uri: redirectUri,
-                grant_type: "authorization_code",
+                client_id: process.env.GOOGLE_CLIENT_ID!,
+                client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+                redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/youtube/callback`,
+                grant_type: 'authorization_code',
             }),
         });
 
-        const tokens = await tokenResponse.json();
-        if (tokens.error || !tokens.access_token) {
-            console.error("YouTube Token Exchange Error:", tokens.error_description || tokens.error || "No access token");
-            return NextResponse.json({ error: tokens.error_description || tokens.error || "Failed to get access token" }, { status: 500 });
-        }
+        const tokenData = await tokenResponse.json();
+        if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
 
-        // 2. Fetch YouTube Channel details and stats
-        const youtubeResponse = await fetch(
-            "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
-            {
-                headers: { Authorization: `Bearer ${tokens.access_token}` },
-            }
-        );
+        // 2. Fetch Channel Info
+        const channelResponse = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true', {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        });
 
-        const youtubeData = await youtubeResponse.json();
-        if (!youtubeData.items || youtubeData.items.length === 0) {
-            return NextResponse.json({ error: "No YouTube channels found for this account" }, { status: 404 });
-        }
+        const channelData = await channelResponse.json();
+        if (!channelData.items || channelData.items.length === 0) throw new Error("No YouTube channel found");
 
-        // 3. Select the channel with the most subscribers (Standard for influencers)
-        const sortedChannels = youtubeData.items.sort((a: any, b: any) =>
-            (parseInt(b.statistics.subscriberCount) || 0) - (parseInt(a.statistics.subscriberCount) || 0)
-        );
-        const channel = sortedChannels[0];
-
+        const channel = channelData.items[0];
         const channelStats = {
-            channelId: channel.id,
+            id: channel.id,
             title: channel.snippet.title,
-            description: channel.snippet.description,
-            customUrl: channel.snippet.customUrl,
-            thumbnails: channel.snippet.thumbnails,
-            subscriberCount: parseInt(channel.statistics.subscriberCount) || 0,
-            videoCount: parseInt(channel.statistics.videoCount) || 0,
-            viewCount: parseInt(channel.statistics.viewCount) || 0,
+            thumbnail: channel.snippet.thumbnails.default.url,
+            subscriberCount: parseInt(channel.statistics.subscriberCount),
+            viewCount: parseInt(channel.statistics.viewCount),
+            videoCount: parseInt(channel.statistics.videoCount),
             verifiedAt: new Date().toISOString()
         };
 
-        // 4. Update User Prefs in Appwrite
+        // 3. Determine Criteria
+        const MIN_SUBS = Number(process.env.NEXT_PUBLIC_YOUTUBE_MIN_SUBS) || 500;
+        const MIN_VIEWS = Number(process.env.NEXT_PUBLIC_YOUTUBE_MIN_VIEWS) || 2000;
+        const meetsCriteria = channelStats.subscriberCount >= MIN_SUBS && channelStats.viewCount >= MIN_VIEWS;
+
+        // 4. Update User stats in Appwrite
         const { users } = createAdminClient();
         const user = await users.get(userId);
+        const prefs = user.prefs as any;
 
-        await users.updatePrefs(userId, {
-            ...user.prefs,
-            youtube_verification: channelStats
-        });
+        const isAwaiting = prefs.awaitingCommissionVerification === true || prefs.awaitingCommissionVerification === "true";
+        const isAlreadyInfluencer = !!prefs.influencerCode;
 
-        console.log(`✅ YouTube verification successful for user ${userId}: ${channelStats.title} (${channelStats.subscriberCount} subs)`);
+        // Permanent Choice Logic:
+        // We only grant "commission" if they picked it during onboarding (isAwaiting) OR if they are already commission.
+        let finalType = prefs.influencerType || "credits";
 
-        // 4. Redirect back to influencer program page
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/influencer-program?verified=youtube`);
+        if (meetsCriteria && (isAwaiting || prefs.influencerType === 'commission')) {
+            finalType = "commission";
+        }
+
+        // 5. AUTO-JOIN IF NECESSARY
+        // If they chose commission but didn't have a code yet, and now they meet criteria -> Give them their code!
+        if (meetsCriteria && isAwaiting && !isAlreadyInfluencer) {
+            console.log(`[YouTube Callback] Auto-creating code for user ${userId} who now meets criteria.`);
+            // Update stats first so helper can see them if needed
+            await users.updatePrefs(userId, {
+                ...user.prefs,
+                youtube_verification: channelStats,
+            });
+
+            // This helper handles prefs update, code creation, and sets isInfluencer: true
+            await createInfluencerCode(userId, "commission");
+        } else {
+            // Just update stats and type
+            await users.updatePrefs(userId, {
+                ...user.prefs,
+                youtube_verification: channelStats,
+                influencerType: finalType,
+                // Clear awaiting if they met criteria (even if already influencer)
+                awaitingCommissionVerification: (finalType === "commission" && meetsCriteria) ? false : prefs.awaitingCommissionVerification,
+                is_influencer_allowed: meetsCriteria ? true : (prefs.is_influencer_allowed || false)
+            });
+        }
+
+        console.log(`✅ YouTube verification processed for user ${userId}. Type: ${finalType}, Meets Criteria: ${meetsCriteria}`);
+
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/influencer-program?verify=success`);
 
     } catch (error: any) {
-        console.error("YouTube OAuth Callback Error:", error);
-        return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+        console.error("[YouTube Callback ERROR]:", error);
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/influencer-program?error=${encodeURIComponent(error.message)}`);
     }
 }

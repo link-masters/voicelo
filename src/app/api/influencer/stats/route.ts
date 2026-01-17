@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { listDiscounts, listDiscountRedemptions, getOrder } from "@lemonsqueezy/lemonsqueezy.js";
 import { configureLemonSqueezy } from "@/lib/lemonsqueezy";
 import { createAdminClient } from "@/lib/appwrite-server";
-import { paymentConfig, isLemonSqueezy, isPaddle } from "@/config/payment";
+import { paymentConfig, isLemonSqueezy, isPaddle, isCreem } from "@/config/payment";
+import { getCreemBaseUrl } from "@/lib/creem";
 import { paddle } from "@/lib/paddle";
+import { Query } from "node-appwrite";
 
 // Global cache for influencer stats per user
 interface CachedStats {
@@ -33,7 +35,7 @@ export async function GET(req: Request) {
         }
 
         // 1. Get user's influencer code from Appwrite
-        const { users } = createAdminClient();
+        const { users, databases } = createAdminClient();
         const user = await users.get(userId);
         const influencerCode = (user.prefs as any)?.influencerCode;
 
@@ -41,220 +43,206 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "User is not an influencer" }, { status: 403 });
         }
 
-        if (!isLemonSqueezy()) {
-            if (isPaddle()) {
-                try {
-                    console.log(`[Influencer API] Fetching Paddle stats for code: ${influencerCode}`);
+        const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
+        const redemptionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_REDEMPTIONS_COLLECTION_ID!;
 
-                    let paddleDiscount: any = null;
-                    const discountsCollection = paddle.discounts.list();
+        // 2. Handle Specialized Providers
+        if (isPaddle()) {
+            try {
+                console.log(`[Influencer API] Fetching Paddle stats for code: ${influencerCode}`);
 
-                    for await (const discount of discountsCollection) {
-                        if (discount.code && discount.code.toUpperCase() === influencerCode.toUpperCase()) {
-                            paddleDiscount = discount;
-                            break;
-                        }
+                let paddleDiscount: any = null;
+                const discountsCollection = paddle.discounts.list();
+
+                for await (const discount of discountsCollection) {
+                    if (discount.code && discount.code.toUpperCase() === influencerCode.toUpperCase()) {
+                        paddleDiscount = discount;
+                        break;
                     }
+                }
 
-                    const userPrefs = user.prefs as any;
-                    const redemptions = userPrefs.redemptions || [];
+                const userPrefs = user.prefs as any;
+                // For Paddle, we still use prefs for now as requested for Creem specifically
+                const redemptions = userPrefs.redemptions || [];
 
-                    // Note: Paddle uses 'timesUsed' for usage count
-                    const usageCount = paddleDiscount ? paddleDiscount.timesUsed : (userPrefs.totalRedemptions || 0);
-                    const usageLimit = paddleDiscount ? paddleDiscount.usageLimit : null;
+                const responseData = {
+                    totalRedemptions: paddleDiscount ? paddleDiscount.timesUsed : (userPrefs.totalRedemptions || 0),
+                    totalEarnings: Number(userPrefs.totalEarningsRevenue) || 0,
+                    approvedCommission: Number(userPrefs.approvedCommission) || 0,
+                    redemptions: redemptions,
+                    usageLimit: paddleDiscount ? paddleDiscount.usageLimit : null,
+                    usageCount: paddleDiscount ? paddleDiscount.timesUsed : 0,
+                    influencerCode,
+                    currency: "USD"
+                };
 
-                    const responseData = {
-                        totalRedemptions: usageCount,
-                        totalEarnings: Number(userPrefs.totalEarningsRevenue) || 0,
-                        approvedCommission: Number(userPrefs.approvedCommission) || 0,
-                        redemptions: redemptions,
-                        usageLimit: usageLimit,
-                        usageCount: usageCount,
-                        influencerCode,
-                        currency: "USD",
-                        message: paddleDiscount ? undefined : "Discount details synced from local records."
-                    };
+                return NextResponse.json(responseData);
+            } catch (err) {
+                console.error("[Influencer API] Paddle stats error:", err);
+            }
+        }
 
-                    // Update Cache
-                    statsCache[userId] = {
-                        timestamp: Date.now(),
-                        data: responseData
-                    };
+        if (isCreem()) {
+            const apiKey = process.env.CREEM_API_KEY;
+            const baseUrl = getCreemBaseUrl();
+            const discountId = (user.prefs as any)?.creemDiscountId;
 
-                    return NextResponse.json(responseData);
-                } catch (err) {
-                    console.error("[Influencer API] Paddle stats error:", err);
-                    // Fallback to cached/stored data if Paddle API fails
+            let usageCount = 0;
+            let usageLimit: number | null = null;
+
+            if (discountId) {
+                try {
+                    const resp = await fetch(`${baseUrl}/discounts?discount_id=${discountId}`, {
+                        headers: { 'x-api-key': apiKey! }
+                    });
+                    if (resp.ok) {
+                        const discount = await resp.json();
+                        usageCount = discount.redeem_count || 0;
+                        usageLimit = discount.max_redemptions || 1000;
+                    }
+                } catch (e) {
+                    console.error("[Influencer Stats] Creem API Error:", e);
                 }
             }
 
-            console.warn(`[Influencer API] Influencer stats not yet fully implemented for ${paymentConfig.activeProvider}`);
-            return NextResponse.json({
-                totalRedemptions: (user.prefs as any)?.totalRedemptions || 0,
-                totalEarnings: (user.prefs as any)?.totalEarningsRevenue || 0,
-                redemptions: (user.prefs as any)?.redemptions || [],
-                message: `Influencer statistics are currently using local records for ${paymentConfig.activeProvider}.`
-            });
+            // Fetch redemptions from Database
+            let redemptionsList: any[] = [];
+            try {
+                const response = await databases.listDocuments(
+                    databaseId,
+                    redemptionsCollectionId,
+                    [
+                        Query.equal("influencerId", userId),
+                        Query.orderDesc("timestamp"),
+                        Query.limit(100)
+                    ]
+                );
+                redemptionsList = response.documents.map(doc => ({
+                    id: doc.checkoutId,
+                    timestamp: doc.timestamp,
+                    planName: doc.planName,
+                    amount: doc.amount,
+                    commission: doc.commission,
+                    earnedCredits: doc.earnedCredits || 0,
+                    status: doc.status,
+                    currency: doc.currency,
+                    userEmail: doc.userEmail
+                }));
+            } catch (dbError) {
+                console.error("[Influencer Stats] Database fetch error:", dbError);
+            }
+
+            const prefs = user.prefs as any;
+            const influencerType = prefs.influencerType || "credits";
+            const totalRedemptions = Math.max(usageCount, redemptionsList.length, prefs.totalRedemptions || 0);
+
+            // Recalculate stats from DB list if available, otherwise use prefs
+            const totalEarnings = redemptionsList.length > 0
+                ? redemptionsList.reduce((sum, r) => sum + r.amount, 0)
+                : (Number(prefs.totalEarningsRevenue) || 0);
+
+            const approvedCommission = redemptionsList.length > 0
+                ? redemptionsList.filter(r => r.status === "Approved").reduce((sum, r) => sum + r.commission, 0)
+                : (Number(prefs.approvedCommission) || 0);
+
+            const totalEarnedCredits = redemptionsList.length > 0
+                ? redemptionsList.reduce((sum, r) => sum + (r.earnedCredits || 0), 0)
+                : (Number(prefs.totalEarnedCredits) || 0);
+
+            const stats = {
+                totalRedemptions,
+                totalEarnings,
+                approvedCommission,
+                totalEarnedCredits,
+                influencerType,
+                redemptions: redemptionsList,
+                usageLimit,
+                usageCount,
+                currency: "USD",
+                influencerCode
+            };
+
+            statsCache[userId] = { data: stats, timestamp: Date.now() };
+            return NextResponse.json(stats);
         }
 
-        configureLemonSqueezy();
-
-        // 2. Find the Discount ID in Lemon Squeezy for this code
-        const discountsResponse = await listDiscounts();
-        const discount = discountsResponse.data?.data?.find(
-            (d: any) => d.attributes.code.toUpperCase() === influencerCode.toUpperCase()
-        );
-
-        if (!discount) {
-            return NextResponse.json({
-                totalRedemptions: 0,
-                totalEarnings: 0,
-                redemptions: [],
-                message: "No active discount found in Lemon Squeezy for this code."
-            });
-        }
-
-        const discountId = discount.id;
-
-        // 3. Fetch redemptions and INCLUDE the associated Order data
-        const redemptionsResponse = await listDiscountRedemptions({
-            filter: { discountId },
-            page: { size: 100 },
-            include: ['order'] // This is the key to getting REAL data
-        });
-
-        const redemptionsData = redemptionsResponse.data?.data || [];
-        const included = (redemptionsResponse.data as any)?.included || [];
-
-        // 4. Format the data by mapping redemptions to their Orders
-        const formattedRedemptions = await Promise.all(redemptionsData.map(async (red: any) => {
-            const attr = red.attributes;
-
-            // Strict match on the 'included' order object
-            let orderFull = included.find(
-                (inc: any) => inc.type === 'orders' && String(inc.id) === String(attr.order_id)
+        // 3. Fallback / Lemon Squeezy
+        if (isLemonSqueezy()) {
+            configureLemonSqueezy();
+            const discountsResponse = await listDiscounts();
+            const discount = discountsResponse.data?.data?.find(
+                (d: any) => d.attributes.code.toUpperCase() === influencerCode.toUpperCase()
             );
 
-            let orderData = orderFull?.attributes;
-
-            // FALLBACK: If order wasn't in 'included', fetch it explicitly
-            if (!orderData) {
-                try {
-                    const singleOrder = await getOrder(attr.order_id);
-                    orderData = singleOrder.data?.data?.attributes;
-                } catch (e) {
-                    console.warn(`Order ${attr.order_id} could not be fetched.`);
-                }
+            if (!discount) {
+                return NextResponse.json({
+                    totalRedemptions: 0,
+                    totalEarnings: 0,
+                    redemptions: [],
+                    message: "No active discount found in Lemon Squeezy."
+                });
             }
 
-            // PRIORITY: Use total_usd if available (official Lemon Squeezy field for orders)
-            const amountUsd = orderData
-                ? (orderData.total_usd || orderData.total) / 100
-                : attr.amount / 100;
+            const redemptionsResponse = await listDiscountRedemptions({
+                filter: { discountId: discount.id },
+                page: { size: 100 },
+                include: ['order']
+            });
 
-            // 1. Precise Attribute Extraction (Official LS Doc structure)
-            const item = orderData?.first_order_item;
-            let detectedName = "";
+            const redemptionsData = redemptionsResponse.data?.data || [];
+            const included = (redemptionsResponse.data as any)?.included || [];
 
-            if (item?.variant_name && item.variant_name.toLowerCase() !== "default") {
-                detectedName = item.variant_name;
-            } else if (item?.product_name) {
-                detectedName = item.product_name;
-            } else if (orderData?.variant_name && orderData.variant_name.toLowerCase() !== "default") {
-                detectedName = orderData.variant_name;
-            } else if (orderData?.product_name) {
-                detectedName = orderData.product_name;
-            }
+            const formattedRedemptions = await Promise.all(redemptionsData.map(async (red: any) => {
+                const attr = red.attributes;
+                let orderFull = included.find((inc: any) => inc.type === 'orders' && String(inc.id) === String(attr.order_id));
+                let orderData = orderFull?.attributes;
 
-            // 2. Safeguard against empty or technical 'Default' names
-            if (!detectedName || detectedName.toLowerCase() === "default") {
-                detectedName = attr.discount_name || "Plan Purchase";
-            }
+                const amountUsd = orderData ? (orderData.total_usd || orderData.total) / 100 : attr.amount / 100;
+                const status = (Date.now() - new Date(attr.created_at).getTime()) > 3 * 24 * 60 * 60 * 1000 ? 'Approved' : 'Pending';
 
-            // 3. Technical to Beautiful Mapping
-            // This handles the 'starter_pack' slug seen in your image
-            const nameMapping: Record<string, string> = {
-                "starter_pack": "Starter Pack",
-                "plus_pack": "Plus Pack",
-                "elite_pack": "Elite Pack",
-                "test50": "Standard Pack" // Force it away from the code name if it somehow leaks here
+                const influencerCommissionRate = Number((user.prefs as any)?.influencer_commission_rate) || 30;
+                const commission = (amountUsd * influencerCommissionRate) / 100;
+
+                return {
+                    id: red.id,
+                    timestamp: attr.created_at,
+                    planName: attr.discount_name || "Plan Purchase",
+                    amount: amountUsd,
+                    commission: commission,
+                    status: status,
+                    currency: orderData?.currency || 'USD',
+                    userEmail: orderData?.user_email?.replace(/(.{2})(.*)(?=@)/, "$1***"),
+                };
+            }));
+
+            formattedRedemptions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+            const responseData = {
+                totalRedemptions: formattedRedemptions.length,
+                totalEarnings: formattedRedemptions.reduce((acc, r) => acc + r.amount, 0),
+                approvedCommission: formattedRedemptions.filter(r => r.status === 'Approved').reduce((acc, r) => acc + r.commission, 0),
+                redemptions: formattedRedemptions,
+                usageLimit: (discount.attributes as any).usage_limit,
+                usageCount: (discount.attributes as any).usage_count,
+                influencerCode,
+                currency: "USD"
             };
 
-            const lookupKey = detectedName.toLowerCase().replace(/\s+/g, '_');
-            const finalName = nameMapping[lookupKey] || detectedName.replace(" (Default)", "");
+            statsCache[userId] = { timestamp: Date.now(), data: responseData };
+            return NextResponse.json(responseData);
+        }
 
-            return {
-                id: red.id,
-                orderId: attr.order_id,
-                code: attr.discount_code,
-                amount: amountUsd,
-                currency: "USD",
-                timestamp: attr.created_at,
-                userEmail: "Verified Customer",
-                planName: finalName
-            };
-        }));
-
-        // 5. Calculate total earnings and commissions with NORMALIZATION
-        // This prevents overpaying due to 1-cent currency conversion rounding (e.g. $1.79 instead of $1.78)
-        const COMMISSION_RATE = 0.30;
-
-        // Define your standard DISCOUNTED prices for your packs
-        const priceStandards: Record<string, number> = {
-            "Starter Pack": 1.25,
-            "Plus Pack": 1.78,
-            "Elite Pack": 5.00 // Example
-        };
-
-        const redemptionsWithCommission = formattedRedemptions.map(r => {
-            const standardPrice = priceStandards[r.planName];
-            const commissionBase = standardPrice || r.amount;
-
-            // 6. Calculate Status (3-day vetting period)
-            const redemptionDate = new Date(r.timestamp).getTime();
-            const now = Date.now();
-            const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
-            const status = (now - redemptionDate) > threeDaysInMs ? 'Approved' : 'Pending';
-
-            return {
-                ...r,
-                commissionBase: commissionBase,
-                commission: Number((commissionBase * COMMISSION_RATE).toFixed(2)),
-                status
-            };
+        // Default Fallback
+        return NextResponse.json({
+            totalRedemptions: (user.prefs as any)?.totalRedemptions || 0,
+            totalEarnings: (user.prefs as any)?.totalEarningsRevenue || 0,
+            approvedCommission: (user.prefs as any)?.approvedCommission || 0,
+            redemptions: [],
+            influencerCode
         });
 
-        const totalEarningsCalculated = redemptionsWithCommission.reduce((acc, curr) => acc + curr.amount, 0);
-        const totalCommissionCalculated = redemptionsWithCommission.reduce((acc, curr) => acc + curr.commission, 0);
-        const approvedCommissionCalculated = redemptionsWithCommission
-            .filter(r => r.status === 'Approved')
-            .reduce((acc, curr) => acc + curr.commission, 0);
-
-        const responseData = {
-            totalRedemptions: redemptionsData.length,
-            totalEarnings: totalEarningsCalculated,
-            totalCommission: totalCommissionCalculated,
-            approvedCommission: approvedCommissionCalculated,
-            commissionRate: COMMISSION_RATE,
-            currency: "USD",
-            redemptions: redemptionsWithCommission,
-            influencerCode,
-            usageLimit: (discount.attributes as any).is_limited_redemptions || (discount.attributes as any).max_redemptions > 0
-                ? (discount.attributes as any).max_redemptions || (discount.attributes as any).usage_limit
-                : null,
-            usageCount: Math.max((discount.attributes as any).usage_count || 0, redemptionsData.length)
-        };
-
-        // Update Cache
-        statsCache[userId] = {
-            timestamp: Date.now(),
-            data: responseData
-        };
-
-        return NextResponse.json(responseData);
-
-    } catch (error: any) {
-        console.error("[Influencer API Error]:", error);
-        return NextResponse.json({ error: "Failed to fetch influencer stats" }, { status: 500 });
+    } catch (err: any) {
+        console.error("[Influencer API Error]:", err);
+        return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
     }
 }

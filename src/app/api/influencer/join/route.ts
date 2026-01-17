@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import { createDiscount as createLemonDiscount } from "@lemonsqueezy/lemonsqueezy.js";
-import { configureLemonSqueezy } from "@/lib/lemonsqueezy";
 import { createAdminClient } from "@/lib/appwrite-server";
-import { paymentConfig, isLemonSqueezy, isPaddle } from "@/config/payment";
-import { paddle } from "@/lib/paddle";
+import { createInfluencerCode } from "@/lib/influencer";
 
 export async function POST(req: Request) {
     try {
-        const { userId } = await req.json();
+        const { userId, type: selectedType } = await req.json();
 
         if (!userId) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -21,81 +18,73 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User already has an influencer code" }, { status: 400 });
         }
 
-        const prefs = user.prefs as any;
-        if (prefs?.is_influencer_allowed !== true && prefs?.is_influencer_allowed !== "true") {
-            return NextResponse.json({ error: "Your account is not authorized to join the influencer program. Please contact support." }, { status: 403 });
+        let userIPCountry = req.headers.get('x-vercel-ip-country') ||
+            req.headers.get('cf-ipcountry') ||
+            req.headers.get('x-country-code');
+
+        // Handle local development bypass
+        if (!userIPCountry && process.env.NODE_ENV === 'development') {
+            userIPCountry = 'PK';
         }
 
-        // 2. Generate a unique code (MAX 8 characters)
-        const cleanName = user.name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-        const prefix = cleanName.slice(0, 4) || "VOLC"; // 4 chars or fallback
-        const randomStr = Math.random().toString(36).substring(2, 10).toUpperCase();
-        const generatedCode = (prefix + randomStr).slice(0, 8);
+        const prefs = user.prefs as any;
+        const youtubeStats = prefs?.youtube_verification;
 
-        // 3. Create discount in Payment Gateway
-        const discountRate = Number(prefs?.influencer_discount_rate) || 10;
-        const commissionRate = Number(prefs?.influencer_commission_rate) || 30;
+        // Restriction: Commission program only for Pakistan
+        if (selectedType === 'commission' && userIPCountry && userIPCountry.toUpperCase() !== 'PK') {
+            return NextResponse.json({
+                error: "The Elite Creator (Commission) program is currently only available for creators based in Pakistan. You can still join as a Community Influencer!"
+            }, { status: 403 });
+        }
 
-        if (isLemonSqueezy()) {
-            configureLemonSqueezy();
-            const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
-            if (!storeId) {
-                console.error("Missing LEMON_SQUEEZY_STORE_ID in environment variables");
-                return NextResponse.json({ error: "Store configuration missing" }, { status: 500 });
-            }
+        const MIN_SUBS = Number(process.env.NEXT_PUBLIC_YOUTUBE_MIN_SUBS) || 500;
+        const MIN_VIEWS = Number(process.env.NEXT_PUBLIC_YOUTUBE_MIN_VIEWS) || 2000;
 
-            console.log(`[Influencer] Creating LS discount code "${generatedCode}" for user ${user.name}...`);
+        let influencerType = "credits";
+        let awaitingVerification = false;
 
-            const { data, error } = await createLemonDiscount({
-                storeId: storeId,
-                name: `Influencer: ${user.name} (${user.email})`,
-                code: generatedCode,
-                amount: discountRate,
-                amountType: 'percent',
-                isLimitedRedemptions: true,
-                maxRedemptions: 1000
-            });
+        if (selectedType === 'commission') {
+            const meetsCriteria = youtubeStats &&
+                youtubeStats.subscriberCount >= MIN_SUBS &&
+                youtubeStats.viewCount >= MIN_VIEWS;
 
-            if (error) {
-                console.error("Lemon Squeezy Create Discount Error:", error);
-                return NextResponse.json({ error: error.message }, { status: 500 });
-            }
-        } else if (isPaddle()) {
-            console.log(`[Influencer] Creating Paddle discount code "${generatedCode}" for user ${user.name}...`);
-            try {
-                await paddle.discounts.create({
-                    amount: discountRate.toString(),
-                    type: "percentage",
-                    description: `Influencer: ${user.name} (${user.email})`,
-                    enabledForCheckout: true,
-                    code: generatedCode,
-                    recur: false,
-                    usageLimit: 1000
-                });
-            } catch (error: any) {
-                console.error("Paddle Create Discount Error:", error);
-                return NextResponse.json({ error: error.message || "Failed to create Paddle discount" }, { status: 500 });
+            if (meetsCriteria) {
+                influencerType = "commission";
+            } else {
+                // DON'T create the code yet if they picked commission but aren't verified
+                influencerType = "credits"; // Fallback to credits if they somehow bypass and we need a type
+                awaitingVerification = true;
             }
         } else {
-            console.error(`[Influencer] Discount creation not yet implemented for ${paymentConfig.activeProvider}`);
-            return NextResponse.json({ error: `Influencer program is not yet compatible with ${paymentConfig.activeProvider}.` }, { status: 501 });
+            influencerType = "credits";
         }
 
-        // 4. Update user prefs in Appwrite to store the code
-        await users.updatePrefs(userId, {
-            ...user.prefs,
-            influencerCode: generatedCode,
-            influencer_discount_rate: discountRate,
-            influencer_commission_rate: commissionRate,
-            influencerJoinedAt: new Date().toISOString(),
-            isInfluencer: true
-        });
+        // IF VERIFICATION IS REQUIRED: STOP HERE
+        if (awaitingVerification) {
+            console.log(`[Influencer] Deferring Join for user ${user.name}: Awaiting YouTube Verification.`);
 
-        console.log(`✅ User ${user.name} joined the influencer program with code: ${generatedCode}`);
+            // Just update prefs to record their intent
+            await users.updatePrefs(userId, {
+                ...user.prefs,
+                influencerType: 'commission', // Store their intent
+                awaitingCommissionVerification: true,
+                isInfluencer: false // Not an influencer yet (no code)
+            });
+
+            return NextResponse.json({
+                success: true,
+                influencerType: 'commission',
+                awaitingCommissionVerification: true,
+                needsVerification: true
+            });
+        }
+
+        // IF WE GET HERE: Create the code immediately (either path 'credits' OR 'commission' with verified status)
+        const result = await createInfluencerCode(userId, influencerType as "credits" | "commission");
 
         return NextResponse.json({
-            success: true,
-            influencerCode: generatedCode
+            ...result,
+            awaitingCommissionVerification: false
         });
 
     } catch (error: any) {

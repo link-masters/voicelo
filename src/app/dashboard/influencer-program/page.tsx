@@ -30,6 +30,8 @@ export default function InfluencerHubPage() {
     const [isRequestingAccess, setIsRequestingAccess] = useState(false);
     const [lsData, setLsData] = useState<any>(null);
     const [lockError, setLockError] = useState<string | null>(null);
+    const [showGeoModal, setShowGeoModal] = useState(false);
+    const [isCheckingGeo, setIsCheckingGeo] = useState(false);
     const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [showVerifySuccess, setShowVerifySuccess] = useState(false);
     const router = useRouter();
@@ -44,61 +46,34 @@ export default function InfluencerHubPage() {
 
     const youtubeStats = prefs?.youtube_verification;
 
-    const handleJoin = async () => {
-        if (!user?.$id) return;
-        setIsJoining(true);
-        setLockError(null);
+    const handleJoinClick = async () => {
+        setIsCheckingGeo(true);
         try {
-            const currentAccount = await account.get();
-            const prefs = currentAccount.prefs as any;
-            const isAllowed = prefs?.is_influencer_allowed;
+            const session = await account.getSession('current');
+            const country = session.countryCode;
 
-            if (isAllowed !== true && isAllowed !== "true") {
-                setLockError("Your account has not been whitelisted for our Influencer Program yet. We are currently accepting new influencers on a case-by-case basis.");
-                setIsJoining(false);
+            // Handle Localhost development
+            if (!country && window.location.hostname === 'localhost') {
+                router.push('/dashboard/influencer-program/onboarding');
                 return;
             }
 
-            const response = await fetch('/api/influencer/join', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.$id })
-            });
-            const data = await response.json();
-            if (data.success) {
-                await handleRefresh(true);
+            if (country && country.toUpperCase() !== 'PK') {
+                setShowGeoModal(true);
             } else {
-                setLockError(data.error || "An error occurred while joining the program.");
+                router.push('/dashboard/influencer-program/onboarding');
             }
         } catch (err) {
-            setLockError("Something went wrong while verifying your account. Please try again.");
+            console.error("Failed to get session for geo-check:", err);
+            // Fallback: If we can't check, let them proceed but backend will block if needed
+            router.push('/dashboard/influencer-program/onboarding');
         } finally {
-            setIsJoining(false);
+            setIsCheckingGeo(false);
         }
     };
 
     const handleRequestAccess = async () => {
-        if (!user?.$id) return;
-
-        if (!youtubeStats) {
-            setShowVerifyModal(true);
-            return;
-        }
-
-        setIsRequestingAccess(true);
-        try {
-            await account.updatePrefs({
-                ...user.prefs,
-                is_influencer_allowed: false,
-                influencer_request_pending: true,
-                influencer_requested_at: new Date().toISOString()
-            });
-            await refreshUser();
-        } catch (err) {
-            console.error("Failed to request influencer access:", err);
-        } finally {
-            setIsRequestingAccess(false);
-        }
+        router.push('/dashboard/influencer-program/onboarding');
     };
 
     const handleSocialVerify = (platform: 'youtube' | 'facebook') => {
@@ -126,33 +101,12 @@ export default function InfluencerHubPage() {
         }
     };
 
-    // Handle verification success cleanup
-    useEffect(() => {
-        const verified = searchParams.get('verified');
-        if (verified === 'youtube') {
-            setShowVerifySuccess(true);
-            handleRefresh(true);
-
-            // Remove the param from URL
-            const url = new URL(window.location.href);
-            url.searchParams.delete('verified');
-            router.replace(url.pathname + url.search);
-
-            // Auto hide success message
-            setTimeout(() => {
-                setShowVerifySuccess(false);
-            }, 5000);
-        }
-    }, [searchParams, router]);
-
-    useEffect(() => {
-        if (user?.$id && !lsData) {
-            handleRefresh();
-        }
-    }, [user?.$id]);
+    // ... (rest of useEffects)
 
     const totalRedemptions = lsData?.totalRedemptions || (user?.prefs as any)?.totalRedemptions || 0;
     const approvedCommission = lsData?.approvedCommission || (user?.prefs as any)?.approvedCommission || 0;
+    const totalEarnedCredits = lsData?.totalEarnedCredits || (user?.prefs as any)?.totalEarnedCredits || 0;
+    const influencerType = lsData?.influencerType || (user?.prefs as any)?.influencerType || "credits";
     const redemptionsList = lsData?.redemptions || (user?.prefs as any)?.redemptions || [];
     const usageLimit = lsData?.usageLimit ? Number(lsData.usageLimit) : null;
     const usageCount = Math.max(lsData?.usageCount ? Number(lsData.usageCount) : 0, totalRedemptions);
@@ -164,7 +118,7 @@ export default function InfluencerHubPage() {
         })}`;
     };
 
-    const referralLink = `${window.location.origin}/pricing?discount=${influencerCode}`;
+    const referralLink = `${window.location.host.includes('localhost') ? 'http://' : 'https://'}${window.location.host}/pricing?discount=${influencerCode}`;
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(referralLink);
@@ -174,80 +128,53 @@ export default function InfluencerHubPage() {
 
     const renderContent = () => {
         if (!influencerCode) {
-            if (!isAllowed && isRequestPending) {
-                return (
-                    <div className="max-w-4xl mx-auto py-12 md:py-20 px-6 text-center">
-                        <div className="w-20 h-20 md:w-24 md:h-24 bg-amber-500/10 rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 md:mb-8">
-                            <Lock className="w-10 h-10 md:w-12 md:h-12 text-amber-600" />
-                        </div>
-                        <h1 className="text-2xl md:text-4xl font-black text-zinc-900 dark:text-white mb-4 md:mb-6">Influencer Program Restricted</h1>
-                        <p className="text-sm md:text-lg text-zinc-500 dark:text-zinc-400 max-w-lg mx-auto mb-8 md:mb-10 leading-relaxed">
-                            Your account has not been whitelisted for our Influencer Program yet. We are currently accepting new influencers on a case-by-case basis.
-                        </p>
-                        <div className="p-5 md:p-6 bg-zinc-50 dark:bg-white/5 rounded-[1.5rem] md:rounded-3xl inline-flex items-center gap-3 border border-zinc-200 dark:border-white/10">
-                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-                            <span className="text-xs md:text-sm font-bold text-zinc-600 dark:text-zinc-400">Status: Account Under Review</span>
-                        </div>
-                    </div>
-                );
-            }
-
             return (
                 <div className="max-w-4xl mx-auto py-12 md:py-20 px-4 md:px-6 text-center">
                     <div className="w-20 h-20 md:w-24 md:h-24 bg-primary/10 rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 md:mb-8 animate-pulse">
                         <TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-primary" />
                     </div>
-                    <h1 className="text-2xl md:text-4xl font-black text-zinc-900 dark:text-white mb-4 md:mb-6">Join our Influencer Program</h1>
-                    <p className="text-sm md:text-lg text-zinc-500 dark:text-zinc-400 max-w-lg mx-auto mb-8 md:mb-10 leading-relaxed">
-                        Earn a <span className="text-primary font-bold">{commissionRate}% commission</span> on every sale you refer.
-                        Track your impact in real-time.
+                    <h1 className="text-2xl md:text-4xl font-black text-zinc-900 dark:text-white mb-4 md:mb-6 leading-tight">Join our Influencer Program</h1>
+                    <p className="text-sm md:text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed">
+                        Share your discount code and earn rewards. <br className="hidden md:block" />
+                        <span className="text-emerald-500 font-bold">Commission Earning</span> for verified creators or <br className="hidden md:block" />
+                        <span className="text-primary font-bold">Credit Earning</span> for all regular users.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
-                        {!isAllowed ? (
-                            <button
-                                onClick={handleRequestAccess}
-                                disabled={isRequestingAccess}
-                                className="w-full sm:w-auto px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-2xl transition-all shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2.5 text-sm md:text-base group"
-                            >
-                                {isRequestingAccess ? (
-                                    <RefreshCw className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Lock className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                )}
-                                {isRequestingAccess ? "Requesting..." : "Request Access"}
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleJoin}
-                                disabled={isJoining}
-                                className="w-full sm:w-auto px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-2xl transition-all shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2.5 text-sm md:text-base group"
-                            >
-                                {isJoining ? (
-                                    <RefreshCw className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Zap className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                )}
-                                {isJoining ? "Generating..." : "Join Program Now"}
-                            </button>
-                        )}
-                        <button className="w-full sm:w-auto px-8 py-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 text-zinc-600 dark:text-zinc-400 font-bold rounded-2xl hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-all text-sm md:text-base">
-                            View Terms
+                        <button
+                            onClick={handleJoinClick}
+                            disabled={isCheckingGeo}
+                            className="w-full sm:w-auto px-8 py-3.5 bg-primary text-primary-foreground font-extrabold rounded-2xl transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2.5 text-sm md:text-base group hover:scale-[1.02] disabled:opacity-50"
+                        >
+                            {isCheckingGeo ? (
+                                <RefreshCw className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    Select Plan & Join
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
                         </button>
+
                     </div>
 
                     {lockError && (
-                        <div className="mt-10 md:mt-12 p-6 md:p-8 bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-[2rem] md:rounded-[2.5rem] max-w-xl mx-auto flex flex-col items-center text-center animate-in zoom-in-95 duration-500">
-                            <div className="w-14 h-14 md:w-16 md:h-16 bg-amber-100 dark:bg-amber-500/10 rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-amber-600 dark:text-amber-400">
-                                <Lock className="w-7 h-7 md:w-8 md:h-8" />
-                            </div>
-                            <h3 className="text-lg md:text-xl font-bold text-zinc-900 dark:text-white mb-2 md:mb-3">Participation Restricted</h3>
-                            <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">{lockError}</p>
-                            <div className="mt-6 flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs md:text-sm font-bold">
-                                <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                                Status: Pending Review
-                            </div>
+                        <div className="mt-8 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl text-red-600 text-sm font-medium">
+                            {lockError}
                         </div>
                     )}
+
+                    <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 text-left max-w-3xl mx-auto">
+                        <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 shadow-sm">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4"><DollarSign className="w-5 h-5 text-emerald-500" /></div>
+                            <h3 className="font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-wide text-sm">Commission Rewards</h3>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">Verified creators with &gt;500 subscribers earn 30% cash commission on every sale. Paid monthly via PayPal/Stripe.</p>
+                        </div>
+                        <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-white/5 shadow-sm">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4"><Zap className="w-5 h-5 text-primary" /></div>
+                            <h3 className="font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-wide text-sm">Credit Rewards</h3>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">Regular users earn up to {(Number(process.env.NEXT_PUBLIC_INFLUENCER_REWARD_CREDITS_PLUS) || 10000).toLocaleString()} bonus credits for every successful referral sale. No verification required.</p>
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -257,7 +184,11 @@ export default function InfluencerHubPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
                         <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">Influencer Dashboard</h1>
-                        <p className="text-zinc-500 dark:text-zinc-400">Track your promotional impact and earned commissions ({commissionRate}% rate).</p>
+                        <p className="text-zinc-500 dark:text-zinc-400">
+                            {influencerType === 'commission'
+                                ? `Track your promotional impact and earned commissions (${commissionRate}% rate).`
+                                : `Track your referrals and earned bonus credits (up to ${((Number(process.env.NEXT_PUBLIC_INFLUENCER_REWARD_CREDITS_PLUS) || 10000) / 1000)}k per sale).`}
+                        </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-4 p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 rounded-2xl shadow-sm">
                         <div className="px-4 py-2 border-r border-zinc-100 dark:border-white/5 text-center">
@@ -290,17 +221,33 @@ export default function InfluencerHubPage() {
                         <p className="text-sm font-medium text-zinc-500 mb-1">Total Redemptions</p>
                         <h3 className="text-3xl font-black text-zinc-900 dark:text-white">{totalRedemptions}</h3>
                     </div>
-                    <div className="bg-primary rounded-[2rem] border border-primary/20 p-8 shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-10 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                        <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
-                            <CheckCircle2 className="w-6 h-6" />
+
+                    {influencerType === 'commission' ? (
+                        <div className="bg-primary rounded-[2rem] border border-primary/20 p-8 shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-10 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
+                                <DollarSign className="w-6 h-6" />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <p className="text-sm font-medium text-white/90">Approved Commission</p>
+                                <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap">{commissionRate}% Rate</span>
+                            </div>
+                            <h3 className="text-3xl font-black text-white">{formatValue(approvedCommission)}</h3>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <p className="text-sm font-medium text-white/90">Approved Commission</p>
-                            <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap">{commissionRate}% Rate</span>
+                    ) : (
+                        <div className="bg-primary rounded-[2rem] border border-primary/20 p-8 shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-10 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
+                                <Zap className="w-6 h-6" />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <p className="text-sm font-medium text-white/90">Total Earned Credits</p>
+                                <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap">Bonus Reward</span>
+                            </div>
+                            <h3 className="text-3xl font-black text-white">{(totalEarnedCredits || 0).toLocaleString()} <span className="text-lg font-bold opacity-80">Credits</span></h3>
                         </div>
-                        <h3 className="text-3xl font-black text-white">{formatValue(approvedCommission)}</h3>
-                    </div>
+                    )}
+
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-8 shadow-sm group hover:border-amber-500/20 transition-colors">
                         <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-6 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
                             <TrendingUp className="w-6 h-6" />
@@ -335,8 +282,10 @@ export default function InfluencerHubPage() {
                                         <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Customer</th>
                                         <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center leading-none">Plan</th>
                                         <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Date</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Amount</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Commission</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Order Value</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">
+                                            {influencerType === 'commission' ? 'Commission' : 'Earned Credits'}
+                                        </th>
                                         <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-widest text-right leading-none">Status</th>
                                     </tr>
                                 </thead>
@@ -360,7 +309,15 @@ export default function InfluencerHubPage() {
                                                     <span className="font-black text-zinc-900 dark:text-white">{formatValue(red.amount)}</span>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
-                                                    <span className={`font-black ${red.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'}`}>{red.status === 'Approved' ? `+${formatValue(red.commission)}` : '$0.00'}</span>
+                                                    {influencerType === 'commission' ? (
+                                                        <span className={`font-black ${red.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'}`}>
+                                                            {red.status === 'Approved' ? `+${formatValue(red.commission)}` : '$0.00'}
+                                                        </span>
+                                                    ) : (
+                                                        <span className={`font-black ${red.status === 'Approved' ? 'text-primary' : 'text-zinc-400'}`}>
+                                                            {red.status === 'Approved' ? `+${(red.earnedCredits || 0).toLocaleString()} CR` : '0 CR'}
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
                                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-widest ${red.status === 'Approved' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'}`}>{red.status || 'Pending'}</span>
@@ -405,12 +362,19 @@ export default function InfluencerHubPage() {
                                     </div>
                                     <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-white/5">
                                         <div>
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Amount</p>
+                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Order Value</p>
                                             <p className="text-sm font-black text-zinc-900 dark:text-white">{formatValue(red.amount)}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Commission</p>
-                                            <p className={`text-sm font-black ${red.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'}`}>{red.status === 'Approved' ? `+${formatValue(red.commission)}` : '$0.00'}</p>
+                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">
+                                                {influencerType === 'commission' ? 'Commission' : 'Earned'}
+                                            </p>
+                                            <p className={`text-sm font-black ${red.status === 'Approved' ? (influencerType === 'commission' ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary') : 'text-zinc-400'}`}>
+                                                {red.status === 'Approved'
+                                                    ? (influencerType === 'commission' ? `+${formatValue(red.commission)}` : `+${(red.earnedCredits || 0).toLocaleString()} CR`)
+                                                    : (influencerType === 'commission' ? '$0.00' : '0 CR')
+                                                }
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -433,8 +397,15 @@ export default function InfluencerHubPage() {
                             <Zap className="w-6 h-6 md:w-7 md:h-7 text-white" />
                         </div>
                         <div className="max-w-xl">
-                            <h3 className="text-xl md:text-2xl font-black mb-2 md:mb-3 tracking-tight">Professional Payouts</h3>
-                            <p className="text-sm md:text-base text-primary-foreground/90 leading-relaxed mb-6">Commissions are paid out on the 1st of every month once you exceed {formatValue(50)}.</p>
+                            <h3 className="text-xl md:text-2xl font-black mb-2 md:mb-3 tracking-tight">
+                                {influencerType === 'commission' ? 'Professional Payouts' : 'Automated Credits'}
+                            </h3>
+                            <p className="text-sm md:text-base text-primary-foreground/90 leading-relaxed mb-6">
+                                {influencerType === 'commission'
+                                    ? `Commissions are paid out on the 1st of every month once you exceed ${formatValue(50)}.`
+                                    : 'Bonus credits are automatically added to your account as soon as a referral purchase is completed.'
+                                }
+                            </p>
                             <button className="w-full sm:w-auto px-6 py-3.5 bg-white text-primary font-black rounded-xl hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-widest">
                                 View Policy <ArrowRight className="w-4 h-4" />
                             </button>
@@ -492,6 +463,31 @@ export default function InfluencerHubPage() {
                                 </button>
                                 <button onClick={() => setShowVerifyModal(false)} className="w-full py-4 bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400 font-black rounded-2xl hover:bg-zinc-200 dark:hover:bg-white/10 transition-all text-xs uppercase tracking-widest">Maybe Later</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showGeoModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowGeoModal(false)} />
+                    <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="h-1.5 bg-amber-500" />
+                        <button onClick={() => setShowGeoModal(false)} className="absolute top-6 right-6 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-400 transition-colors"><X className="w-5 h-5" /></button>
+                        <div className="p-8 md:p-10 text-center">
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-amber-500/10 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-8 relative shrink-0">
+                                <Info className="w-8 h-8 md:w-10 md:h-10 text-amber-500 z-10" />
+                            </div>
+                            <h3 className="text-xl md:text-2xl font-black text-zinc-900 dark:text-white mb-3 md:mb-4 tracking-tight">Regional Access Restricted</h3>
+                            <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">
+                                Our Influencer Program is currently only accepting applications from creators based in <span className="text-zinc-900 dark:text-white font-bold">Pakistan</span>. We plan to expand to other regions soon!
+                            </p>
+                            <button
+                                onClick={() => setShowGeoModal(false)}
+                                className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black rounded-2xl transition-all shadow-lg text-xs uppercase tracking-widest"
+                            >
+                                Got it
+                            </button>
                         </div>
                     </div>
                 </div>

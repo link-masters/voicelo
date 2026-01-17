@@ -44,10 +44,13 @@ export async function POST(req: Request) {
                 let creditsToAdd = 0;
                 // Check both product name and variant name (lowercase)
                 const searchStr = `${productName} ${variantName}`.toLowerCase();
+                const starterCredits = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 10000;
+                const plusCredits = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 50000;
+                const eliteCredits = 200000;
 
-                if (searchStr.includes("starter")) creditsToAdd = 10000;
-                else if (searchStr.includes("plus") || searchStr.includes("turbo") || searchStr.includes("pro")) creditsToAdd = 50000;
-                else if (searchStr.includes("elite")) creditsToAdd = 200000;
+                if (searchStr.includes("starter")) creditsToAdd = starterCredits;
+                else if (searchStr.includes("plus") || searchStr.includes("turbo") || searchStr.includes("pro")) creditsToAdd = plusCredits;
+                else if (searchStr.includes("elite")) creditsToAdd = eliteCredits;
 
                 console.log(`💰 Adding ${creditsToAdd} credits. Search string: "${searchStr}"`);
 

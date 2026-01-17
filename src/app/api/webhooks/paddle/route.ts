@@ -14,6 +14,8 @@ export async function POST(req: Request) {
         const rawBody = await req.text();
         const paddleSignature = req.headers.get("paddle-signature") || "";
         const webhookSecret = process.env.PADDLE_WEBHOOK_SECRET || "";
+        const starterCredits = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 10000;
+        const plusCredits = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 50000;
 
         // Validate webhook signature
         const isValid = await validatePaddleWebhook(rawBody, paddleSignature, webhookSecret);
@@ -68,9 +70,9 @@ export async function POST(req: Request) {
                     // Determine the best display name for this transaction
                     // We map specific credit amounts to pack names to match the Lemon Squeezy style (with underscores)
                     if (!packageDisplayName) {
-                        if (credits === 10000) {
+                        if (credits === starterCredits) {
                             packageDisplayName = "starter_pack";
-                        } else if (credits === 50000) {
+                        } else if (credits === plusCredits) {
                             packageDisplayName = "plus_pack";
                         } else if (credits === 200000) {
                             packageDisplayName = "elite_pack";
@@ -82,8 +84,9 @@ export async function POST(req: Request) {
                     }
                 }
 
+
                 if (!packageDisplayName) {
-                    packageDisplayName = totalCredits >= 50000 ? "plus_pack" : "starter_pack";
+                    packageDisplayName = totalCredits >= plusCredits ? "plus_pack" : "starter_pack";
                 }
 
                 if (totalCredits === 0) {

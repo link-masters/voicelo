@@ -85,18 +85,23 @@ export const validatePaddleWebhook = async (
 export const getCreditsFromPaddleProduct = (productName: string): number => {
     const name = productName.toLowerCase();
 
+    // Get credit values from environment variables
+    const starterCredits = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 10000;
+    const plusCredits = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 50000;
+    const eliteCredits = 200000;
+
     // Specific product mappings based on name keywords
-    if (name.includes('starter')) return 10000;
-    if (name.includes('plus') || name.includes('turbo') || name.includes('pro')) return 50000;
-    if (name.includes('elite') || name.includes('enterprise')) return 200000;
+    if (name.includes('starter')) return starterCredits;
+    if (name.includes('plus') || name.includes('turbo') || name.includes('pro')) return plusCredits;
+    if (name.includes('elite') || name.includes('enterprise')) return eliteCredits;
 
     // Direct credit amount detection (e.g. "10,000 Credits")
-    if (name.includes('10,000') || name.includes('10000')) return 10000;
-    if (name.includes('50,000') || name.includes('50000')) return 50000;
-    if (name.includes('200,000') || name.includes('200000')) return 200000;
+    if (name.includes('10,000') || name.includes('10000')) return starterCredits;
+    if (name.includes('50,000') || name.includes('50000')) return plusCredits;
+    if (name.includes('200,000') || name.includes('200000')) return eliteCredits;
 
     // Testing/Fallback mappings for simulations
-    if (name.includes('test') || name.includes('pack')) return 10000;
+    if (name.includes('test') || name.includes('pack')) return starterCredits;
 
     console.warn(`[Paddle] Unknown product name: ${productName}`);
     return 0;

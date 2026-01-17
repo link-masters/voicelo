@@ -30,6 +30,9 @@ interface PricingPlan {
     recurring?: boolean;
 }
 
+const STARTER_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 50000;
+const PLUS_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 100000;
+
 const planConfigs: Record<string, any> = {
     "free_plan": {
         icon: User,
@@ -46,7 +49,7 @@ const planConfigs: Record<string, any> = {
         icon: Zap,
         color: "amber",
         features: [
-            "50,000 Credits",
+            `${STARTER_CREDITS.toLocaleString()} Credits`,
             "Enhanced Quality Audio",
             "10 Instant Voice Clones",
             "Commercial rights",
@@ -60,7 +63,7 @@ const planConfigs: Record<string, any> = {
         color: "primary",
         popular: true,
         features: [
-            "100,000 Credits",
+            `${PLUS_CREDITS.toLocaleString()} Credits`,
             "Studio Quality Audio",
             "Unlimited Voice Clones",
             "Commercial rights",
@@ -118,7 +121,7 @@ function PricingContent() {
     ];
 
     const comparisonFeatures = [
-        { name: "Number of credits", free: "1,000", starter: "10,000", plus: "50,000" },
+        { name: "Number of credits", free: "1,000", starter: STARTER_CREDITS.toLocaleString(), plus: PLUS_CREDITS.toLocaleString() },
         { name: "Audio quality", free: "Standard", starter: "Enhanced", plus: "Studio" },
         { name: "Instant voice clones", free: false, starter: "10 Clones", plus: "Unlimited" },
         { name: "Text input length", free: "1,000 chars", starter: "5,000 chars", plus: "15,000 chars" },

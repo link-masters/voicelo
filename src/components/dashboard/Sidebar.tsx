@@ -17,11 +17,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { theme, toggleTheme } = useTheme();
     const { user } = useAuth();
     const [isCloneMenuOpen, setIsCloneMenuOpen] = useState(pathname.includes('voice-clone') || pathname.includes('my-voices'));
-    // HIDDEN: Uncomment when re-enabling Influencer Program section
-    // const [isEarningsMenuOpen, setIsEarningsMenuOpen] = useState(pathname.includes('influencer-program'));
+    const [isEarningsMenuOpen, setIsEarningsMenuOpen] = useState(pathname.includes('influencer-program'));
 
-    // HIDDEN: Uncomment when re-enabling Influencer Program section
-    // const influencerCode = (user?.prefs as any)?.influencerCode;
+    const influencerCode = (user?.prefs as any)?.influencerCode;
 
     const isActive = (path: string) => pathname === path;
 
@@ -163,7 +161,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                     </div>
 
-                    {/* HIDDEN: Earnings/Influencer Program Section - To re-enable, uncomment this block
                     <div className="space-y-1">
                         <div className="px-4 mb-3">
                             <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
@@ -227,7 +224,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             </div>
                         </div>
                     </div>
-                    */}
                     {/* Admin Section */}
                     {((user?.prefs as any)?.isAdmin === true || (user?.prefs as any)?.isAdmin === "true") && (
                         <div className="space-y-2">
