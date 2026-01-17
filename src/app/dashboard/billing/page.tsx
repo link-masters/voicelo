@@ -2,12 +2,16 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { CreditCard, Zap, Calendar, Shield, Crown, Clock, Info } from "lucide-react";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import PricingModal from "@/components/dashboard/PricingModal";
+import { databases } from "@/lib/appwrite";
+import { Query } from "appwrite";
 
 export default function BillingPage() {
     const { user } = useAuth();
     const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+    const [dbTransactions, setDbTransactions] = useState<any[]>([]);
+    const [loadingTx, setLoadingTx] = useState(true);
 
     // Dynamic data from user preferences
     const plan = (user?.prefs as any)?.plan || "Free Plan";
@@ -15,7 +19,63 @@ export default function BillingPage() {
     const creditsUsed = (user?.prefs as any)?.creditsUsed || 0;
     const creditsTotal = Math.max(0, creditsTotalRaw - creditsUsed);
     const billingCycleEnd = (user?.prefs as any)?.billingCycleEnd ? new Date((user?.prefs as any).billingCycleEnd) : null;
-    const transactions = (user?.prefs as any)?.transactions || [];
+
+    // Fetch transactions from DB
+    useEffect(() => {
+        if (!user) return;
+
+        const fetchTransactions = async () => {
+            try {
+                const dbId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID;
+                const collId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+
+                if (dbId && collId) {
+                    const response = await databases.listDocuments(
+                        dbId,
+                        collId,
+                        [
+                            Query.equal('userId', user.$id),
+                            Query.orderDesc('purchasedAt'),
+                            Query.limit(100)
+                        ]
+                    );
+                    setDbTransactions(response.documents);
+                }
+            } catch (error) {
+                console.error("Error fetching transactions:", error);
+            } finally {
+                setLoadingTx(false);
+            }
+        };
+
+        fetchTransactions();
+    }, [user]);
+
+    // Merge Prefs Transactions (Legacy) with DB Transactions (New)
+    const prefsTransactions = (user?.prefs as any)?.transactions || [];
+
+    // Normalize DB transactions to match UI expectation
+    const normalizedDbTransactions = dbTransactions.map(t => ({
+        id: t.transactionId,
+        purchasedAt: t.purchasedAt,
+        creditsAllotted: t.credits,
+        expiresAt: t.expiresAt,
+        packageName: t.packageName,
+        status: t.status,
+        provider: t.provider
+    }));
+
+    // Combine and deduplicate
+    const combinedTransactions = [...prefsTransactions, ...normalizedDbTransactions]
+        .reduce((acc: any[], current) => {
+            const x = acc.find(item => item.id === current.id);
+            if (!x) {
+                return acc.concat([current]);
+            } else {
+                return acc;
+            }
+        }, [])
+        .sort((a, b) => new Date(b.purchasedAt).getTime() - new Date(a.purchasedAt).getTime());
 
     const isPro = plan.toLowerCase().includes('pro');
     const isExpired = !!(user?.prefs as any)?.lastPurchaseId && billingCycleEnd && billingCycleEnd < new Date();
@@ -104,9 +164,9 @@ export default function BillingPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100 dark:divide-white/5">
-                                {transactions.length > 0 ? (
-                                    [...transactions].reverse().map((tx: any, idx: number) => {
-                                        const txExpired = new Date(tx.expiresAt) < new Date();
+                                {combinedTransactions.length > 0 ? (
+                                    combinedTransactions.map((tx: any, idx: number) => {
+                                        const txExpired = tx.expiresAt ? new Date(tx.expiresAt) < new Date() : false;
                                         return (
                                             <tr key={tx.id ? `${tx.id}-${idx}` : idx} className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.01] transition-colors group">
                                                 <td className="px-8 py-6">

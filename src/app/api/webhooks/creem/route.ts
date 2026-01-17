@@ -3,6 +3,7 @@ import { getCreditsFromCreemProduct, getCreemBaseUrl } from "@/lib/creem";
 import { createAdminClient } from "@/lib/appwrite-server";
 import { Query, ID } from "node-appwrite";
 import { paymentConfig } from "@/config/payment";
+import { createTransactionRecord } from "@/lib/transactions";
 
 export const POST = Webhook({
     webhookSecret: paymentConfig.creem.webhookSecret,
@@ -62,26 +63,35 @@ export const POST = Webhook({
                             else packageDisplayName = productName || "unknown_pack";
                         }
 
+                        // ... (in the handler)
+
                         const thirtyDaysFromNow = new Date();
                         thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-                        const newTransaction = {
-                            id: checkoutId,
-                            purchasedAt: new Date().toISOString(),
-                            creditsAllotted: totalCredits,
-                            expiresAt: thirtyDaysFromNow.toISOString(),
-                            packageName: packageDisplayName,
-                            status: "active",
-                            provider: "creem"
-                        };
-
+                        // 1. Update User Credits (without adding transaction object to prefs)
                         await users.updatePrefs(user.$id, {
                             ...user.prefs,
                             plan: "Pro User",
                             creditsTotal: (Number(user.prefs?.creditsTotal) || 0) + totalCredits,
                             lastPurchaseId: checkoutId,
-                            transactions: [...existingTransactions, newTransaction],
                         });
+
+                        // 2. Create Transaction Record in new Table
+                        const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                        if (transactionsCollectionId) {
+                            await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
+                                userId: user.$id,
+                                transactionId: checkoutId,
+                                credits: totalCredits,
+                                packageName: packageDisplayName,
+                                provider: "creem",
+                                status: "active",
+                                purchasedAt: new Date().toISOString(),
+                                expiresAt: thirtyDaysFromNow.toISOString()
+                            });
+                        } else {
+                            console.error("[Creem Webhook] Missing NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID");
+                        }
                         console.log(`[Creem Webhook] ✅ Credits added successfully for user ${user.$id}.`);
                     }
                 }

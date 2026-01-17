@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/appwrite-server";
 import { Query } from "node-appwrite";
+import { createTransactionRecord } from "@/lib/transactions";
 
 export async function POST(req: Request) {
     try {
@@ -27,7 +28,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No userId in custom data" }, { status: 400 });
         }
 
-        const { users } = createAdminClient();
+        const { users, databases } = createAdminClient();
+        const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
 
         // Handle one-time payment events
         switch (eventName) {
@@ -72,28 +74,31 @@ export async function POST(req: Request) {
                     ? variantName
                     : (productName !== "Unknown" ? productName : "Standard Pack");
 
-                const newTransaction = {
-                    id: payload.data.id,
-                    purchasedAt: new Date().toISOString(),
-                    creditsAllotted: validatedCreditsToAdd,
-                    expiresAt: thirtyDaysFromNow.toISOString(),
-                    packageName: displayName,
-                    status: "active"
-                };
-
-                const transactions = Array.isArray(user.prefs.transactions)
-                    ? [...user.prefs.transactions, newTransaction]
-                    : [newTransaction];
-
                 await users.updatePrefs(userId, {
                     ...user.prefs,
                     plan: "Pro User",
                     creditsTotal: currentTotal + validatedCreditsToAdd,
                     lastPurchaseId: payload.data.id,
                     lastPurchaseDate: new Date().toISOString(),
-                    billingCycleEnd: thirtyDaysFromNow.toISOString(),
-                    transactions: transactions
+                    billingCycleEnd: thirtyDaysFromNow.toISOString()
                 });
+
+                // Record Transaction
+                const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                if (transactionsCollectionId && databases) {
+                    await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
+                        userId: user.$id,
+                        transactionId: payload.data.id,
+                        credits: validatedCreditsToAdd,
+                        packageName: displayName,
+                        provider: "lemonsqueezy",
+                        status: "active",
+                        purchasedAt: new Date().toISOString(),
+                        expiresAt: thirtyDaysFromNow.toISOString()
+                    });
+                } else {
+                    console.error("Missing transactions collection ID or databases client");
+                }
 
                 // --- Influencer / Affiliate Tracking ---
                 const discountCodeUsed = attributes.discount_code;

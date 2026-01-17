@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { validatePaddleWebhook, getCreditsFromPaddleProduct } from "@/lib/paddle";
 import { createAdminClient } from "@/lib/appwrite-server";
 import { Query } from "node-appwrite";
+import { createTransactionRecord } from "@/lib/transactions";
 
 /**
  * Paddle Webhook Handler
@@ -41,7 +42,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ received: true, warning: "No userId provided" });
         }
 
-        const { users } = createAdminClient();
+        const { users, databases } = createAdminClient();
+        const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
 
         switch (eventType) {
             case "transaction.completed": {
@@ -68,7 +70,6 @@ export async function POST(req: Request) {
                     totalCredits += credits * quantity;
 
                     // Determine the best display name for this transaction
-                    // We map specific credit amounts to pack names to match the Lemon Squeezy style (with underscores)
                     if (!packageDisplayName) {
                         if (credits === starterCredits) {
                             packageDisplayName = "starter_pack";
@@ -83,7 +84,6 @@ export async function POST(req: Request) {
                         }
                     }
                 }
-
 
                 if (!packageDisplayName) {
                     packageDisplayName = totalCredits >= plusCredits ? "plus_pack" : "starter_pack";
@@ -118,25 +118,8 @@ export async function POST(req: Request) {
                 const thirtyDaysFromNow = new Date();
                 thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-                const newTransaction = {
-                    id: transactionId,
-                    purchasedAt: new Date().toISOString(),
-                    creditsAllotted: totalCredits,
-                    expiresAt: thirtyDaysFromNow.toISOString(),
-                    packageName: packageDisplayName,
-                    status: "active",
-                    provider: "paddle"
-                };
-
-                const existingTransactions = Array.isArray(user.prefs?.transactions) ? user.prefs.transactions : [];
-
-                // Prevent duplicate transaction processing
-                if (existingTransactions.some((t: any) => t.id === transactionId)) {
-                    console.log(`⚠️ Transaction ${transactionId} already processed for user ${user.$id}. Skipping.`);
-                    return NextResponse.json({ received: true, message: "Transaction already processed" });
-                }
-
-                const transactionsList = [...existingTransactions, newTransaction];
+                // Determine transaction status based on paddle status if available, or default "active"
+                const status = data.status || "active";
 
                 await users.updatePrefs(user.$id, {
                     ...user.prefs,
@@ -145,10 +128,25 @@ export async function POST(req: Request) {
                     lastPurchaseId: transactionId,
                     lastPurchaseDate: new Date().toISOString(),
                     billingCycleEnd: thirtyDaysFromNow.toISOString(),
-                    transactions: transactionsList,
                     paymentProvider: "paddle"
                 });
 
+                // Create Transaction Record in new Table
+                const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                if (transactionsCollectionId && databases) {
+                    await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
+                        userId: user.$id,
+                        transactionId: transactionId,
+                        credits: totalCredits,
+                        packageName: packageDisplayName,
+                        provider: "paddle",
+                        status: status,
+                        purchasedAt: new Date().toISOString(),
+                        expiresAt: thirtyDaysFromNow.toISOString()
+                    });
+                } else {
+                    console.error("[Paddle Webhook] Missing NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID or Databases client");
+                }
                 console.log(`✅ Successfully added ${totalCredits} credits to user ${user.$id}`);
 
                 // --- Influencer Tracking ---
