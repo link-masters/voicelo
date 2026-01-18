@@ -1,12 +1,15 @@
 "use client";
 
-import { Check, Zap, Rocket, Crown, Loader2, Star, User } from "lucide-react";
+import { Check, Zap, Rocket, Crown, Loader2, Star, User, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getPaddleClientConfig, isPaddle } from "@/config/payment";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
 import { useTheme } from "@/context/ThemeContext";
+
+const STARTER_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 100000;
+const PLUS_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 200000;
 
 interface PricingPlan {
     name: string;
@@ -30,32 +33,39 @@ const planConfigs: Record<string, any> = {
         icon: User,
         color: "zinc",
         features: [
-            "1,000 Initial Credits",
-            "Standard Voices",
-            "Community shared voices",
+            "1,000 Credits",
+            "Standard Quality Audio",
+            "1,000 char input limit",
+            "Community Support",
+            "Personal Use Only",
         ],
     },
     "starter_pack": {
         icon: Zap,
         color: "amber",
         features: [
-            "10,000 Credits",
-            "No expiration",
-            "Standard Voices",
-            "Private generations",
+            `${STARTER_CREDITS.toLocaleString()} Credits`,
+            "Enhanced Quality Audio",
+            "10 Instant Voice Clones",
+            "Commercial rights",
+            "5,000 char input limit",
+            "Standard Support",
         ],
+        description: "One-time Payment · No Auto Renewal",
     },
     "plus_pack": {
         icon: Rocket,
         color: "primary",
         popular: true,
         features: [
-            "50,000 Credits",
-            "No expiration",
-            "Premium Voices",
+            `${PLUS_CREDITS.toLocaleString()} Credits`,
+            "Studio Quality Audio",
+            "Unlimited Voice Clones",
             "Commercial rights",
-            "Priority generations",
+            "15,000 input length",
+            "Priority Support",
         ],
+        description: "One-time Payment · No Auto Renewal",
     },
 };
 
@@ -71,10 +81,10 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
 
     const urlDiscount = searchParams.get('discount');
 
-    // Initialize Paddle.js using official package if Paddle is the active provider
+    // ... (effects remain same) ...
+    // Initialize Paddle.js
     useEffect(() => {
         if (!isPaddle()) return;
-
         const { clientToken, environment } = getPaddleClientConfig();
         if (!clientToken) {
             console.warn('[PricingModal] Paddle client token not configured');
@@ -88,7 +98,6 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                 console.log('[Paddle Event]:', event.name, event);
                 switch (event.name) {
                     case 'checkout.completed':
-                        // Auto-close after showing success briefly
                         setTimeout(() => {
                             router.push('/dashboard/profile?checkout=success');
                         }, 1500);
@@ -136,9 +145,15 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                             features: ["Premium Access", "Cloud Storage", "Priority Support"]
                         };
 
+                        let displayName = plan.name || plan.productName;
+                        if (displayName && !displayName.toLowerCase().includes('pack')) {
+                            displayName = `${displayName} Pack`;
+                        }
+
                         return {
                             ...plan,
                             ...config,
+                            name: displayName,
                         };
                     });
 
@@ -151,7 +166,26 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                         variantId: "free",
                     };
 
-                    setPlans([freePlan, ...mappedPlans]);
+                    const allPlans = [freePlan, ...mappedPlans];
+
+                    // Sort plans: Free -> Starter -> Plus -> Others
+                    allPlans.sort((a, b) => {
+                        const nameA = a.productName?.toLowerCase() || a.name.toLowerCase();
+                        const nameB = b.productName?.toLowerCase() || b.name.toLowerCase();
+
+                        if (nameA.includes('free')) return -1;
+                        if (nameB.includes('free')) return 1;
+
+                        if (nameA.includes('starter')) return -1;
+                        if (nameB.includes('starter')) return 1;
+
+                        if (nameA.includes('plus')) return -1;
+                        if (nameB.includes('plus')) return 1;
+
+                        return 0;
+                    });
+
+                    setPlans(allPlans);
                 }
             } catch (error) {
                 console.error("Failed to fetch plans:", error);
@@ -271,10 +305,10 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
     };
 
     const colorStyles: Record<string, string> = {
-        zinc: "bg-zinc-50 dark:bg-zinc-500/10 text-zinc-600 dark:text-zinc-400",
-        amber: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400",
-        primary: "bg-primary/10 text-primary",
-        purple: "bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400",
+        zinc: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
+        amber: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+        primary: "bg-primary/10 text-primary border-primary/20",
+        secondary: "bg-secondary text-secondary-foreground border-border",
     };
 
     return (
@@ -284,10 +318,17 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                 onClick={onClose}
             ></div>
 
-            <div className="relative w-full max-w-5xl bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+            <div className="relative w-full max-w-7xl lg:ml-64 bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-10 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+
                 <div className="p-8 md:p-12">
                     <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-zinc-900 dark:text-white mb-4">Choose Your Plan</h2>
+                        <h2 className="text-4xl font-extrabold text-zinc-900 dark:text-white mb-4">Choose Your Pack</h2>
                         {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && (
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4 border border-primary/20">
                                 <Zap className="w-3 h-3" />
@@ -312,54 +353,58 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                             plans.map((plan) => (
                                 <div
                                     key={plan.name}
-                                    className={`relative group p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-white dark:bg-zinc-900 border transition-all duration-500 hover:scale-[1.02] ${plan.popular
-                                        ? "border-primary shadow-2xl shadow-primary/10"
-                                        : "border-border dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10"
+                                    className={`relative group p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-md rounded-[2.5rem] bg-white dark:bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:translate-y-[-8px] ${plan.popular
+                                        ? "border-primary/30 dark:border-primary/50 shadow-2xl shadow-primary/10"
+                                        : "border-border hover:border-zinc-300 dark:hover:border-border/80"
                                         }`}
                                 >
                                     {plan.popular && (
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase">
-                                            Most Popular
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase shadow-xl shadow-primary/40">
+                                            Best Value
                                         </div>
                                     )}
 
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 mx-auto ${colorStyles[plan.color] || colorStyles.primary}`}>
-                                        <plan.icon className="w-6 h-6" />
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 mx-auto border ${colorStyles[plan.color] || colorStyles.primary}`}>
+                                        <plan.icon className="w-7 h-7" />
                                     </div>
 
                                     <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">{plan.name}</h3>
 
-                                    <div className="flex flex-col items-center mb-4 text-center">
+                                    <div className="flex flex-col items-center mb-6 text-center">
                                         {plan.discountPercent && (
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-500 text-sm font-bold uppercase tracking-wide">
                                                     {plan.discountPercent}% OFF
                                                 </span>
                                             </div>
                                         )}
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-4xl font-bold text-zinc-900 dark:text-white">{plan.price}</span>
+                                            <span className="text-5xl font-extrabold text-foreground">{plan.price}</span>
+                                            <span className="text-xl text-muted-foreground font-medium">/ mo</span>
                                             {plan.originalPrice && (
-                                                <span className="text-zinc-500 text-lg font-medium line-through ml-2">
+                                                <span className="text-zinc-500 text-xl font-medium line-through decoration-zinc-600/50 ml-2">
                                                     {plan.originalPrice}
                                                 </span>
                                             )}
                                         </div>
-                                        {plan.variantId !== "free" && (
-                                            <span className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1">One-time Payment. No Auto Renewal</span>
-                                        )}
                                     </div>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed text-center">
-                                        {plan.description}
-                                    </p>
 
-                                    <div className="space-y-4 mb-8">
+                                    <div className="flex justify-center mb-8 h-8">
+                                        {plan.description ? (
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/80 border border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                                {plan.description}
+                                            </span>
+                                        ) : <div className="h-full" />}
+                                    </div>
+
+
+                                    <div className="space-y-4 mb-10">
                                         {plan.features.map((feature) => (
                                             <div key={feature} className="flex items-center gap-3">
                                                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
-                                                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-500" />
                                                 </div>
-                                                <span className="text-sm text-zinc-600 dark:text-zinc-300">{feature}</span>
+                                                <span className="text-sm text-zinc-600 dark:text-zinc-400">{feature}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -367,17 +412,17 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                     <button
                                         onClick={() => plan.variantId !== "free" && handleSubscribe(plan)}
                                         disabled={loading !== null || plan.variantId === "free"}
-                                        className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${plan.variantId === "free"
+                                        className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group/btn ${plan.variantId === "free"
                                             ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-border dark:border-zinc-700"
                                             : plan.popular
-                                                ? "bg-primary hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/25"
+                                                ? "bg-primary hover:opacity-90 text-primary-foreground shadow-xl shadow-primary/30"
                                                 : "bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white"
                                             }`}
                                     >
                                         {loading === plan.variantId ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
                                         ) : (
-                                            plan.variantId === "free" ? "Default Pack" : "Get Started"
+                                            plan.variantId === "free" ? "Default Pack" : "Buy Credits"
                                         )}
                                     </button>
                                 </div>
@@ -388,4 +433,5 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
             </div>
         </div>
     );
+
 }

@@ -1,0 +1,31 @@
+openapi: 3.0.0
+info:
+  title: Check Credits Expiry Function
+  description: Appwrite function to regularly check credit statuses and update expired credits
+  version: 1.0.0
+paths:
+  /:
+    post:
+      summary: Check and update expired credits
+      description: Regularly checks credit statuses and updates expired credits
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+components:
+  schemas:
+    Response:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string

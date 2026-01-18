@@ -235,16 +235,23 @@ export const POST = Webhook({
                                 updatedPrefs.creditsTotal = (Number(influencerPrefs.creditsTotal) || 0) + earnedCredits;
 
                                 // Add a transaction record for the credits earned
-                                const influencerTransactions = Array.isArray(influencerPrefs.transactions) ? [...influencerPrefs.transactions] : [];
-                                influencerTransactions.push({
-                                    id: `ref_${checkoutId}`,
-                                    purchasedAt: new Date().toISOString(),
-                                    creditsAllotted: earnedCredits,
-                                    packageName: "Referral Reward",
-                                    status: "active",
-                                    provider: "internal"
-                                });
-                                updatedPrefs.transactions = influencerTransactions;
+                                const thirtyDaysFromNow = new Date();
+                                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                                
+                                // Save to user_transactions collection (database storage only)
+                                const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                                if (transactionsCollectionId) {
+                                    await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
+                                        userId: influencer.$id,
+                                        transactionId: `ref_${checkoutId}`,
+                                        credits: earnedCredits,
+                                        packageName: "Referral Reward",
+                                        provider: "internal",
+                                        status: "active",
+                                        purchasedAt: new Date().toISOString(),
+                                        expiresAt: thirtyDaysFromNow.toISOString()
+                                    });
+                                }
                             }
 
                             await users.updatePrefs(influencer.$id, updatedPrefs);

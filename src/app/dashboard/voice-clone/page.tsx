@@ -75,24 +75,52 @@ export default function VoiceClonePage() {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const result = e.target?.result as string;
-            const base64Content = result.split(",")[1];
+        // Check file size (limit to ~10MB for a 1-minute audio file)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            setNotification({ message: "Audio file is too large. Please upload a file smaller than 10MB (approximately 1 minute of audio).", type: "error" });
+            return;
+        }
 
-            // Create URL for preview
-            const url = URL.createObjectURL(file);
-            setAudioUrl(url);
+        // Create audio element to check duration
+        const audio = new Audio();
+        audio.preload = "metadata";
+        audio.src = URL.createObjectURL(file);
+        
+        audio.onloadedmetadata = () => {
+            URL.revokeObjectURL(audio.src); // Clean up the object URL
+            
+            // Check duration (limit to 60 seconds)
+            if (audio.duration > 60) {
+                setNotification({ message: "Audio file is too long. Please upload an audio file shorter than 1 minute.", type: "error" });
+                return;
+            }
+            
+            // Read the file if it passes validation
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result as string;
+                const base64Content = result.split(",")[1];
 
-            setFormData(prev => ({
-                ...prev,
-                audioData: base64Content,
-                fileName: file.name
-            }));
-            setError(null);
+                // Create URL for preview
+                const url = URL.createObjectURL(file);
+                setAudioUrl(url);
+
+                setFormData(prev => ({
+                    ...prev,
+                    audioData: base64Content,
+                    fileName: file.name
+                }));
+                setError(null);
+            };
+            reader.onerror = () => setNotification({ message: "Failed to read file.", type: "error" });
+            reader.readAsDataURL(file);
         };
-        reader.onerror = () => setNotification({ message: "Failed to read file.", type: "error" });
-        reader.readAsDataURL(file);
+        
+        audio.onerror = () => {
+            URL.revokeObjectURL(audio.src); // Clean up the object URL
+            setNotification({ message: "Invalid audio file or unable to read metadata.", type: "error" });
+        };
     };
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -392,7 +420,7 @@ export default function VoiceClonePage() {
                                 <h3 className="text-xl md:text-2xl font-bold text-zinc-900 dark:text-white">Upload Reference Audio</h3>
                                 <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
                                     Drag and drop your audio file or click to browse.<br />
-                                    We recommend 10-15 seconds of clear speech.
+                                    We recommend 10-15 seconds of clear speech (maximum 1 minute allowed).
                                 </p>
                             </div>
 
@@ -478,7 +506,7 @@ export default function VoiceClonePage() {
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting || !formData.audioData || !formData.displayName || !hasAgreed || !formData.langCode}
-                        className={`w-full sm:w-fit mx-auto group relative h-14 md:h-16 flex items-center justify-center gap-3 px-10 rounded-2xl md:rounded-[1.5rem] text-xs font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-primary text-primary-foreground' : 'bg-primary text-primary-foreground shadow-xl shadow-primary/25'
+                        className={`w-full sm:w-fit mx-auto group relative h-12 md:h-14 flex items-center justify-center gap-3 px-8 rounded-2xl md:rounded-[1.5rem] text-xs font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-primary text-primary-foreground' : 'bg-primary text-primary-foreground shadow-xl shadow-primary/25'
                             }`}
                     >
                         {isSubmitting ? (
@@ -492,7 +520,7 @@ export default function VoiceClonePage() {
                             </>
                         ) : (
                             <>
-                                <Mic className="w-5 h-5 group-hover:scale-110 transition-transform shrink-0" />
+                                <Mic className="w-4 h-4 group-hover:scale-110 transition-transform shrink-0" />
                                 <span>Initialize Voice Clone</span>
                             </>
                         )}

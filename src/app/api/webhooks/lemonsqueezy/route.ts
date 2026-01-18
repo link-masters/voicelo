@@ -167,6 +167,24 @@ export async function POST(req: Request) {
                                 ? [newRedemption, ...influencerPrefs.redemptions].slice(0, 100) // Keep last 100
                                 : [newRedemption];
 
+                            // Save to user_transactions collection (same as regular purchases)
+                            const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
+                            if (transactionsCollectionId && databases) {
+                                const thirtyDaysFromNow = new Date();
+                                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                                
+                                await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
+                                    userId: influencer.$id,
+                                    transactionId: `ref_${payload.data.id}`,
+                                    credits: 0, // Commission-based rewards don't add credits directly
+                                    packageName: "Referral Commission",
+                                    provider: "internal",
+                                    status: "completed",
+                                    purchasedAt: new Date().toISOString(),
+                                    expiresAt: thirtyDaysFromNow.toISOString()
+                                });
+                            }
+
                             await users.updatePrefs(influencer.$id, {
                                 ...influencerPrefs,
                                 totalRedemptions: (Number(influencerPrefs.totalRedemptions) || 0) + 1,

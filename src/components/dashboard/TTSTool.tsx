@@ -298,7 +298,8 @@ export default function TTSTool() {
     };
 
     const restoreHistoryItem = (item: HistoryItem) => {
-        const charLimit = (user?.prefs as any)?.plan === "Pro User" ? 25000 : 1000;
+        const proLimit = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000);
+        const charLimit = (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
         setText(item.text.slice(0, charLimit));
         setRate(item.settings.rate);
         setPitch(item.settings.pitch);
@@ -411,7 +412,8 @@ export default function TTSTool() {
                         {/* Left: Input */}
                         <div className="flex-1 p-4 md:p-6 lg:p-8 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative group bg-zinc-50/50 dark:bg-zinc-900/40 min-h-[300px] md:min-h-0 rounded-t-2xl md:rounded-t-0 md:rounded-tl-3xl">
                             {(() => {
-                                const charLimit = (user?.prefs as any)?.plan === "Pro User" ? 25000 : 1000;
+                                const proLimit = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000);
+                                const charLimit = (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
                                 return (
                                     <>
                                         <div className="absolute top-4 md:top-6 left-4 md:left-8 flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 text-[10px] md:text-xs font-mono uppercase tracking-widest opacity-50 select-none pointer-events-none">
@@ -426,11 +428,11 @@ export default function TTSTool() {
                                             maxLength={charLimit}
                                             spellCheck={false}
                                         />
-                                        <div className="absolute bottom-4 right-4 md:right-6 text-[10px] md:text-xs text-zinc-400 dark:text-zinc-600 font-medium bg-white/50 dark:bg-zinc-900/50 px-2 py-1 rounded-md backdrop-blur-sm">
-                                            <span className={text.length >= charLimit ? "text-red-500" : ""}>
-                                                {text.length}
+                                        <div className="absolute top-3 md:top-5 right-4 md:right-8 text-[10px] md:text-xs text-zinc-600 dark:text-zinc-300 font-bold bg-white/90 dark:bg-zinc-800/90 px-3 py-1.5 rounded-full backdrop-blur-md border border-zinc-200 dark:border-white/10 shadow-lg flex items-center gap-1 z-10">
+                                            <span className={text.length >= charLimit ? "text-red-500" : "text-primary dark:text-primary"}>
+                                                {text.length.toLocaleString()}
                                             </span>
-                                            <span className="opacity-50"> / {charLimit} chars</span>
+                                            <span className="text-zinc-400 dark:text-zinc-500 font-medium">/ {charLimit.toLocaleString()} chars</span>
                                         </div>
                                     </>
                                 );

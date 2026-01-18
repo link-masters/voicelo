@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { X, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -234,9 +235,9 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn }: SignU
 
                         <p className="text-center text-xs text-muted-foreground mt-4">
                             By signing up, you agree to our{" "}
-                            <button className="text-primary hover:opacity-80 transition-colors">Terms & Conditions</button>
+                            <Link href="/terms" target="_blank" className="text-primary hover:opacity-80 transition-colors">Terms of Service</Link>
                             {" "}and{" "}
-                            <button className="text-primary hover:opacity-80 transition-colors">Privacy Policy</button>
+                            <Link href="/privacy" target="_blank" className="text-primary hover:opacity-80 transition-colors">Privacy Policy</Link>
                         </p>
 
                         <p className="text-center text-sm text-muted-foreground mt-6">

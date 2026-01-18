@@ -18,7 +18,7 @@ export default function BillingPage() {
     const creditsTotalRaw = (user?.prefs as any)?.creditsTotal || 0;
     const creditsUsed = (user?.prefs as any)?.creditsUsed || 0;
     const creditsTotal = Math.max(0, creditsTotalRaw - creditsUsed);
-    const billingCycleEnd = (user?.prefs as any)?.billingCycleEnd ? new Date((user?.prefs as any).billingCycleEnd) : null;
+    const prefsBillingCycleEnd = (user?.prefs as any)?.billingCycleEnd ? new Date((user?.prefs as any).billingCycleEnd) : null;
 
     // Fetch transactions from DB
     useEffect(() => {
@@ -77,8 +77,18 @@ export default function BillingPage() {
         }, [])
         .sort((a, b) => new Date(b.purchasedAt).getTime() - new Date(a.purchasedAt).getTime());
 
+    // Determine the displayed billing cycle end date
+    // Priority: 1. Latest transaction from combined list, 2. User Prefs, 3. null
+    let displayedCycleEnd = prefsBillingCycleEnd;
+    if (combinedTransactions.length > 0) {
+        const latestTx = combinedTransactions[0];
+        if (latestTx.expiresAt) {
+            displayedCycleEnd = new Date(latestTx.expiresAt);
+        }
+    }
+
     const isPro = plan.toLowerCase().includes('pro');
-    const isExpired = !!(user?.prefs as any)?.lastPurchaseId && billingCycleEnd && billingCycleEnd < new Date();
+    const isExpired = !!(user?.prefs as any)?.lastPurchaseId && displayedCycleEnd && (user?.prefs as any)?.billingCycleExpired;
 
     return (
         <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-16 relative">
@@ -129,7 +139,7 @@ export default function BillingPage() {
                         </div>
                     </div>
                     <span className={`text-lg font-bold ${isExpired ? 'text-red-500' : 'text-zinc-900 dark:text-white'}`}>
-                        {billingCycleEnd ? billingCycleEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "N/A"}
+                        {displayedCycleEnd ? displayedCycleEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "N/A"}
                     </span>
                 </div>
 
@@ -166,7 +176,7 @@ export default function BillingPage() {
                             <tbody className="divide-y divide-zinc-100 dark:divide-white/5">
                                 {combinedTransactions.length > 0 ? (
                                     combinedTransactions.map((tx: any, idx: number) => {
-                                        const txExpired = tx.expiresAt ? new Date(tx.expiresAt) < new Date() : false;
+                                        const txExpired = tx.status === 'expired';
                                         return (
                                             <tr key={tx.id ? `${tx.id}-${idx}` : idx} className="hover:bg-zinc-50/80 dark:hover:bg-white/[0.01] transition-colors group">
                                                 <td className="px-8 py-6">

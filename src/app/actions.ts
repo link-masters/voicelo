@@ -8,6 +8,7 @@ const INWORLD_AUTH_TOKEN = process.env.INWORLD_AUTH_TOKEN;
 const BASE_URL = 'https://api.inworld.ai/tts/v1';
 
 const INWORLD_WORKSPACE = process.env.INWORLD_WORKSPACE;
+const INWORLD_TTS_MODEL = process.env.INWORLD_TTS_MODEL || 'inworld-tts-1';
 const VOICES_BASE_URL = 'https://api.inworld.ai/voices/v1';
 
 const APPWRITE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || 'main';
@@ -191,7 +192,7 @@ export async function synthesizeInworldSpeech(
             const body: any = {
                 text: chunkText,
                 voiceId,
-                modelId: 'inworld-tts-1',
+                modelId: INWORLD_TTS_MODEL,
                 speakingRate: options.speed || 1.0,
                 pitch: options.pitch || 1.0,
                 audioEncoding: 'MP3',
