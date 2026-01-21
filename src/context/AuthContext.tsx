@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { account, ID } from "@/lib/appwrite";
 import { Models, OAuthProvider } from "appwrite";
-import { ensureWelcomeEmailSent, sendVerificationEmail } from "@/app/actions/emailActions";
+import { ensureWelcomeEmailSent, sendVerificationEmail } from "@/app/actions-emails/emailActions";
+import { ensureInitialCreditsAwarded } from "@/app/actions";
 
 interface AuthContextType {
     user: Models.User<Models.Preferences> | null;
@@ -55,9 +56,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (prefs.is_influencer_allowed === undefined || prefs.is_influencer_allowed === null) {
                 updates.is_influencer_allowed = false;
             }
-            if (prefs.creditsTotal === undefined || prefs.creditsTotal === null) {
-                updates.creditsTotal = 1000;
+            if (prefs.creditsTotal === undefined || prefs.creditsTotal === null || prefs.welcomeCreditsAwarded !== true) {
+                try {
+                    const res = await ensureInitialCreditsAwarded(currentUser.$id);
+                    if (res.success) {
+                        // Re-fetch the user to get the NEW prefs from the server immediately
+                        const latestUser = await account.get();
+                        currentUser = latestUser;
+                        setUser(latestUser);
+
+                        if ((res as any).awarded) {
+                            console.log(`[Auth] 🎁 Welcome credits awarded: ${(res as any).awarded}`);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error awarding initial credits:", e);
+                }
             }
+
             if (prefs.creditsUsed === undefined || prefs.creditsUsed === null) {
                 updates.creditsUsed = 0;
             }

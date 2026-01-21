@@ -15,6 +15,8 @@ const APPWRITE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || 'ma
 const APPWRITE_VOICES_TABLE_ID = process.env.NEXT_PUBLIC_APPWRITE_VOICES_TABLE_ID || 'user_shared_voices';
 const APPWRITE_BROADCASTS_ID = process.env.NEXT_PUBLIC_APPWRITE_BROADCASTS_ID || 'broadcasts';
 const APPWRITE_USER_NOTIFICATIONS_ID = process.env.NEXT_PUBLIC_APPWRITE_USER_NOTIFICATIONS_ID || 'user_notifications';
+const APPWRITE_TRANSACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID || 'user_transactions';
+const WELCOME_CREDITS = Number(process.env.NEXT_PUBLIC_WELCOME_CREDITS) || 1000;
 
 // --- Long Form TTS Constants ---
 const MIN_CHUNK_SIZE = 500;
@@ -97,6 +99,7 @@ function chunkText(text: string): TextChunk[] {
 import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "@/lib/appwrite-server";
 import { OFFICIAL_VOICE_METADATA } from "@/config/voiceMetadata";
+import { createTransactionRecord } from "@/lib/transactions";
 
 const getAuthHeader = () => {
     if (INWORLD_AUTH_TOKEN) {
@@ -298,6 +301,14 @@ export async function cloneInworldVoice(formData: {
         const { users } = createAdminClient();
         const user = await users.get(formData.userId);
 
+        // 1. Voice Clone Limit Check
+        const limit = await getVoiceCloneLimit(formData.userId);
+        const userVoices = await getUserVoices(formData.userId);
+
+        if (userVoices.length >= limit) {
+            throw new Error(`You have reached your voice clone limit (${userVoices.length}/${limit} slots used). Please delete an existing voice to free up a slot or upgrade your plan.`);
+        }
+
         const creditsTotal = (user.prefs.creditsTotal as number) || 0;
         const billingCycleEnd = user.prefs.billingCycleEnd ? new Date(user.prefs.billingCycleEnd) : null;
         const now = new Date();
@@ -320,7 +331,7 @@ export async function cloneInworldVoice(formData: {
         const body = {
             displayName: formData.displayName,
             description: enrichedDescription,
-            langCode: formData.langCode || 'EN',
+            langCode: (formData.langCode && formData.langCode.trim()) ? formData.langCode : 'EN_US',
             voiceSamples: [
                 {
                     audioData: formData.audioData,
@@ -362,7 +373,7 @@ export async function cloneInworldVoice(formData: {
             creatorName: user.name,
             creatorId: formData.userId,
             isPublic: formData.isPublic || false,
-            langCode: formData.langCode || 'EN',
+            langCode: formData.langCode || 'EN_US',
             gender: formData.gender || 'MALE'
         });
 
@@ -449,6 +460,39 @@ export async function getUserVoices(userId: string) {
     } catch (error) {
         console.error('getUserVoices error:', error);
         return [];
+    }
+}
+
+export async function getVoiceCloneLimit(userId: string) {
+    try {
+        if (!userId) return 0;
+        const { databases } = createAdminClient();
+        const now = new Date().toISOString();
+
+        const response = await databases.listDocuments(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_TRANSACTIONS_COLLECTION_ID,
+            [
+                Query.equal('userId', userId),
+                Query.greaterThan('expiresAt', now),
+                Query.equal('status', 'active')
+            ]
+        );
+
+        let limit = 0;
+
+        for (const doc of response.documents) {
+            if (doc.packageName === 'plus_pack') {
+                limit = Math.max(limit, 50);
+            } else if (doc.packageName === 'starter_pack') {
+                limit = Math.max(limit, 20);
+            }
+        }
+
+        return limit;
+    } catch (error) {
+        console.error('getVoiceCloneLimit error:', error);
+        return 0;
     }
 }
 
@@ -585,8 +629,36 @@ export async function updateVoicePrivacy(docId: string, isPublic: boolean) {
     }
 }
 
-export async function deleteUserVoice(docId: string) {
+export async function deleteUserVoice(docId: string, voiceId: string) {
     try {
+        if (!INWORLD_WORKSPACE) {
+            throw new Error('INWORLD_WORKSPACE environment variable is not set.');
+        }
+
+        // 1. Delete from Inworld workspace first
+        try {
+            // If voiceId is in format "workspace__voiceid" or "workspaces/ws/voices/vid", extract just the vid
+            const cleanVoiceId = voiceId.split('/').pop()?.split('__').pop() || voiceId;
+
+            const response = await fetch(`${VOICES_BASE_URL}/workspaces/${INWORLD_WORKSPACE}/voices/${cleanVoiceId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': getAuthHeader(),
+                },
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Inworld voice deletion error:", response.status, errorText);
+                // Continue with Appwrite deletion even if Inworld fails
+                // (voice might already be deleted from Inworld)
+            }
+        } catch (inworldError) {
+            console.error('Inworld deletion failed, continuing with Appwrite deletion:', inworldError);
+            // Continue with Appwrite deletion even if Inworld fails
+        }
+
+        // 2. Delete from Appwrite database
         const { databases } = createAdminClient();
         return await databases.deleteDocument(
             APPWRITE_DATABASE_ID,
@@ -753,5 +825,73 @@ export async function updateUserSeenBroadcasts(userId: string, seenIds: string[]
         });
     } catch (error) {
         console.error('updateUserSeenBroadcasts error:', error);
+    }
+}
+
+/**
+ * Ensures a user has received their initial welcome credits and logs it as a transaction.
+ */
+export async function ensureInitialCreditsAwarded(userId: string) {
+    try {
+        const { users, databases } = createAdminClient();
+        const user = await users.get(userId);
+        const prefs = user.prefs as any;
+
+        // Check if already awarded to prevent double-dipping
+        // We check BOTH the flag AND if the user already has credits (to avoid awarding to old users who already had 1000)
+        if (prefs.welcomeCreditsAwarded === true) {
+            return { success: true, alreadyAwarded: true };
+        }
+
+        // If they have 1000 or more credits and no flag, they might be an old user
+        // But to be safe and consistent, we'll mark them as awarded if we see they have 1000+ credits
+        // OR we just award it if they are brand new (creditsTotal is empty/null/0)
+
+        const currentTotal = Number(prefs.creditsTotal) || 0;
+        const initialCredits = WELCOME_CREDITS;
+
+        // If they have NO credits recorded yet, give them the bonus
+        if (currentTotal === 0) {
+            console.log(`[Credits] Awarding initial welcome credits to user ${userId}`);
+
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+            // 1. Update User prefs
+            await users.updatePrefs(userId, {
+                ...prefs,
+                creditsTotal: initialCredits,
+                welcomeCreditsAwarded: true,
+                welcomeCreditsAwardedAt: new Date().toISOString()
+            });
+
+            // 2. Create Transaction Record
+            try {
+                await createTransactionRecord(databases, APPWRITE_DATABASE_ID, APPWRITE_TRANSACTIONS_COLLECTION_ID, {
+                    userId,
+                    transactionId: `welcome_${userId}`,
+                    credits: initialCredits,
+                    packageName: "Welcome Bonus",
+                    provider: "internal",
+                    status: "active",
+                    purchasedAt: new Date().toISOString(),
+                    expiresAt: thirtyDaysFromNow.toISOString()
+                });
+            } catch (txError) {
+                console.error("[Credits] Failed to log welcome transaction, but prefs updated:", txError);
+            }
+
+            return { success: true, awarded: initialCredits };
+        } else {
+            // They already have credits from somewhere (maybe a purchase or old setup), just mark the flag
+            await users.updatePrefs(userId, {
+                ...prefs,
+                welcomeCreditsAwarded: true
+            });
+            return { success: true, alreadyHadCredits: true };
+        }
+    } catch (error: any) {
+        console.error("ensureInitialCreditsAwarded error:", error);
+        return { success: false, error: error.message };
     }
 }

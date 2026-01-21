@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { verifyUserToken } from "@/app/actions/emailActions";
+import { verifyUserToken } from "@/app/actions-emails/emailActions";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 

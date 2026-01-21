@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X, User } from "lucide-react";
+import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X, User, AlertTriangle, Info } from "lucide-react";
 import VoiceSelectionModal from "./VoiceSelectionModal";
+import PricingModal from "./PricingModal";
+import PaymentAlertModal, { AlertType } from "./PaymentAlertModal";
 import { getInworldVoices, getCommunityVoices, synthesizeInworldSpeech } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
 import { useVoices } from "@/context/VoiceContext";
@@ -61,12 +63,25 @@ export default function TTSTool() {
     const [playerVolume, setPlayerVolume] = useState(1);
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
     const [isNormalizationOpen, setIsNormalizationOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [paymentModalType, setPaymentModalType] = useState<AlertType>('billing_ended');
+    const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+
+    const isBillingEnded = (user?.prefs as any)?.isBillingEnded === true;
 
     // Refs
     const synth = useRef<SpeechSynthesis | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const [generationHistory, setGenerationHistory] = useState<HistoryItem[]>([]);
+    const [generationHistory, setGenerationHistory] = useState<HistoryItem[]>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = sessionStorage.getItem('tts_history');
+            if (saved) {
+                try { return JSON.parse(saved); } catch (e) { return []; }
+            }
+        }
+        return [];
+    });
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     // Use context voices to update local formatted voices
@@ -97,17 +112,9 @@ export default function TTSTool() {
         setVoices(formattedVoices);
     }, [officialVoices, communityVoices, user]);
 
-    // Load Settings from LocalStorage
+    // Load Settings on mount
     useEffect(() => {
-        const savedHistory = localStorage.getItem('tts_history');
-        if (savedHistory) {
-            try {
-                setGenerationHistory(JSON.parse(savedHistory));
-            } catch (e) {
-                console.error("Failed to parse history", e);
-            }
-        }
-
+        // Load settings from localStorage
         const savedSettings = localStorage.getItem('voicelo_tts_settings');
         if (savedSettings) {
             try {
@@ -123,16 +130,19 @@ export default function TTSTool() {
         }
     }, []);
 
-    // Save History to LocalStorage
+    // Save History to SessionStorage
     useEffect(() => {
-        localStorage.setItem('tts_history', JSON.stringify(generationHistory));
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('tts_history', JSON.stringify(generationHistory));
+        }
     }, [generationHistory]);
 
     // Effect to handle initial selection based on URL param or default
     useEffect(() => {
         if (voices.length > 0) {
             if (voiceParam) {
-                const preSelected = voices.find(v => v.id === voiceParam);
+                // Try to find voice by name (case-insensitive)
+                const preSelected = voices.find(v => v.name.toLowerCase() === voiceParam.toLowerCase());
                 if (preSelected) {
                     setSelectedVoice(preSelected);
                 } else if (!selectedVoice) {
@@ -173,6 +183,13 @@ export default function TTSTool() {
     // Handle Generation Only
     const handleGenerate = async () => {
         if (!selectedVoice) return;
+
+        // Check billing status
+        if (isBillingEnded) {
+            setPaymentModalType('billing_ended');
+            setIsPaymentModalOpen(true);
+            return;
+        }
 
         // --- Stop Previous ---
         handleStop();
@@ -229,11 +246,16 @@ export default function TTSTool() {
                 }
             } catch (err: any) {
                 console.error("Inworld synthesis failed", err);
-                addNotification({
-                    title: "Synthesis Error",
-                    message: err.message || "Synthesis failed. Please try again.",
-                    type: "error"
-                });
+                if (err.message?.toLowerCase().includes("insufficient credits")) {
+                    setPaymentModalType('insufficient_credits');
+                    setIsPaymentModalOpen(true);
+                } else {
+                    addNotification({
+                        title: "Synthesis Error",
+                        message: err.message || "Synthesis failed. Please try again.",
+                        type: "error"
+                    });
+                }
             } finally {
                 setIsGenerating(false);
             }
@@ -383,6 +405,41 @@ export default function TTSTool() {
 
     return (
         <div className="w-full h-full flex flex-col gap-6">
+            <PricingModal
+                isOpen={isPricingModalOpen}
+                onClose={() => setIsPricingModalOpen(false)}
+            />
+
+            <PaymentAlertModal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                type={paymentModalType}
+                onUpgrade={() => {
+                    setIsPaymentModalOpen(false);
+                    setIsPricingModalOpen(true);
+                }}
+            />
+
+            {isBillingEnded && (
+                <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                            <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-bold text-zinc-900 dark:text-white">Billing Cycle Ended</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Your credits have expired. Purchase a new pack to resume generation.</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setIsPricingModalOpen(true)}
+                        className="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all shrink-0"
+                    >
+                        Buy Credits
+                    </button>
+                </div>
+            )}
+
 
             {/* Hidden Audio Element for Playback */}
             <audio
@@ -754,6 +811,16 @@ export default function TTSTool() {
                             <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
                                 {generationHistory.length}
                             </span>
+                        </div>
+
+                        {/* Session Information Banner */}
+                        <div className="px-4 py-3 bg-zinc-50/80 dark:bg-zinc-950/40 border-b border-border dark:border-white/5 flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <Info className="w-4 h-4 text-primary" />
+                            </div>
+                            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 leading-normal">
+                                History is not saved to our servers. It's stored locally for this session and will be lost when the tab is closed.
+                            </p>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent max-h-[500px] lg:max-h-none">

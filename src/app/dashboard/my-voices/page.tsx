@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, Search, Play, Zap, Loader2, Pause, Heart, Share2, MoreHorizontal, Shield, ShieldOff, Globe, Trash2, Calendar, User, X, ChevronLeft, ChevronRight, Info, AlertTriangle } from "lucide-react";
-import { getUserVoices, synthesizeInworldSpeech, toggleCommunityVoiceLike, updateVoicePrivacy, deleteUserVoice } from "@/app/actions";
+import { getUserVoices, synthesizeInworldSpeech, toggleCommunityVoiceLike, updateVoicePrivacy, deleteUserVoice, getVoiceCloneLimit } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import ShareVoiceModal from "@/components/dashboard/ShareVoiceModal";
@@ -33,6 +33,7 @@ export default function MyVoicesPage() {
     const [filter, setFilter] = useState("");
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [cloneLimit, setCloneLimit] = useState<number>(0);
     const itemsPerPage = 10;
 
     // Audio Preview State
@@ -54,8 +55,12 @@ export default function MyVoicesPage() {
         if (!user?.$id) return;
         setLoading(true);
         try {
-            const userVoices = await getUserVoices(user.$id);
+            const [userVoices, limit] = await Promise.all([
+                getUserVoices(user.$id),
+                getVoiceCloneLimit(user.$id)
+            ]);
             setVoices(userVoices);
+            setCloneLimit(limit);
         } catch (error) {
             console.error("Failed to fetch user voices", error);
         } finally {
@@ -189,7 +194,7 @@ export default function MyVoicesPage() {
         setVoices(prev => prev.filter(v => v.docId !== voiceToDelete.docId));
 
         try {
-            await deleteUserVoice(voiceToDelete.docId);
+            await deleteUserVoice(voiceToDelete.docId, voiceToDelete.voiceId);
             closeDeleteModal();
         } catch (error) {
             console.error("Delete failed", error);
@@ -238,19 +243,50 @@ export default function MyVoicesPage() {
                     <p className="text-xs md:text-sm font-black text-zinc-400 uppercase tracking-widest mb-1">Total Clones</p>
                     <h3 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white leading-none">{voices.length}</h3>
                 </div>
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 md:p-8 shadow-sm group hover:border-red-500/20 transition-colors">
-                    <div className="bg-red-500/10 w-12 h-12 rounded-2xl flex items-center justify-center text-red-500 mb-6 group-hover:scale-110 transition-transform">
-                        <Heart className="w-6 h-6 fill-current" />
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 md:p-8 shadow-sm group hover:border-purple-500/20 transition-colors">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="bg-red-500/10 w-10 h-10 rounded-xl flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                            <Heart className="w-5 h-5 fill-current" />
+                        </div>
+                        <div className="bg-amber-500/10 w-10 h-10 rounded-xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+                            <Zap className="w-5 h-5 fill-current" />
+                        </div>
                     </div>
-                    <p className="text-xs md:text-sm font-black text-zinc-400 uppercase tracking-widest mb-1">Total Likes</p>
-                    <h3 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white leading-none">{voices.reduce((acc, v) => acc + (v.likes || 0), 0)}</h3>
+
+                    <div className="grid grid-cols-[1fr,auto,1fr] items-end">
+                        <div>
+                            <p className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest mb-1">Total Likes</p>
+                            <h3 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white leading-none">
+                                {voices.reduce((acc, v) => acc + (v.likes || 0), 0)}
+                            </h3>
+                        </div>
+
+                        <div className="w-px h-8 bg-zinc-200 dark:bg-white/10 mx-4 self-center" />
+
+                        <div className="text-right">
+                            <p className="text-[10px] md:text-xs font-black text-zinc-400 uppercase tracking-widest mb-1">Total Uses</p>
+                            <h3 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white leading-none">
+                                {voices.reduce((acc, v) => acc + (v.uses || 0), 0)}
+                            </h3>
+                        </div>
+                    </div>
                 </div>
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 md:p-8 shadow-sm group hover:border-amber-500/20 transition-colors sm:col-span-2 lg:col-span-1">
-                    <div className="bg-amber-500/10 w-12 h-12 rounded-2xl flex items-center justify-center text-amber-500 mb-6 group-hover:scale-110 transition-transform">
-                        <Zap className="w-6 h-6 fill-current" />
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-white/5 p-6 md:p-8 shadow-sm group hover:border-blue-500/20 transition-colors sm:col-span-2 lg:col-span-1">
+                    <div className="bg-blue-500/10 w-12 h-12 rounded-2xl flex items-center justify-center text-blue-500 mb-6 group-hover:scale-110 transition-transform">
+                        <Mic className="w-6 h-6 fill-current" />
                     </div>
-                    <p className="text-xs md:text-sm font-black text-zinc-400 uppercase tracking-widest mb-1">Total Uses</p>
-                    <h3 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white leading-none">{voices.reduce((acc, v) => acc + (v.uses || 0), 0)}</h3>
+                    <p className="text-xs md:text-sm font-black text-zinc-400 uppercase tracking-widest mb-1">Clone Slots</p>
+                    <h3 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white leading-none">
+                        {voices.length} <span className="text-sm text-zinc-400 font-medium">/ {cloneLimit}</span>
+                    </h3>
+                    <div className="mt-4 w-full bg-zinc-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full transition-all duration-500 rounded-full ${(voices.length / (cloneLimit || 1)) > 0.9 ? 'bg-red-500' :
+                                (voices.length / (cloneLimit || 1)) > 0.7 ? 'bg-amber-500' : 'bg-primary'
+                                }`}
+                            style={{ width: `${Math.min(100, (voices.length / (cloneLimit || 1)) * 100)}%` }}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -389,7 +425,7 @@ export default function MyVoicesPage() {
                                                         <Share2 className="w-4 h-4" />
                                                     </button>
                                                     <Link
-                                                        href={`/dashboard?voiceId=${voice.voiceId}`}
+                                                        href={`/dashboard/text-to-speech?voice=${encodeURIComponent(voice.displayName)}`}
                                                         className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md shadow-primary/20"
                                                     >
                                                         <Zap className="w-4 h-4 fill-current" />
@@ -504,7 +540,7 @@ export default function MyVoicesPage() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Link
-                                            href={`/dashboard?voiceId=${voice.voiceId}`}
+                                            href={`/dashboard/text-to-speech?voice=${encodeURIComponent(voice.displayName)}`}
                                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95"
                                         >
                                             <Zap className="w-4 h-4 fill-current" />

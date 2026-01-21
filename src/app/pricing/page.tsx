@@ -11,6 +11,7 @@ import { initializePaddle, Paddle } from "@paddle/paddle-js";
 import { useTheme } from "@/context/ThemeContext";
 import SignInModal from "@/components/SignInModal";
 import SignUpModal from "@/components/SignUpModal";
+import DiscountCountdown from "@/components/pricing/DiscountCountdown";
 
 interface PricingPlan {
     name: string;
@@ -51,7 +52,7 @@ const planConfigs: Record<string, any> = {
         features: [
             `${STARTER_CREDITS.toLocaleString()} Credits`,
             "Enhanced Quality Audio",
-            "10 Instant Voice Clones",
+            "20 Instant Voice Clones",
             "Commercial rights",
             "5,000 char input limit",
             "Standard Support",
@@ -65,7 +66,7 @@ const planConfigs: Record<string, any> = {
         features: [
             `${PLUS_CREDITS.toLocaleString()} Credits`,
             "Studio Quality Audio",
-            "Unlimited Voice Clones",
+            "50 Instant Voice Clones",
             "Commercial rights",
             "15,000 input length",
             "Priority Support",
@@ -86,6 +87,7 @@ function PricingContent() {
     const [isSignInOpen, setIsSignInOpen] = useState(false);
     const [isSignUpOpen, setIsSignUpOpen] = useState(false);
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [activeDiscount, setActiveDiscount] = useState<{ expiry_date: string; code: string; percentage?: number; name?: string } | null>(null);
 
     const faqs = [
         {
@@ -123,7 +125,7 @@ function PricingContent() {
     const comparisonFeatures = [
         { name: "Number of credits", free: "1,000", starter: STARTER_CREDITS.toLocaleString(), plus: PLUS_CREDITS.toLocaleString() },
         { name: "Audio quality", free: "Standard", starter: "Enhanced", plus: "Studio" },
-        { name: "Instant voice clones", free: false, starter: "10 Clones", plus: "Unlimited" },
+        { name: "Instant voice clones", free: false, starter: "20 Slots", plus: "50 Slots" },
         { name: "Text input length", free: "1,000 chars", starter: "5,000 chars", plus: "15,000 chars" },
         { name: "Support included", free: true, starter: true, plus: true },
         { name: "Commercial use", free: false, starter: true, plus: true },
@@ -255,6 +257,30 @@ function PricingContent() {
         fetchPlans();
     }, [urlDiscount]);
 
+    useEffect(() => {
+        const fetchDiscountDetails = async () => {
+            try {
+                const code = urlDiscount || undefined;
+                const response = await fetch(`/api/discount${code ? `?code=${code}` : ''}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.expiry_date && data.status === 'active') {
+                        setActiveDiscount({
+                            expiry_date: data.expiry_date,
+                            code: data.code,
+                            percentage: data.percentage,
+                            name: data.name
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch discount details:", error);
+            }
+        };
+
+        fetchDiscountDetails();
+    }, [urlDiscount]);
+
     const handleSubscribe = async (plan: PricingPlan) => {
         if (!user) {
             setIsSignUpOpen(true);
@@ -383,7 +409,7 @@ function PricingContent() {
                     {/* Header Section */}
                     <div className="text-center mb-20 space-y-4 animate-fade-in-up">
 
-                        {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && (
+                        {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && !activeDiscount && (
                             <div className="flex justify-center">
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-sm font-bold animate-pulse">
                                     <Zap className="w-4 h-4 fill-current" />
@@ -398,6 +424,15 @@ function PricingContent() {
                         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                             Choose the perfect credit package for your creative needs.
                         </p>
+
+                        {activeDiscount && (
+                            <DiscountCountdown
+                                expiryDate={activeDiscount.expiry_date}
+                                discountCode={activeDiscount.code}
+                                percentage={activeDiscount.percentage}
+                                discountName={activeDiscount.name}
+                            />
+                        )}
                     </div>
 
                     {/* Pricing Grid */}
@@ -414,14 +449,23 @@ function PricingContent() {
                             plans.map((plan, index) => (
                                 <div
                                     key={plan.name}
-                                    className={`group relative p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-card/50 dark:bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:translate-y-[-8px] animate-fade-in-up ${plan.popular
-                                        ? "border-primary/30 dark:border-primary/50 shadow-2xl shadow-primary/10"
-                                        : "border-border hover:border-border/80"
+                                    className={`group relative p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-sm rounded-[2.5rem] bg-card/50 dark:bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 animate-fade-in-up ${plan.popular
+                                        ? "border-primary/30 dark:border-primary/50 shadow-2xl shadow-primary/10 hover:shadow-primary/20"
+                                        : "border-border hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5"
                                         }`}
                                     style={{ animationDelay: `${index * 100}ms` }}
                                 >
+                                    {/* Clipping container for effects */}
+                                    <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                                        {/* Hover Shine Effect */}
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+
+                                        {/* Content Background Glow */}
+                                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    </div>
+
                                     {plan.popular && (
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase shadow-xl shadow-primary/40">
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase shadow-xl shadow-primary/40 z-20">
                                             Best Value
                                         </div>
                                     )}
@@ -648,7 +692,7 @@ function PricingContent() {
                     setIsSignInOpen(true);
                 }}
             />
-        </div >
+        </div>
     );
 }
 

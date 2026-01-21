@@ -32,6 +32,7 @@ export default async function ({ req, res, log, error }) {
 
     if (userTransactionsCollectionId) {
       await updateUserTransactionRecords(
+        users,
         databases,
         databaseId,
         userTransactionsCollectionId,
@@ -43,7 +44,7 @@ export default async function ({ req, res, log, error }) {
     log('Credit expiry check completed successfully');
     return res.json({
       success: true,
-      message: 'Credit expiry check completed'
+      message: 'Credit expiry check completed - expired credits flushed from user accounts'
     });
   } catch (err) {
     error(`Error during credit expiry check: ${err.message}`);
@@ -86,7 +87,7 @@ async function updateUserBillingCycles(users, log, error) {
               if (!hasActiveTransactions) {
                 await users.updatePrefs(user.$id, {
                   ...prefs,
-                  billingCycleExpired: true
+                  isBillingEnded: true
                 });
 
                 log(`Updated user ${user.$id} preferences for expired billing cycle`);
@@ -126,7 +127,74 @@ function checkForActiveTransactions(transactions) {
   return false;
 }
 
-async function updateUserTransactionRecords(databases, databaseId, collectionId, log, error) {
+async function checkAndUpdateUserBillingStatus(users, databases, databaseId, collectionId, userId, log, error) {
+  try {
+    // Get all transactions for this user to check active status
+    const userTransactions = await databases.listDocuments(databaseId, collectionId, [
+      Query.equal('userId', userId),
+      Query.limit(100)
+    ]);
+
+    const hasActiveTransactions = userTransactions.documents.some(transaction =>
+      transaction.status !== 'expired' &&
+      (!transaction.expiresAt || new Date(transaction.expiresAt) > new Date())
+    );
+
+    const user = await users.get(userId);
+    const prefs = user.prefs || {};
+    const updatesNeeded = {};
+
+    // Update billing ended status
+    if (!hasActiveTransactions && !prefs.isBillingEnded) {
+      updatesNeeded.isBillingEnded = true;
+      updatesNeeded.billingCycleExpired = true;
+      log(`Setting isBillingEnded to true for user ${userId}`);
+    } else if (hasActiveTransactions && (prefs.isBillingEnded || prefs.billingCycleExpired)) {
+      updatesNeeded.isBillingEnded = false;
+      updatesNeeded.billingCycleExpired = false;
+      log(`Resetting isBillingEnded to false for user ${userId} (active transactions found)`);
+    }
+
+    if (Object.keys(updatesNeeded).length > 0) {
+      await users.updatePrefs(userId, {
+        ...prefs,
+        ...updatesNeeded
+      });
+    }
+  } catch (err) {
+    error(`Error updating billing status for user ${userId}: ${err.message}`);
+  }
+}
+
+async function deductCreditsFromUser(users, userId, creditsToDeduct, log, error) {
+  try {
+    const user = await users.get(userId);
+    const prefs = user.prefs || {};
+
+    const currentTotal = Number(prefs.creditsTotal) || 0;
+    const currentUsed = Number(prefs.creditsUsed) || 0;
+
+    // We remove the credits from both total and used to maintain the relative balance (FIFO assumption)
+    // E.g. If user has 100k total and used 50k, and the 100k pack expires:
+    // New total = 0, New used = 0 (Total available 0). Correct.
+    // E.g. If user has 300k total and used 50k, and a 100k pack expires:
+    // New total = 200k, New used = 0 (Total available 200k). Correct.
+    const newTotal = Math.max(0, currentTotal - creditsToDeduct);
+    const newUsed = Math.max(0, currentUsed - creditsToDeduct);
+
+    await users.updatePrefs(userId, {
+      ...prefs,
+      creditsTotal: newTotal,
+      creditsUsed: newUsed
+    });
+
+    log(`Removed ${creditsToDeduct} expired credits from user ${userId}. New total: ${newTotal}, New used: ${newUsed}`);
+  } catch (err) {
+    error(`Error deducting credits for user ${userId}: ${err.message}`);
+  }
+}
+
+async function updateUserTransactionRecords(users, databases, databaseId, collectionId, log, error) {
   try {
     let offset = 0;
     const limit = 100;
@@ -147,12 +215,20 @@ async function updateUserTransactionRecords(databases, databaseId, collectionId,
             if (expiresAt < now && transaction.status !== 'expired') {
               log(`User transaction ${transaction.$id} (ID: ${transaction.transactionId}) expired on ${expiresAt}. Updating status to expired...`);
 
+              // 1. Update status to prevent double processing
               await databases.updateDocument(databaseId, collectionId, transaction.$id, {
-                ...transaction,
                 status: 'expired'
               });
 
               log(`Updated user transaction ${transaction.transactionId} status to expired`);
+
+              // 2. Subtract credits associated with THIS transaction only
+              if (transaction.credits) {
+                await deductCreditsFromUser(users, transaction.userId, Number(transaction.credits), log, error);
+              }
+
+              // 3. Check and update the general billing status (isBillingEnded flag)
+              await checkAndUpdateUserBillingStatus(users, databases, databaseId, collectionId, transaction.userId, log, error);
             }
           }
         } catch (transErr) {

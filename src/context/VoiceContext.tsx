@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getInworldVoices, getCommunityVoices, toggleCommunityVoiceLike } from '@/app/actions';
+import { getInworldVoices, getCommunityVoices, getUserVoices, toggleCommunityVoiceLike } from '@/app/actions';
 import { useAuth } from './AuthContext';
 
 interface Voice {
@@ -75,6 +75,44 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
         }
     }, [lastFetched]);
+
+    // Separate effect to fetch private voices only on the client when user is available
+    useEffect(() => {
+        if (user?.$id) {
+            const fetchPrivateVoices = async () => {
+                try {
+                    const userVoices = await getUserVoices(user.$id);
+                    if (userVoices && userVoices.length > 0) {
+                        setCommunityVoices(prev => {
+                            const combined = [...prev];
+                            userVoices.forEach(uv => {
+                                if (!combined.some(cv => cv.voiceId === uv.voiceId)) {
+                                    combined.push(uv);
+                                }
+                            });
+                            return combined;
+                        });
+
+                        // Also update official voices with user-specific shadow info if any
+                        setOfficialVoices(prev => prev.map(offVoice => {
+                            const shadow = userVoices.find(uv => uv.voiceId === offVoice.voiceId);
+                            if (shadow) {
+                                return {
+                                    ...offVoice,
+                                    likes: shadow.likes || 0,
+                                    likedBy: shadow.likedBy || []
+                                };
+                            }
+                            return offVoice;
+                        }));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch private voices:", error);
+                }
+            };
+            fetchPrivateVoices();
+        }
+    }, [user?.$id]);
 
     const toggleVoiceLike = async (voiceId: string, userId: string) => {
         // 1. Find if it's in community OR official voices

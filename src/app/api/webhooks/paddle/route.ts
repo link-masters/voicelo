@@ -146,7 +146,9 @@ export async function POST(req: Request) {
                     lastPurchaseId: transactionId,
                     lastPurchaseDate: new Date().toISOString(),
                     billingCycleEnd: thirtyDaysFromNow.toISOString(),
-                    paymentProvider: "paddle"
+                    paymentProvider: "paddle",
+                    isBillingEnded: false,
+                    billingCycleExpired: false,
                 });
 
                 // Create Transaction Record in new Table
@@ -244,7 +246,7 @@ export async function POST(req: Request) {
                             if (transactionsCollectionId && databases) {
                                 const thirtyDaysFromNow = new Date();
                                 thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-                                
+
                                 await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
                                     userId: influencer.$id,
                                     transactionId: `ref_${transactionId}`,

@@ -90,6 +90,8 @@ export const POST = Webhook({
                         plan: "Pro User",
                         creditsTotal: (Number(user.prefs?.creditsTotal) || 0) + totalCredits,
                         lastPurchaseId: checkoutId,
+                        isBillingEnded: false,
+                        billingCycleExpired: false,
                     });
 
                     // 2. Create Transaction Record in new Table
@@ -237,7 +239,7 @@ export const POST = Webhook({
                                 // Add a transaction record for the credits earned
                                 const thirtyDaysFromNow = new Date();
                                 thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-                                
+
                                 // Save to user_transactions collection (database storage only)
                                 const transactionsCollectionId = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID;
                                 if (transactionsCollectionId) {

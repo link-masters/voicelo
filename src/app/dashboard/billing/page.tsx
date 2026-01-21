@@ -88,7 +88,7 @@ export default function BillingPage() {
     }
 
     const isPro = plan.toLowerCase().includes('pro');
-    const isExpired = !!(user?.prefs as any)?.lastPurchaseId && displayedCycleEnd && (user?.prefs as any)?.billingCycleExpired;
+    const isExpired = !!(user?.prefs as any)?.lastPurchaseId && displayedCycleEnd && ((user?.prefs as any)?.isBillingEnded || (user?.prefs as any)?.billingCycleExpired);
 
     return (
         <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-16 relative">

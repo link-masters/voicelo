@@ -8,6 +8,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "../context/ThemeContext";
 import { VoiceProvider } from "../context/VoiceContext";
 import { NotificationProvider } from "../context/NotificationContext";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,6 +33,7 @@ export default function RootLayout({
                   {children}
                 </main>
                 <CookieConsent />
+                <Analytics />
               </ThemeProvider>
             </VoiceProvider>
           </NotificationProvider>

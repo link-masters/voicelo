@@ -100,7 +100,9 @@ export async function POST(req: Request) {
                     creditsTotal: currentTotal + validatedCreditsToAdd,
                     lastPurchaseId: payload.data.id,
                     lastPurchaseDate: new Date().toISOString(),
-                    billingCycleEnd: thirtyDaysFromNow.toISOString()
+                    billingCycleEnd: thirtyDaysFromNow.toISOString(),
+                    isBillingEnded: false,
+                    billingCycleExpired: false,
                 });
 
                 // Record Transaction
@@ -172,7 +174,7 @@ export async function POST(req: Request) {
                             if (transactionsCollectionId && databases) {
                                 const thirtyDaysFromNow = new Date();
                                 thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-                                
+
                                 await createTransactionRecord(databases, databaseId, transactionsCollectionId, {
                                     userId: influencer.$id,
                                     transactionId: `ref_${payload.data.id}`,

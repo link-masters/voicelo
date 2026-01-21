@@ -1,28 +1,30 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Mic, Upload, Play, Info, CheckCircle2, AlertCircle, Loader2, Music, Globe, Trash2, ChevronDown, Check } from "lucide-react";
+import { Mic, Upload, Play, Info, CheckCircle2, AlertCircle, Loader2, Music, Globe, Trash2, ChevronDown, Check, AlertTriangle, ArrowRight, FileAudio } from "lucide-react";
 import { cloneInworldVoice } from "@/app/actions";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Toast, { ToastType } from "@/components/dashboard/Toast";
+import PricingModal from "@/components/dashboard/PricingModal";
+import PaymentAlertModal, { AlertType } from "@/components/dashboard/PaymentAlertModal";
 
 const LANGUAGES = [
-    { code: "EN", label: "English" },
-    { code: "ZH", label: "Chinese" },
-    { code: "JA", label: "Japanese" },
-    { code: "KO", label: "Korean" },
-    { code: "RU", label: "Russian" },
-    { code: "IT", label: "Italian" },
-    { code: "ES", label: "Spanish" },
-    { code: "PT", label: "Portuguese" },
-    { code: "DE", label: "German" },
-    { code: "FR", label: "French" },
-    { code: "AR", label: "Arabic" },
-    { code: "HI", label: "Hindi" },
-    { code: "HE", label: "Hebrew" },
-    { code: "PL", label: "Polish" },
-    { code: "NL", label: "Dutch" },
+    { code: "EN_US", label: "English - US" },
+    { code: "ZH_CN", label: "Chinese - China" },
+    { code: "JA_JP", label: "Japanese - Japan" },
+    { code: "KO_KR", label: "Korean - Korea" },
+    { code: "RU_RU", label: "Russian - Russia" },
+    { code: "IT_IT", label: "Italian - Italy" },
+    { code: "ES_ES", label: "Spanish - Spain" },
+    { code: "PT_BR", label: "Portuguese - Brazil" },
+    { code: "DE_DE", label: "German - Germany" },
+    { code: "FR_FR", label: "French - France" },
+    { code: "AR_SA", label: "Arabic - Saudi Arabia" },
+    { code: "HI_IN", label: "Hindi - India" },
+    { code: "HE_IL", label: "Hebrew - Israel" },
+    { code: "PL_PL", label: "Polish - Poland" },
+    { code: "NL_NL", label: "Dutch - Netherlands" },
 ];
 
 export default function VoiceClonePage() {
@@ -33,6 +35,13 @@ export default function VoiceClonePage() {
     const [notification, setNotification] = useState<{ message: string; type: ToastType } | null>(null);
     const [success, setSuccess] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [paymentModalType, setPaymentModalType] = useState<AlertType>('billing_ended');
+    const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [clonedVoiceId, setClonedVoiceId] = useState<string | null>(null);
+
+    const isBillingEnded = (user?.prefs as any)?.isBillingEnded === true;
 
     const [formData, setFormData] = useState({
         displayName: "",
@@ -86,16 +95,16 @@ export default function VoiceClonePage() {
         const audio = new Audio();
         audio.preload = "metadata";
         audio.src = URL.createObjectURL(file);
-        
+
         audio.onloadedmetadata = () => {
             URL.revokeObjectURL(audio.src); // Clean up the object URL
-            
+
             // Check duration (limit to 60 seconds)
             if (audio.duration > 60) {
                 setNotification({ message: "Audio file is too long. Please upload an audio file shorter than 1 minute.", type: "error" });
                 return;
             }
-            
+
             // Read the file if it passes validation
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -116,7 +125,7 @@ export default function VoiceClonePage() {
             reader.onerror = () => setNotification({ message: "Failed to read file.", type: "error" });
             reader.readAsDataURL(file);
         };
-        
+
         audio.onerror = () => {
             URL.revokeObjectURL(audio.src); // Clean up the object URL
             setNotification({ message: "Invalid audio file or unable to read metadata.", type: "error" });
@@ -144,6 +153,16 @@ export default function VoiceClonePage() {
             setNotification({ message: "Please upload an audio sample first.", type: "error" });
             return;
         }
+        if (!formData.langCode) {
+            setNotification({ message: "Please select a language for your voice.", type: "error" });
+            return;
+        }
+
+        if (isBillingEnded) {
+            setPaymentModalType('billing_ended');
+            setIsPaymentModalOpen(true);
+            return;
+        }
 
         setIsSubmitting(true);
         setError(null);
@@ -156,7 +175,7 @@ export default function VoiceClonePage() {
 
             if (!user?.$id) throw new Error("Please sign in to clone a voice.");
 
-            await cloneInworldVoice({
+            const result = await cloneInworldVoice({
                 displayName: formData.displayName,
                 description: formData.description,
                 langCode: formData.langCode,
@@ -172,12 +191,21 @@ export default function VoiceClonePage() {
             setSuccess(true);
             await refreshUser();
 
-            setTimeout(() => {
-                router.push('/dashboard');
-            }, 2000);
+            // Extract voice ID from result
+            const voiceId = result?.voice?.voiceId || result?.voiceId || null;
+            setClonedVoiceId(voiceId);
+            setIsSuccessModalOpen(true);
 
         } catch (err: any) {
-            setNotification({ message: err.message || "An error occurred while cloning the voice.", type: "error" });
+            if (err.message?.toLowerCase().includes("insufficient credits")) {
+                setPaymentModalType('insufficient_credits');
+                setIsPaymentModalOpen(true);
+            } else if (err.message?.toLowerCase().includes("reached your voice clone limit")) {
+                setPaymentModalType('limit_reached');
+                setIsPaymentModalOpen(true);
+            } else {
+                setNotification({ message: err.message || "An error occurred while cloning the voice.", type: "error" });
+            }
             setIsSubmitting(false);
             setProgress(0);
         }
@@ -194,6 +222,80 @@ export default function VoiceClonePage() {
 
     return (
         <div className="h-full flex flex-col gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+            <PricingModal
+                isOpen={isPricingModalOpen}
+                onClose={() => setIsPricingModalOpen(false)}
+            />
+
+
+            <PaymentAlertModal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                type={paymentModalType}
+                onUpgrade={() => {
+                    setIsPaymentModalOpen(false);
+                    setIsPricingModalOpen(true);
+                }}
+            />
+
+            {/* Success Modal */}
+            {isSuccessModalOpen && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+                        onClick={() => setIsSuccessModalOpen(false)}
+                    ></div>
+                    <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-10 text-center">
+                            <div className="w-20 h-20 rounded-[2rem] bg-green-500/10 flex items-center justify-center mx-auto mb-6 border border-green-500/20">
+                                <CheckCircle2 className="w-10 h-10 text-green-500" />
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Voice Cloned Successfully!</h2>
+                            <p className="text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed text-sm md:text-base">
+                                Your voice "{formData.displayName}" has been cloned and is ready to use.
+                            </p>
+
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={() => router.push(`/dashboard/text-to-speech?voice=${encodeURIComponent(formData.displayName)}`)}
+                                    className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2 group">
+                                    <Mic className="w-5 h-5" />
+                                    Use This Voice
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                                <button
+                                    onClick={() => router.push('/dashboard/my-voices')}
+                                    className="w-full py-4 rounded-2xl bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400 font-bold hover:bg-zinc-200 dark:hover:bg-white/10 transition-all font-sans text-sm flex items-center justify-center gap-2">
+                                    <FileAudio className="w-4 h-4" />
+                                    Go to My Voices
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isBillingEnded && (
+                <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                            <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-bold text-zinc-900 dark:text-white">Billing Cycle Ended</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Your credits have expired. Purchase a new pack to resume generation.</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setIsPricingModalOpen(true)}
+                        className="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all shrink-0"
+                    >
+                        Buy Credits
+                    </button>
+                </div>
+            )}
+
             {notification && (
                 <Toast
                     message={notification.message}

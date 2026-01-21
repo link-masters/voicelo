@@ -73,10 +73,15 @@ const config: Config = {
                         opacity: "1",
                     },
                 },
+                "shine": {
+                    "0%": { left: "-100%" },
+                    "100%": { left: "125%" },
+                },
             },
             animation: {
                 "fade-in-up": "fade-in-up 0.6s ease-out forwards",
                 "fade-in": "fade-in 0.5s ease-out forwards",
+                "shine": "shine 0.8s ease-in-out forwards",
             },
         },
     },
