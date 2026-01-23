@@ -3,26 +3,82 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mic, Settings, Home, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X, ShieldAlert, AudioWaveform, Plus, AudioLines, LayoutGrid, BadgeCheck } from 'lucide-react';
+import { Mic, Settings, Home, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X, ShieldAlert, AudioWaveform, Plus, AudioLines, LayoutGrid, BadgeCheck, Folder } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
+import { databases } from '@/lib/appwrite';
+import { Query } from 'appwrite';
 
 interface SidebarProps {
     isOpen?: boolean;
     onClose?: () => void;
 }
 
+import { useProject } from '@/context/ProjectContext';
+
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
     const { theme, toggleTheme } = useTheme();
     const { user } = useAuth();
-    const [isCloneMenuOpen, setIsCloneMenuOpen] = useState(pathname.includes('voice-clone') || pathname.includes('my-voices'));
-    // const [isEarningsMenuOpen, setIsEarningsMenuOpen] = useState(pathname.includes('influencer-program'));
+    const [isCloneMenuOpen, setIsCloneMenuOpen] = useState(false);
     const [isEarningsMenuOpen, setIsEarningsMenuOpen] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [isProjectsMenuOpen, setIsProjectsMenuOpen] = useState(false);
+
+    // Sync submenus with pathname, ensuring mutual exclusivity
+    React.useEffect(() => {
+        const isClonePath = pathname.includes('voice-clone') || pathname.includes('my-voices');
+        const isProjectsPath = pathname.includes('/dashboard/projects') && pathname !== '/dashboard/projects'; // Open only if inside a specific project
+        const isMainProjectsPath = pathname === '/dashboard/projects';
+
+        if (isClonePath) {
+            setIsCloneMenuOpen(true);
+            setIsProjectsMenuOpen(false);
+        } else if (isProjectsPath || isMainProjectsPath) {
+            setIsProjectsMenuOpen(true);
+            setIsCloneMenuOpen(false);
+        } else {
+            // Optional: close all if on a neutral path like Discover
+            setIsCloneMenuOpen(false);
+            setIsProjectsMenuOpen(false);
+        }
+    }, [pathname]);
+
+    React.useEffect(() => {
+        if (user) {
+            const fetchProjects = async () => {
+                try {
+                    const response = await databases.listDocuments(
+                        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+                        'projects',
+                        [
+                            Query.equal('userId', user.$id),
+                            Query.orderDesc('$createdAt'),
+                            Query.limit(5) // Show top 5 recent
+                        ]
+                    );
+                    setProjects(response.documents);
+                } catch (error) {
+                    console.error('Failed to fetch sidebar projects', error);
+                }
+            };
+            fetchProjects();
+        }
+    }, [user]);
 
     // const influencerCode = (user?.prefs as any)?.influencerCode;
 
+
+
+
     const isActive = (path: string) => pathname === path;
+    const { attemptNavigation } = useProject(); // Consume Hook
+
+    const handleLinkClick = (e: React.MouseEvent, href: string) => {
+        e.preventDefault();
+        onClose?.();
+        attemptNavigation(href);
+    };
 
     return (
         <>
@@ -63,7 +119,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                         <Link
                             href="/dashboard"
-                            onClick={onClose}
+                            onClick={(e) => handleLinkClick(e, '/dashboard')}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard')
                                 ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
@@ -72,6 +128,66 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <Compass className="w-5 h-5 transition-transform group-hover:scale-110" />
                             <span>Discover</span>
                         </Link>
+                        <div className="relative group">
+                            <Link
+                                href="/dashboard/projects"
+                                onClick={(e) => {
+                                    handleLinkClick(e, '/dashboard/projects');
+                                    setIsProjectsMenuOpen(true);
+                                }}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all w-full ${isActive('/dashboard/projects') && pathname === '/dashboard/projects'
+                                    ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
+                                    }`}
+                            >
+                                <Folder className={`w-5 h-5 transition-transform ${isProjectsMenuOpen ? 'text-primary' : 'group-hover:scale-110'}`} />
+                                <span>Projects</span>
+                            </Link>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const nextState = !isProjectsMenuOpen;
+                                    setIsProjectsMenuOpen(nextState);
+                                    if (nextState) setIsCloneMenuOpen(false);
+                                }}
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isProjectsMenuOpen ? 'text-primary' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
+                            >
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isProjectsMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                        </div>
+
+                        {/* Projects Submenu */}
+                        <div className={`overflow-hidden transition-all duration-300 ${isProjectsMenuOpen ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
+                            <div className="space-y-1 py-1">
+                                {projects.map((project) => (
+                                    <Link
+                                        key={project.$id}
+                                        href={`/dashboard/projects/${project.$id}`}
+                                        onClick={onClose}
+                                        className={`flex items-center gap-3 px-4 py-2 mx-2 rounded-lg text-sm font-medium transition-all ${pathname === `/dashboard/projects/${project.$id}`
+                                            ? 'bg-zinc-100 dark:bg-white/10 text-zinc-900 dark:text-white translate-x-1'
+                                            : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/5'
+                                            }`}
+                                    >
+                                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${pathname === `/dashboard/projects/${project.$id}` ? 'bg-primary' : 'bg-zinc-300 dark:bg-zinc-700 group-hover:bg-zinc-400'}`} />
+                                        <span className="truncate">{project.name}</span>
+                                    </Link>
+                                ))}
+                                {projects.length === 0 && (
+                                    <div className="px-12 py-2 text-xs text-zinc-400 italic">No projects yet</div>
+                                )}
+                                <div className="pt-1 px-6 border-t border-zinc-100/5 dark:border-white/5 mt-1">
+                                    <Link
+                                        href="/dashboard/projects"
+                                        onClick={onClose}
+                                        className="block text-center py-2 text-[10px] font-bold tracking-wide text-primary bg-primary/5 hover:bg-primary/10 border border-primary/10 rounded-lg transition-all"
+                                    >
+                                        View All Projects
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Generate Speech Section */}
@@ -83,7 +199,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                         <Link
                             href="/dashboard/text-to-speech"
-                            onClick={onClose}
+                            onClick={(e) => handleLinkClick(e, '/dashboard/text-to-speech')}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/text-to-speech')
                                 ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
@@ -125,7 +241,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <button
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    setIsCloneMenuOpen(!isCloneMenuOpen);
+                                    e.stopPropagation();
+                                    const nextState = !isCloneMenuOpen;
+                                    setIsCloneMenuOpen(nextState);
+                                    if (nextState) setIsProjectsMenuOpen(false);
                                 }}
                                 className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isCloneMenuOpen ? 'text-primary' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
                             >
@@ -252,7 +371,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <div className="pt-6 border-t border-border dark:border-white/5">
                         <Link
                             href="/dashboard/settings"
-                            onClick={onClose}
+                            onClick={(e) => handleLinkClick(e, '/dashboard/settings')}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/settings')
                                 ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
@@ -279,7 +398,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
-                    <Link href="/" onClick={onClose} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 font-medium transition-all group">
+                    <Link href="/" onClick={(e) => handleLinkClick(e, '/')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 font-medium transition-all group">
                         <Home className="w-5 h-5" />
                         <span>Back to Home</span>
                     </Link>

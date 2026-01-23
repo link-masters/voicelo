@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useVoices } from "@/context/VoiceContext";
 import Link from "next/link";
 import ShareVoiceModal from "./ShareVoiceModal";
+import ProjectSelectionModal from "./ProjectSelectionModal";
 
 interface Voice {
     voiceId: string;
@@ -45,6 +46,10 @@ export default function DiscoverVoices() {
     // Share Modal State
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [sharingVoice, setSharingVoice] = useState<{ name: string, url: string } | null>(null);
+
+    // Project Selection Modal State
+    const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+    const [selectedVoiceForProject, setSelectedVoiceForProject] = useState<{ id: string, name: string } | null>(null);
 
     // Simplified voices combination from context
     const voices = [...communityVoices, ...officialVoices];
@@ -138,8 +143,16 @@ export default function DiscoverVoices() {
         }
     };
 
-    const handleUseVoice = (voiceId: string) => {
-        router.push(`/dashboard/text-to-speech?voice=${voiceId}`);
+    const handleUseVoice = (voice: Voice) => {
+        // If on Default Voices tab, show project selection modal
+        if (sourceFilter === 'default') {
+            const name = getName(voice);
+            setSelectedVoiceForProject({ id: voice.voiceId, name });
+            setIsProjectModalOpen(true);
+        } else {
+            // For community voices, go directly to TTS page
+            router.push(`/dashboard/text-to-speech?voice=${voice.voiceId}`);
+        }
     };
 
     const getGender = (voice: Voice) => {
@@ -429,7 +442,7 @@ export default function DiscoverVoices() {
                                         </button>
 
                                         <button
-                                            onClick={() => handleUseVoice(voice.voiceId)}
+                                            onClick={() => handleUseVoice(voice)}
                                             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:opacity-90 text-primary-foreground rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-primary/25 active:scale-95"
                                         >
                                             <Zap className="w-4 h-4 fill-current" /> Get Voice
@@ -449,6 +462,17 @@ export default function DiscoverVoices() {
                         onClose={() => setIsShareModalOpen(false)}
                         voiceName={sharingVoice.name}
                         shareUrl={sharingVoice.url}
+                    />
+                )
+            }
+
+            {
+                selectedVoiceForProject && (
+                    <ProjectSelectionModal
+                        isOpen={isProjectModalOpen}
+                        onClose={() => setIsProjectModalOpen(false)}
+                        voiceId={selectedVoiceForProject.id}
+                        voiceName={selectedVoiceForProject.name}
                     />
                 )
             }

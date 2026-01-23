@@ -2,14 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X, User, AlertTriangle, Info } from "lucide-react";
+import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X, User, AlertTriangle, Info, Sparkles } from "lucide-react";
 import VoiceSelectionModal from "./VoiceSelectionModal";
+import AiWriterModal from "./AiWriterModal";
 import PricingModal from "./PricingModal";
 import PaymentAlertModal, { AlertType } from "./PaymentAlertModal";
 import { getInworldVoices, getCommunityVoices, synthesizeInworldSpeech } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
 import { useVoices } from "@/context/VoiceContext";
 import { useNotifications } from "@/context/NotificationContext";
+import { databases, ID } from "@/lib/appwrite";
+import { Query } from "appwrite";
 
 interface VoiceOption {
     id: string;
@@ -37,7 +40,12 @@ interface HistoryItem {
     };
 }
 
-export default function TTSTool() {
+interface TTSToolProps {
+    projectId?: string;
+    projectName?: string;
+}
+
+export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
     const { user, refreshUser } = useAuth();
     const { officialVoices, communityVoices, loading: voicesLoading } = useVoices();
     const searchParams = useSearchParams();
@@ -49,6 +57,7 @@ export default function TTSTool() {
     const [selectedVoice, setSelectedVoice] = useState<VoiceOption | null>(null);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
     const [isPaused, setIsPaused] = useState(false);
     const [rate, setRate] = useState(1);
@@ -65,7 +74,9 @@ export default function TTSTool() {
     const [isNormalizationOpen, setIsNormalizationOpen] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [paymentModalType, setPaymentModalType] = useState<AlertType>('billing_ended');
+
     const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
     const isBillingEnded = (user?.prefs as any)?.isBillingEnded === true;
 
@@ -75,7 +86,8 @@ export default function TTSTool() {
 
     const [generationHistory, setGenerationHistory] = useState<HistoryItem[]>(() => {
         if (typeof window !== 'undefined') {
-            const saved = sessionStorage.getItem('tts_history');
+            const key = projectId ? `tts_history_${projectId}` : 'tts_history';
+            const saved = sessionStorage.getItem(key);
             if (saved) {
                 try { return JSON.parse(saved); } catch (e) { return []; }
             }
@@ -130,12 +142,55 @@ export default function TTSTool() {
         }
     }, []);
 
+    // Load Project History
+    // Load Project History
+    useEffect(() => {
+        if (projectId && user) {
+            // If we initialized from cache (length > 0), skip fetch to avoid API calls
+            if (generationHistory.length > 0) return;
+
+            const fetchHistory = async () => {
+                setHistoryLoading(true);
+                try {
+                    const response = await databases.listDocuments(
+                        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+                        'generations',
+                        [
+                            Query.equal('projectId', projectId),
+                            Query.orderDesc('$createdAt'),
+                            Query.limit(50)
+                        ]
+                    );
+
+                    const items: HistoryItem[] = response.documents.map((doc: any) => ({
+                        id: doc.$id,
+                        text: doc.text,
+                        voiceId: doc.voiceId,
+                        voiceName: doc.voiceName,
+                        timestamp: new Date(doc.$createdAt).toLocaleString(),
+                        audioData: doc.audioContent,
+                        settings: JSON.parse(doc.settings)
+                    }));
+
+                    setGenerationHistory(items);
+                } catch (error) {
+                    console.error("Failed to fetch project history:", error);
+                } finally {
+                    setHistoryLoading(false);
+                }
+            };
+            fetchHistory();
+        }
+    }, [projectId, user]);
+
+    // Save History to SessionStorage (only if not in project mode)
     // Save History to SessionStorage
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            sessionStorage.setItem('tts_history', JSON.stringify(generationHistory));
+            const key = projectId ? `tts_history_${projectId}` : 'tts_history';
+            sessionStorage.setItem(key, JSON.stringify(generationHistory));
         }
-    }, [generationHistory]);
+    }, [generationHistory, projectId]);
 
     // Effect to handle initial selection based on URL param or default
     useEffect(() => {
@@ -195,9 +250,9 @@ export default function TTSTool() {
         handleStop();
 
         // --- Add to History Function ---
-        const addToHistory = (base64Audio?: string) => {
+        const addToHistory = async (base64Audio?: string) => {
             const newItem: HistoryItem = {
-                id: Date.now().toString(),
+                id: projectId ? 'temp-' + Date.now() : Date.now().toString(), // Temp ID for UI until Appwrite confirms
                 text: text,
                 voiceId: selectedVoice.id,
                 voiceName: selectedVoice.name,
@@ -205,7 +260,37 @@ export default function TTSTool() {
                 audioData: base64Audio,
                 settings: { rate, pitch, textNormalization }
             };
-            setGenerationHistory(prev => [newItem, ...prev].slice(0, 50)); // Keep last 50
+
+            // Optimistic update
+            setGenerationHistory(prev => [newItem, ...prev].slice(0, 50));
+
+            if (projectId && user) {
+                try {
+                    const doc = await databases.createDocument(
+                        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+                        'generations',
+                        ID.unique(),
+                        {
+                            text: text,
+                            audioContent: base64Audio || '', // Appwrite attribute
+                            voiceId: selectedVoice.id,
+                            voiceName: selectedVoice.name,
+                            projectId: projectId,
+                            userId: user.$id,
+                            settings: JSON.stringify({ rate, pitch, textNormalization })
+                        }
+                    );
+                    // Update the temp ID with real ID
+                    setGenerationHistory(prev => prev.map(item => item.id === newItem.id ? { ...item, id: doc.$id } : item));
+                } catch (error) {
+                    console.error("Failed to save generation to project:", error);
+                    addNotification({
+                        title: "Save Failed",
+                        message: "Audio generated but failed to save to project.",
+                        type: "warning"
+                    });
+                }
+            }
         };
 
         // --- Start New ---
@@ -335,9 +420,29 @@ export default function TTSTool() {
         }
     };
 
-    const deleteHistoryItem = (e: React.MouseEvent, id: string) => {
+    const deleteHistoryItem = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
+
+        // Optimistic UI update
         setGenerationHistory(prev => prev.filter(item => item.id !== id));
+
+        if (projectId) {
+            try {
+                await databases.deleteDocument(
+                    process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+                    'generations',
+                    id
+                );
+            } catch (error) {
+                console.error("Failed to delete generation:", error);
+                // Revert if failed (optional, or just notify)
+                addNotification({
+                    title: "Delete Failed",
+                    message: "Failed to delete from project.",
+                    type: "error"
+                });
+            }
+        }
     };
 
     const copyText = (e: React.MouseEvent, textToCopy: string, id: string) => {
@@ -345,6 +450,38 @@ export default function TTSTool() {
         navigator.clipboard.writeText(textToCopy);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const playHistoryItem = (e: React.MouseEvent, item: HistoryItem) => {
+        e.stopPropagation();
+        if (item.audioData) {
+            try {
+                const binaryString = window.atob(item.audioData);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: 'audio/mp3' });
+                const url = URL.createObjectURL(blob);
+
+                setAudioUrl(url);
+                setIsPaused(false);
+
+                setTimeout(() => {
+                    if (audioRef.current) {
+                        audioRef.current.play().catch(console.error);
+                    }
+                }, 100);
+
+            } catch (err) {
+                console.error("Playback failed:", err);
+                addNotification({
+                    title: "Playback Failed",
+                    message: "Failed to play audio.",
+                    type: "error"
+                });
+            }
+        }
     };
 
     const downloadHistoryItem = (e: React.MouseEvent, item: HistoryItem) => {
@@ -410,6 +547,12 @@ export default function TTSTool() {
                 onClose={() => setIsPricingModalOpen(false)}
             />
 
+            <AiWriterModal
+                isOpen={isAiModalOpen}
+                onClose={() => setIsAiModalOpen(false)}
+                onGenerate={(newText) => setText(newText)}
+            />
+
             <PaymentAlertModal
                 isOpen={isPaymentModalOpen}
                 onClose={() => setIsPaymentModalOpen(false)}
@@ -473,9 +616,18 @@ export default function TTSTool() {
                                 const charLimit = (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
                                 return (
                                     <>
-                                        <div className="absolute top-4 md:top-6 left-4 md:left-8 flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 text-[10px] md:text-xs font-mono uppercase tracking-widest opacity-50 select-none pointer-events-none">
-                                            <Type className="w-3 h-3" />
-                                            <span>Text Input</span>
+                                        <div className="absolute top-4 md:top-6 left-4 md:left-8 flex items-center gap-3 z-10">
+                                            <div className="flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 text-[10px] md:text-xs font-mono uppercase tracking-widest opacity-50 select-none pointer-events-none">
+                                                <Type className="w-3 h-3" />
+                                                <span>Text Input</span>
+                                            </div>
+                                            <button
+                                                onClick={() => setIsAiModalOpen(true)}
+                                                className="flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors border border-purple-500/20 backdrop-blur-sm"
+                                            >
+                                                <Sparkles className="w-3 h-3 fill-current" />
+                                                <span>AI Writer</span>
+                                            </button>
                                         </div>
                                         <textarea
                                             className="w-full h-full bg-transparent border-none outline-none resize-none text-base md:text-lg lg:text-xl text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 font-light leading-relaxed mt-8 md:mt-6 scrollbar-hide"
@@ -494,13 +646,13 @@ export default function TTSTool() {
                                     </>
                                 );
                             })()}
-                        </div>
+                        </div >
 
                         {/* Right: Controls */}
-                        <div className="w-full md:w-72 lg:w-80 bg-white/50 dark:bg-zinc-900/60 p-4 md:p-6 lg:p-8 flex flex-col gap-4 md:gap-6 backdrop-blur-md border-t md:border-t-0 md:border-l border-border dark:border-white/5 md:rounded-tr-3xl">
+                        < div className="w-full md:w-72 lg:w-80 bg-white/50 dark:bg-zinc-900/60 p-4 md:p-6 lg:p-8 flex flex-col gap-4 md:gap-6 backdrop-blur-md border-t md:border-t-0 md:border-l border-border dark:border-white/5 md:rounded-tr-3xl" >
 
                             {/* Voice Actor Selection */}
-                            <div className="space-y-2 md:space-y-3">
+                            < div className="space-y-2 md:space-y-3" >
                                 <div className="flex items-center justify-between">
                                     <label className="flex items-center text-[10px] md:text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                         <User className="w-3 h-3 mr-2" />
@@ -814,17 +966,30 @@ export default function TTSTool() {
                         </div>
 
                         {/* Session Information Banner */}
-                        <div className="px-4 py-3 bg-zinc-50/80 dark:bg-zinc-950/40 border-b border-border dark:border-white/5 flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                <Info className="w-4 h-4 text-primary" />
+                        {!projectId && (
+                            <div className="px-4 py-3 bg-zinc-50/80 dark:bg-zinc-950/40 border-b border-border dark:border-white/5 flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                    <Info className="w-4 h-4 text-primary" />
+                                </div>
+                                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 leading-normal">
+                                    History is not saved to our servers. It's stored locally for this session and will be lost when the tab is closed.
+                                </p>
                             </div>
-                            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 leading-normal">
-                                History is not saved to our servers. It's stored locally for this session and will be lost when the tab is closed.
-                            </p>
-                        </div>
+                        )}
 
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent max-h-[500px] lg:max-h-none">
-                            {generationHistory.length === 0 ? (
+                            {historyLoading ? (
+                                <div className="h-full flex flex-col items-center justify-center p-8 space-y-4">
+                                    <div className="relative w-12 h-12">
+                                        <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+                                        <div className="absolute inset-0 rounded-full border-4 border-t-primary animate-spin"></div>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs font-medium text-zinc-500 animate-pulse uppercase tracking-widest">Loading History...</p>
+                                </div>
+                            ) : generationHistory.length === 0 ? (
                                 <div className="h-full py-12 flex flex-col items-center justify-center text-center text-zinc-400 dark:text-zinc-500 space-y-2">
                                     <Clock className="w-8 h-8 opacity-50" />
                                     <p className="text-sm">No history yet</p>
@@ -873,13 +1038,22 @@ export default function TTSTool() {
 
                                             <div className="flex items-center gap-1">
                                                 {item.audioData && (
-                                                    <button
-                                                        onClick={(e) => downloadHistoryItem(e, item)}
-                                                        className="p-1.5 hover:bg-emerald-500/10 text-zinc-400 dark:text-zinc-400 hover:text-emerald-500 rounded-lg transition-colors"
-                                                        title="Download Audio"
-                                                    >
-                                                        <Download className="w-3.5 h-3.5" />
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            onClick={(e) => playHistoryItem(e, item)}
+                                                            className="p-1.5 hover:bg-primary/10 text-zinc-400 dark:text-zinc-400 hover:text-primary rounded-lg transition-colors"
+                                                            title="Play Audio"
+                                                        >
+                                                            <Play className="w-3.5 h-3.5 fill-current" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => downloadHistoryItem(e, item)}
+                                                            className="p-1.5 hover:bg-emerald-500/10 text-zinc-400 dark:text-zinc-400 hover:text-emerald-500 rounded-lg transition-colors"
+                                                            title="Download Audio"
+                                                        >
+                                                            <Download className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </>
                                                 )}
                                                 <button
                                                     onClick={(e) => copyText(e, item.text, item.id)}
@@ -904,7 +1078,7 @@ export default function TTSTool() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Header from "@/components/dashboard/Header";
 import { Loader2 } from "lucide-react";
+import { ProjectProvider } from "@/context/ProjectContext";
 
 export default function DashboardLayout({
     children,
@@ -41,21 +42,23 @@ export default function DashboardLayout({
     }
 
     if (!user) {
-        return null; // Or a minimal "Redirecting..." UI
+        return null;
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
-            <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 pointer-events-none" />
+        <ProjectProvider>
+            <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
+                <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 pointer-events-none" />
 
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-            <div className="lg:pl-64 flex flex-col min-h-screen relative z-10">
-                <Header onMenuClick={() => setIsSidebarOpen(true)} />
-                <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-hidden h-auto lg:h-[calc(100vh-80px)]">
-                    {children}
-                </main>
+                <div className="lg:pl-64 flex flex-col min-h-screen relative z-10">
+                    <Header onMenuClick={() => setIsSidebarOpen(true)} />
+                    <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-hidden h-auto lg:h-[calc(100vh-80px)]">
+                        {children}
+                    </main>
+                </div>
             </div>
-        </div>
+        </ProjectProvider>
     );
 }
