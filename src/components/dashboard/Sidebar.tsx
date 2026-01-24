@@ -209,20 +209,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 Creative Studio
                             </h2>
                         </div>
+
                         <div className="relative group">
                             <Link
                                 href="/dashboard/ai-writer"
                                 onClick={() => {
                                     setIsAiMenuOpen(true);
-                                    if (isActive('/dashboard/ai-writer')) onClose?.();
+                                    if (pathname.includes('/dashboard/ai-writer')) onClose?.();
                                 }}
-                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-all ${isActive('/dashboard/ai-writer') || pathname.includes('ai-history')
+                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-all ${pathname.includes('/dashboard/ai-writer') || pathname.includes('ai-history')
                                     ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
                                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <Sparkles className={`w-5 h-5 transition-transform ${isActive('/dashboard/ai-writer') ? 'scale-110' : 'group-hover:scale-110'}`} />
+                                    <Sparkles className={`w-5 h-5 transition-transform ${pathname.includes('/dashboard/ai-writer') ? 'scale-110' : 'group-hover:scale-110'}`} />
                                     <span>AI Writer</span>
                                 </div>
                             </Link>

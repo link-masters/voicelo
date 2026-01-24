@@ -151,7 +151,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     </div>
 
                     {/* Integrated Project Selector for AI Writer */}
-                    {pathname === "/dashboard/ai-writer" && (
+                    {pathname.includes("/dashboard/ai-writer") && (
                         <>
                             <div className="hidden md:block w-px h-6 bg-border dark:bg-white/10 mx-2" />
                             <div className="relative" ref={projectDropdownRef}>
@@ -189,6 +189,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                                         onClick={() => {
                                                             setProject(p);
                                                             setIsProjectDropdownOpen(false);
+                                                            router.push(`/dashboard/ai-writer/projects/${p.$id}`);
                                                         }}
                                                         className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-all group/item ${project?.$id === p.$id
                                                             ? 'bg-primary/5 text-primary font-bold'
