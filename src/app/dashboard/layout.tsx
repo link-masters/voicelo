@@ -48,7 +48,6 @@ export default function DashboardLayout({
     return (
         <ProjectProvider>
             <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
-                <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 pointer-events-none" />
 
                 <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 

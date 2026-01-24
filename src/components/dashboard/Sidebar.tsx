@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mic, Settings, Home, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X, ShieldAlert, AudioWaveform, Plus, AudioLines, LayoutGrid, BadgeCheck, Folder } from 'lucide-react';
+import { Mic, Settings, Home, FileAudio, LayoutDashboard, Compass, Sun, Moon, TrendingUp, ChevronDown, X, ShieldAlert, AudioWaveform, Plus, AudioLines, LayoutGrid, BadgeCheck, Folder, Sparkles, History } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { databases } from '@/lib/appwrite';
@@ -21,6 +21,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { theme, toggleTheme } = useTheme();
     const { user } = useAuth();
     const [isCloneMenuOpen, setIsCloneMenuOpen] = useState(false);
+    const [isAiMenuOpen, setIsAiMenuOpen] = useState(false);
     const [isEarningsMenuOpen, setIsEarningsMenuOpen] = useState(false);
     const [projects, setProjects] = useState<any[]>([]);
     const [isProjectsMenuOpen, setIsProjectsMenuOpen] = useState(false);
@@ -30,17 +31,25 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         const isClonePath = pathname.includes('voice-clone') || pathname.includes('my-voices');
         const isProjectsPath = pathname.includes('/dashboard/projects') && pathname !== '/dashboard/projects'; // Open only if inside a specific project
         const isMainProjectsPath = pathname === '/dashboard/projects';
+        const isAiPath = pathname.includes('ai-writer') || pathname.includes('ai-history');
 
         if (isClonePath) {
             setIsCloneMenuOpen(true);
             setIsProjectsMenuOpen(false);
+            setIsAiMenuOpen(false);
         } else if (isProjectsPath || isMainProjectsPath) {
             setIsProjectsMenuOpen(true);
             setIsCloneMenuOpen(false);
+            setIsAiMenuOpen(false);
+        } else if (isAiPath) {
+            setIsAiMenuOpen(true);
+            setIsCloneMenuOpen(false);
+            setIsProjectsMenuOpen(false);
         } else {
             // Optional: close all if on a neutral path like Discover
             setIsCloneMenuOpen(false);
             setIsProjectsMenuOpen(false);
+            setIsAiMenuOpen(false);
         }
     }, [pathname]);
 
@@ -149,7 +158,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     e.stopPropagation();
                                     const nextState = !isProjectsMenuOpen;
                                     setIsProjectsMenuOpen(nextState);
-                                    if (nextState) setIsCloneMenuOpen(false);
+                                    if (nextState) {
+                                        setIsCloneMenuOpen(false);
+                                        setIsAiMenuOpen(false);
+                                    }
                                 }}
                                 className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isProjectsMenuOpen ? 'text-primary' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
                             >
@@ -190,24 +202,64 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                     </div>
 
-                    {/* Generate Speech Section */}
-                    <div className="space-y-2">
+                    {/* Creative Studio Section */}
+                    <div className="space-y-1">
                         <div className="px-4 mb-3">
                             <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
-                                Generate Speech
+                                Creative Studio
                             </h2>
                         </div>
-                        <Link
-                            href="/dashboard/text-to-speech"
-                            onClick={(e) => handleLinkClick(e, '/dashboard/text-to-speech')}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${isActive('/dashboard/text-to-speech')
-                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
-                                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
-                                }`}
-                        >
-                            <FileAudio className="w-5 h-5 transition-transform group-hover:scale-110" />
-                            <span>Text To Speech</span>
-                        </Link>
+                        <div className="relative group">
+                            <Link
+                                href="/dashboard/ai-writer"
+                                onClick={() => {
+                                    setIsAiMenuOpen(true);
+                                    if (isActive('/dashboard/ai-writer')) onClose?.();
+                                }}
+                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-all ${isActive('/dashboard/ai-writer') || pathname.includes('ai-history')
+                                    ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 border border-transparent'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className={`w-5 h-5 transition-transform ${isActive('/dashboard/ai-writer') ? 'scale-110' : 'group-hover:scale-110'}`} />
+                                    <span>AI Writer</span>
+                                </div>
+                            </Link>
+
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const nextState = !isAiMenuOpen;
+                                    setIsAiMenuOpen(nextState);
+                                    if (nextState) {
+                                        setIsCloneMenuOpen(false);
+                                        setIsProjectsMenuOpen(false);
+                                    }
+                                }}
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all z-10 ${isAiMenuOpen ? 'text-primary' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-black/5'}`}
+                            >
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isAiMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                        </div>
+
+                        {/* AI Submenu */}
+                        <div className={`overflow-hidden transition-all duration-300 ${isAiMenuOpen ? 'max-h-64 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
+                            <div className="space-y-1 py-1">
+                                <Link
+                                    href="/dashboard/ai-history"
+                                    onClick={onClose}
+                                    className={`flex items-center gap-2 px-12 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive('/dashboard/ai-history')
+                                        ? 'text-primary bg-primary/5 font-bold'
+                                        : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/5'
+                                        }`}
+                                >
+                                    <History className="w-4 h-4" />
+                                    History
+                                </Link>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Clone Voice Section - Multi-level */}

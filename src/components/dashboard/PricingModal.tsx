@@ -1,12 +1,13 @@
 "use client";
 
-import { Check, Zap, Rocket, Crown, Loader2, Star, User, X } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { Check, Zap, Rocket, User, X, Loader2, Star } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getPaddleClientConfig, isPaddle } from "@/config/payment";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
 import { useTheme } from "@/context/ThemeContext";
+import ModalPortal from "./ModalPortal";
 
 const STARTER_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 100000;
 const PLUS_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 200000;
@@ -81,7 +82,6 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
 
     const urlDiscount = searchParams.get('discount');
 
-    // ... (effects remain same) ...
     // Initialize Paddle.js
     useEffect(() => {
         if (!isPaddle()) return;
@@ -197,8 +197,6 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
         fetchPlans();
     }, [isOpen]);
 
-    if (!isOpen) return null;
-
     const handleSubscribe = async (plan: PricingPlan) => {
         if (!user) {
             alert("Please sign in to subscribe");
@@ -312,13 +310,8 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
-                onClick={onClose}
-            ></div>
-
-            <div className="relative w-full max-w-7xl lg:ml-64 bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+        <ModalPortal isOpen={isOpen} onClose={onClose}>
+            <div className="relative w-full max-w-7xl bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto pointer-events-auto">
                 <button
                     onClick={onClose}
                     className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-10 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
@@ -380,7 +373,6 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                         )}
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-5xl font-extrabold text-foreground">{plan.price}</span>
-                                            <span className="text-xl text-muted-foreground font-medium">/ mo</span>
                                             {plan.originalPrice && (
                                                 <span className="text-zinc-500 text-xl font-medium line-through decoration-zinc-600/50 ml-2">
                                                     {plan.originalPrice}
@@ -396,7 +388,6 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                                             </span>
                                         ) : <div className="h-full" />}
                                     </div>
-
 
                                     <div className="space-y-4 mb-10">
                                         {plan.features.map((feature) => (
@@ -431,7 +422,6 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
                     </div>
                 </div>
             </div>
-        </div>
+        </ModalPortal>
     );
-
 }

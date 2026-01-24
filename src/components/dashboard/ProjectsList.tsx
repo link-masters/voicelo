@@ -2,18 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { databases, ID } from '@/lib/appwrite';
 import { useAuth } from '@/context/AuthContext';
 import { Query } from 'appwrite';
-import { Folder, Plus, Calendar, MoreVertical, Trash2, Edit2, Loader2, Search, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Folder, Plus, Calendar, Trash2, Loader2, ArrowRight, AlertTriangle, X } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
+import ModalPortal from './ModalPortal';
 
 interface Project {
     $id: string;
     name: string;
     description?: string;
-    createdAt: string; // Appwrite returns $createdAt usually, or if I used createdAt attribute
     $createdAt: string;
 }
 
@@ -22,7 +21,6 @@ const PROJECTS_COLLECTION_ID = 'projects';
 
 export default function ProjectsList() {
     const { user } = useAuth();
-    const router = useRouter();
     const { addNotification } = useNotifications();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
@@ -267,107 +265,101 @@ export default function ProjectsList() {
             )}
 
             {/* Create Project Modal */}
-            {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-border dark:border-white/5 flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Create New Project</h2>
-                            <button
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                            >
-                                <Search className="w-5 h-5 sr-only" />
-                                {/* Using Search as X icon placeholder if needed, but I imported X in sidebar, wait I didn't import X here */}
-                                <span className="text-2xl leading-none">&times;</span>
-                            </button>
-                        </div>
-                        <form onSubmit={handleCreateProject} className="p-6 space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                    Project Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newProjectName}
-                                    onChange={(e) => setNewProjectName(e.target.value)}
-                                    placeholder="e.g. Marketing Video, Podcast Intro"
-                                    className="w-full px-4 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                                    autoFocus
-                                    required
-                                    maxLength={50}
-                                />
-                                <div className="flex justify-end">
-                                    <span className={`text-[10px] font-medium ${newProjectName.length >= 50 ? 'text-red-500' : 'text-zinc-400'}`}>
-                                        {newProjectName.length}/50 characters
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Description (Optional)</label>
-                                <textarea
-                                    value={newProjectDesc}
-                                    onChange={(e) => setNewProjectDesc(e.target.value)}
-                                    placeholder="Brief description of your project..."
-                                    className="w-full px-4 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all resize-none h-24"
-                                />
-                            </div>
-                            <div className="pt-4 flex justify-end gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCreateModalOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={creating || !newProjectName.trim()}
-                                    className="px-6 py-2 bg-primary text-white rounded-xl font-medium shadow-lg shadow-primary/20 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                >
-                                    {creating && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    Create Project
-                                </button>
-                            </div>
-                        </form>
+            <ModalPortal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
+                <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
+                    <div className="p-6 border-b border-border dark:border-white/5 flex items-center justify-between">
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Create New Project</h2>
+                        <button
+                            onClick={() => setIsCreateModalOpen(false)}
+                            className="p-1 px-2.5 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation Modal */}
-            {isDeleteModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6">
-                            <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
-                                <AlertTriangle className="w-6 h-6" />
+                    <form onSubmit={handleCreateProject} className="p-6 space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                Project Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={newProjectName}
+                                onChange={(e) => setNewProjectName(e.target.value)}
+                                placeholder="e.g. Marketing Video, Podcast Intro"
+                                className="w-full px-4 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                                autoFocus
+                                required
+                                maxLength={50}
+                            />
+                            <div className="flex justify-end">
+                                <span className={`text-[10px] font-medium ${newProjectName.length >= 50 ? 'text-red-500' : 'text-zinc-400'}`}>
+                                    {newProjectName.length}/50 characters
+                                </span>
                             </div>
-                            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">
-                                Delete "{projects.find(p => p.$id === projectToDelete)?.name}"?
-                            </h3>
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                This action cannot be undone. All generations and data associated with this project will be permanently deleted.
-                            </p>
                         </div>
-                        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-border dark:border-white/5 flex gap-3 justify-end">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Description (Optional)</label>
+                            <textarea
+                                value={newProjectDesc}
+                                onChange={(e) => setNewProjectDesc(e.target.value)}
+                                placeholder="Brief description of your project..."
+                                className="w-full px-4 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all resize-none h-24"
+                            />
+                        </div>
+                        <div className="pt-4 flex justify-end gap-3">
                             <button
-                                onClick={() => setIsDeleteModalOpen(false)}
-                                disabled={deleting}
-                                className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                                type="button"
+                                onClick={() => setIsCreateModalOpen(false)}
+                                className="px-4 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
-                                onClick={confirmDeleteProject}
-                                disabled={deleting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-lg shadow-red-500/20 transition-all flex items-center gap-2"
+                                type="submit"
+                                disabled={creating || !newProjectName.trim()}
+                                className="px-6 py-2 bg-primary text-white rounded-xl font-medium shadow-lg shadow-primary/20 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                                Delete Project
+                                {creating && <Loader2 className="w-4 h-4 animate-spin" />}
+                                Create Project
                             </button>
                         </div>
+                    </form>
+                </div>
+            </ModalPortal>
+
+            {/* Delete Confirmation Modal */}
+            <ModalPortal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+                <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
+                    <div className="p-6">
+                        <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
+                            <AlertTriangle className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">
+                            Delete "{projects.find(p => p.$id === projectToDelete)?.name}"?
+                        </h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                            This action cannot be undone. All generations and data associated with this project will be permanently deleted.
+                        </p>
+                    </div>
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-border dark:border-white/5 flex gap-3 justify-end">
+                        <button
+                            onClick={() => setIsDeleteModalOpen(false)}
+                            disabled={deleting}
+                            className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDeleteProject}
+                            disabled={deleting}
+                            className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-lg shadow-red-500/20 transition-all flex items-center gap-2"
+                        >
+                            {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                            Delete Project
+                        </button>
                     </div>
                 </div>
-            )}
+            </ModalPortal>
         </div>
     );
 }

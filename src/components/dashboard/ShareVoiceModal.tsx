@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Copy, Check, Share2, Globe, Twitter, Facebook, Link as LinkIcon } from "lucide-react";
+import { X, Copy, Check, Share2, Globe, Twitter, Facebook } from "lucide-react";
+import ModalPortal from "./ModalPortal";
 
 interface ShareVoiceModalProps {
     isOpen: boolean;
@@ -29,18 +30,10 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 mb-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-md animate-fade-in"
-                onClick={onClose}
-            />
-
+        <ModalPortal isOpen={isOpen} onClose={onClose}>
             {/* Modal */}
-            <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden animate-scale-in">
+            <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden animate-in zoom-in-95 duration-300 pointer-events-auto">
 
                 {/* Header Decoration */}
                 <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
@@ -118,6 +111,6 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                     </div>
                 </div>
             </div>
-        </div>
+        </ModalPortal>
     );
 }

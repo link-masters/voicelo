@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { LogOut, User, Settings, ChevronDown, Zap, Lock, CreditCard, Menu, ArrowLeft, Download } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown, Zap, Lock, CreditCard, Menu, ArrowLeft, Download, Folder } from "lucide-react";
 import NotificationDropdown from "./NotificationDropdown";
 import { useProject } from "@/context/ProjectContext";
 import { useRouter } from "next/navigation";
@@ -14,31 +14,43 @@ interface HeaderProps {
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
-    const { user, logout } = useAuth();
-    const { attemptNavigation } = useProject(); // Consume Hook
+    const { project, setProject, projects, refreshProjects, loadingProjects, attemptNavigation } = useProject();
 
     const handleLinkClick = (e: React.MouseEvent, href: string) => {
         e.preventDefault();
         setDropdownOpen(false); // Close dropdown
         attemptNavigation(href);
     };
+    const { user, logout } = useAuth();
     const pathname = usePathname();
     const router = useRouter(); // Added router
-    const { project } = useProject(); // Consume project context
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdown when clicking outside
+    const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+    const projectDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setDropdownOpen(false);
             }
+            if (projectDropdownRef.current && !projectDropdownRef.current.contains(event.target as Node)) {
+                setIsProjectDropdownOpen(false);
+            }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Fetch projects once on mount if user exists
+    useEffect(() => {
+        if (user && projects.length === 0) {
+            refreshProjects(user.$id);
+        }
+    }, [user, projects.length]);
 
     const handleLogout = async () => {
         try {
@@ -113,15 +125,105 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                     if (pathname === "/dashboard") return "Discover Voices";
                                     if (pathname.includes("/text-to-speech")) return "Text to Speech";
                                     if (pathname.includes("/voice-clone")) return "Voice Cloning";
+                                    if (pathname.includes("/my-voices")) return "My Voices";
+                                    if (pathname.includes("/ai-writer")) return "AI Writer";
+                                    if (pathname.includes("/ai-history")) return "AI History";
                                     if (pathname.includes("/profile")) return "Account Profile";
                                     if (pathname.includes("/settings")) return "App Settings";
+                                    if (pathname.includes("/billing")) return "Billing & Plan";
                                     if (pathname.includes("/influencer-program")) return "Influencer Program";
                                     if (pathname === "/dashboard/projects") return "My Projects";
-                                    return "Voice Synthesis Studio";
+
+                                    // Fallback: Parse the last segment and capitalize it
+                                    const segments = pathname.split('/').filter(Boolean);
+                                    if (segments.length > 0) {
+                                        const lastSegment = segments[segments.length - 1];
+                                        return lastSegment
+                                            .split('-')
+                                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                            .join(' ');
+                                    }
+
+                                    return "Dashboard";
                                 })()}
                             </h2>
                         )}
                     </div>
+
+                    {/* Integrated Project Selector for AI Writer */}
+                    {pathname === "/dashboard/ai-writer" && (
+                        <>
+                            <div className="hidden md:block w-px h-6 bg-border dark:bg-white/10 mx-2" />
+                            <div className="relative" ref={projectDropdownRef}>
+                                <button
+                                    onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+                                    className="hidden md:flex items-center gap-3 px-4 py-2 bg-zinc-50 dark:bg-zinc-800/40 border border-border dark:border-white/5 rounded-2xl animate-in fade-in slide-in-from-left-2 duration-300 hover:bg-zinc-100 dark:hover:bg-white/5 transition-all group"
+                                >
+                                    <div className="flex flex-col text-left select-none cursor-pointer">
+                                        <span className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mb-1">Active Project</span>
+                                        <div className="relative flex items-center gap-2">
+                                            <Folder className="w-3.5 h-3.5 text-primary transition-transform group-hover:scale-110" />
+                                            {loadingProjects ? (
+                                                <span className="text-xs font-bold text-zinc-400 animate-pulse">Loading...</span>
+                                            ) : project ? (
+                                                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 transition-colors group-hover:text-primary">{project.name}</span>
+                                            ) : (
+                                                <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 group-hover:text-primary transition-colors">Select Project</span>
+                                            )}
+                                            <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform duration-200 group-hover:text-primary ${isProjectDropdownOpen ? 'rotate-180' : ''}`} />
+                                        </div>
+                                    </div>
+                                </button>
+
+                                {/* Modern Dropdown Menu */}
+                                {isProjectDropdownOpen && (
+                                    <div className="absolute left-0 top-full mt-2 w-64 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-border dark:border-white/10 rounded-2xl shadow-2xl py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left z-50 ring-1 ring-black/5">
+                                        <div className="px-4 py-2 border-b border-border dark:border-white/5 mb-1">
+                                            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Available Projects</p>
+                                        </div>
+                                        <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                                            {projects.length > 0 ? (
+                                                projects.map((p) => (
+                                                    <button
+                                                        key={p.$id}
+                                                        onClick={() => {
+                                                            setProject(p);
+                                                            setIsProjectDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between transition-all group/item ${project?.$id === p.$id
+                                                            ? 'bg-primary/5 text-primary font-bold'
+                                                            : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-1.5 h-1.5 rounded-full transition-all ${project?.$id === p.$id ? 'bg-primary scale-125' : 'bg-transparent group-hover/item:bg-zinc-400'}`} />
+                                                            <span className="truncate">{p.name}</span>
+                                                        </div>
+                                                        {project?.$id === p.$id && (
+                                                            <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-4 text-center">
+                                                    <p className="text-xs text-zinc-500">No projects found</p>
+                                                    <Link
+                                                        href="/dashboard/projects"
+                                                        className="inline-block mt-2 text-[10px] font-black text-primary hover:underline uppercase tracking-widest"
+                                                        onClick={() => setIsProjectDropdownOpen(false)}
+                                                    >
+                                                        Create one now
+                                                    </Link>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-6">

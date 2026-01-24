@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, FolderOpen, AlertCircle, Loader2, Plus, ChevronRight } from "lucide-react";
+import { X, FolderOpen, AlertCircle, Plus, ChevronRight } from "lucide-react";
 import { databases } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ModalPortal from "./ModalPortal";
 
 interface Project {
     $id: string;
@@ -27,7 +28,6 @@ export default function ProjectSelectionModal({ isOpen, onClose, voiceId, voiceN
     const router = useRouter();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen && user) {
@@ -65,11 +65,9 @@ export default function ProjectSelectionModal({ isOpen, onClose, voiceId, voiceN
         onClose();
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <ModalPortal isOpen={isOpen} onClose={onClose}>
+            <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 pointer-events-auto">
                 {/* Header */}
                 <div className="relative p-6 border-b border-border dark:border-white/5 bg-gradient-to-br from-primary/5 to-transparent">
                     <button
@@ -194,6 +192,6 @@ export default function ProjectSelectionModal({ isOpen, onClose, voiceId, voiceN
                     </p>
                 </div>
             </div>
-        </div>
+        </ModalPortal>
     );
 }

@@ -124,7 +124,6 @@ export default function ContactPage() {
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white dark:bg-primary/20 rounded-full blur-[120px]" />
                 <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] bg-slate-50 dark:bg-blue-500/10 rounded-full blur-[100px]" />
                 <div className="absolute top-[30%] right-[-5%] w-[25%] h-[25%] bg-slate-50 dark:bg-purple-500/10 rounded-full blur-[100px]" />
-                <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03] dark:opacity-20" />
             </div>
 
             <div className="relative z-10 flex flex-col min-h-screen">
@@ -157,8 +156,8 @@ export default function ContactPage() {
                                 {submitStatus !== "idle" && (
                                     <div
                                         className={`mb-8 p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${submitStatus === "success"
-                                                ? "bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400"
-                                                : "bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400"
+                                            ? "bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400"
+                                            : "bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400"
                                             }`}
                                     >
                                         {submitStatus === "success" ? (

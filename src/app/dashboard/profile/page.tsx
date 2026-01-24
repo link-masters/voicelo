@@ -53,7 +53,6 @@ export default function ProfilePage() {
                 {/* Cover Image */}
                 <div className="h-64 w-full rounded-[2.5rem] overflow-hidden relative group">
                     <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600">
-                        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 mix-blend-overlay"></div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </div>
                 </div>

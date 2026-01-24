@@ -25,16 +25,11 @@ interface VoiceSelectionModalProps {
     userName?: string;
 }
 
+import ModalPortal from "./ModalPortal";
+
 export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, voices, currentVoiceId, userId, userName }: VoiceSelectionModalProps) {
     const [activeTab, setActiveTab] = useState<'default' | 'my-voices' | 'favorites'>('default');
     const [searchTerm, setSearchTerm] = useState("");
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!isOpen || !mounted) return null;
 
     // Filter voices based on categories
     const defaultVoices = voices.filter(v => v.source === 'inworld' && !v.isCommunity);
@@ -59,16 +54,10 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
         v.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
+    return (
+        <ModalPortal isOpen={isOpen} onClose={onClose}>
             {/* Modal */}
-            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh] md:max-h-[80vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh] md:max-h-[80vh] animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
 
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-5 md:p-6 border-b border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md">
@@ -208,7 +197,6 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
 
 
             </div>
-        </div>,
-        document.body
+        </ModalPortal>
     );
 }

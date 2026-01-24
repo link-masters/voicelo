@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState } from "react";
+import ModalPortal from "./ModalPortal";
 import { X, Sparkles, Wand2, Loader2, ArrowRight } from "lucide-react";
 
 interface AiWriterModalProps {
@@ -12,14 +11,7 @@ interface AiWriterModalProps {
 export default function AiWriterModal({ isOpen, onClose, onGenerate }: AiWriterModalProps) {
     const [prompt, setPrompt] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
-    const [mounted, setMounted] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!isOpen || !mounted) return null;
 
     const handleGenerate = async () => {
         if (!prompt.trim()) return;
@@ -57,16 +49,10 @@ export default function AiWriterModal({ isOpen, onClose, onGenerate }: AiWriterM
         }
     };
 
-    return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
+    return (
+        <ModalPortal isOpen={isOpen} onClose={onClose}>
             {/* Modal */}
-            <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
 
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-5 md:p-6 border-b border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md">
@@ -113,8 +99,8 @@ export default function AiWriterModal({ isOpen, onClose, onGenerate }: AiWriterM
                             onClick={handleGenerate}
                             disabled={!prompt.trim() || isGenerating}
                             className={`w-full py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider transition-all shadow-lg ${!prompt.trim() || isGenerating
-                                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 shadow-none cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/25'
+                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 shadow-none cursor-not-allowed'
+                                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/25'
                                 }`}
                         >
                             {isGenerating ? (
@@ -140,7 +126,6 @@ export default function AiWriterModal({ isOpen, onClose, onGenerate }: AiWriterM
                 </div>
 
             </div>
-        </div>,
-        document.body
+        </ModalPortal>
     );
 }

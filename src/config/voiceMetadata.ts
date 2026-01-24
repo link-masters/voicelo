@@ -80,4 +80,9 @@ export const OFFICIAL_VOICE_METADATA: Record<string, VoiceMeta> = {
 	'Wojciech': { gender: 'MALE' },
 	'Yoona': { gender: 'FEMALE' },
 	'Maitê': { gender: 'FEMALE' },
+	'Manoj': { gender: 'MALE' },
+	'Yael': { gender: 'FEMALE' },
+	'Oren': { gender: 'MALE' },
+	'Omar': { gender: 'MALE' },
+	'Nour': { gender: 'FEMALE' },
 };

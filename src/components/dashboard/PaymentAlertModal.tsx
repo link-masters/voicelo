@@ -2,6 +2,7 @@
 
 import React from "react";
 import { X, CreditCard, AlertTriangle, ArrowRight, Coins, Mic } from "lucide-react";
+import ModalPortal from "./ModalPortal";
 
 export type AlertType = 'billing_ended' | 'insufficient_credits' | 'limit_reached';
 
@@ -18,8 +19,6 @@ export default function PaymentAlertModal({
     onUpgrade,
     type = 'billing_ended'
 }: PaymentAlertModalProps) {
-    if (!isOpen) return null;
-
     const content = {
         billing_ended: {
             title: "Billing Cycle Ended",
@@ -51,12 +50,8 @@ export default function PaymentAlertModal({
     }[type];
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
-                onClick={onClose}
-            ></div>
-            <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <ModalPortal isOpen={isOpen} onClose={onClose}>
+            <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 pointer-events-auto">
                 <button
                     onClick={onClose}
                     className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-10 text-zinc-500"
@@ -92,6 +87,6 @@ export default function PaymentAlertModal({
                     </div>
                 </div>
             </div>
-        </div>
+        </ModalPortal>
     );
 }

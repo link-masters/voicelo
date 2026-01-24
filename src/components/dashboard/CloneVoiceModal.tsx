@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { X, Upload, Mic, Loader2, CheckCircle2, AlertCircle, Music, Globe } from "lucide-react";
 import { cloneInworldVoice } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
+import ModalPortal from "./ModalPortal";
 
 interface CloneVoiceModalProps {
     isOpen: boolean;
@@ -42,8 +43,6 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    if (!isOpen) return null;
-
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -55,9 +54,6 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
             setError("Please upload an audio file (mp3, wav, etc.).");
             return;
         }
-
-        // 15 seconds limit check could be added here if needed using an Audio element
-        // But for now, we'll just process it.
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -138,15 +134,9 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300"
-                onClick={() => !isSubmitting && onClose()}
-            />
-
+        <ModalPortal isOpen={isOpen} onClose={() => !isSubmitting && onClose()}>
             {/* Modal */}
-            <div className="relative w-full max-w-xl bg-white dark:bg-zinc-950 border border-border dark:border-white/10 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="relative w-full max-w-xl bg-white dark:bg-zinc-950 border border-border dark:border-white/10 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 pointer-events-auto">
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-8 border-b border-border dark:border-white/5">
@@ -309,6 +299,6 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                     </button>
                 </div>
             </div>
-        </div>
+        </ModalPortal>
     );
 }

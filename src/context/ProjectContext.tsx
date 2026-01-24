@@ -1,7 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { databases } from '@/lib/appwrite';
+import { Query } from 'appwrite';
+
+const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
+const PROJECTS_COLLECTION_ID = 'projects';
 
 interface Project {
     $id: string;
@@ -12,7 +17,10 @@ interface Project {
 
 interface ProjectContextType {
     project: Project | null;
+    projects: Project[];
+    loadingProjects: boolean;
     setProject: (project: Project | null) => void;
+    refreshProjects: (userId: string) => Promise<void>;
     attemptNavigation: (href: string) => void;
     cancelNavigation: () => void;
     confirmNavigation: () => void;
@@ -23,12 +31,38 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
     const [project, setProject] = useState<Project | null>(null);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [loadingProjects, setLoadingProjects] = useState(false);
     const [isNavigationModalOpen, setIsNavigationModalOpen] = useState(false);
     const [pendingUrl, setPendingUrl] = useState<string | null>(null);
     const router = useRouter();
+    const pathname = usePathname();
+
+    const refreshProjects = async (userId: string) => {
+        try {
+            setLoadingProjects(true);
+            const response = await databases.listDocuments(
+                DATABASE_ID,
+                PROJECTS_COLLECTION_ID,
+                [Query.equal('userId', userId), Query.orderDesc('$createdAt')]
+            );
+
+            const fetchedProjects = response.documents as unknown as Project[];
+            setProjects(fetchedProjects);
+
+            // Auto-select first project if none selected
+            if (!project && fetchedProjects.length > 0) {
+                setProject(fetchedProjects[0]);
+            }
+        } catch (error) {
+            console.error('Failed to refresh projects:', error);
+        } finally {
+            setLoadingProjects(false);
+        }
+    };
 
     const attemptNavigation = (href: string) => {
-        if (project) {
+        if (project && pathname?.includes("/dashboard/projects/")) {
             setPendingUrl(href);
             setIsNavigationModalOpen(true);
         } else {
@@ -53,7 +87,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     return (
         <ProjectContext.Provider value={{
             project,
+            projects,
+            loadingProjects,
             setProject,
+            refreshProjects,
             attemptNavigation,
             cancelNavigation,
             confirmNavigation,

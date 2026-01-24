@@ -10,16 +10,13 @@ import {
     AlertTriangle,
     AlertCircle,
     Settings,
-    Clock,
     X,
-    MoreHorizontal,
-    Trash,
     Eye,
     ExternalLink
 } from "lucide-react";
 import { useNotifications, Notification, NotificationType } from "@/context/NotificationContext";
 import Link from "next/link";
-import { createPortal } from "react-dom";
+import ModalPortal from "./ModalPortal";
 
 export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
@@ -226,16 +223,13 @@ export default function NotificationDropdown() {
             )}
 
             {/* Notification Detail Modal */}
-            {selectedNotif && createPortal(
-                <NotificationDetailsModal
-                    notification={selectedNotif}
-                    onClose={() => setSelectedNotif(null)}
-                    getIcon={getIcon}
-                    getTypeStyles={getTypeStyles}
-                    formatTime={formatTime}
-                />,
-                document.body
-            )}
+            <NotificationDetailsModal
+                notification={selectedNotif}
+                onClose={() => setSelectedNotif(null)}
+                getIcon={getIcon}
+                getTypeStyles={getTypeStyles}
+                formatTime={formatTime}
+            />
 
             <style jsx>{`
                 .custom-scrollbar::-webkit-scrollbar {
@@ -284,7 +278,7 @@ function ChevronRight({ className }: { className?: string }) {
 }
 
 interface ModalProps {
-    notification: Notification;
+    notification: Notification | null;
     onClose: () => void;
     getIcon: (type: NotificationType) => React.ReactNode;
     getTypeStyles: (type: NotificationType, read: boolean) => string;
@@ -292,13 +286,11 @@ interface ModalProps {
 }
 
 function NotificationDetailsModal({ notification, onClose, getIcon, getTypeStyles, formatTime }: ModalProps) {
+    if (!notification) return null;
+
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6">
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
-                onClick={onClose}
-            />
-            <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden animate-in zoom-in-95 duration-200">
+        <ModalPortal isOpen={!!notification} onClose={onClose}>
+            <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
                 {/* Header Backdrop */}
                 <div className={`absolute top-0 left-0 right-0 h-32 opacity-10 dark:opacity-20 ${notification.type === 'success' ? 'bg-emerald-500' :
                     notification.type === 'error' ? 'bg-red-500' :
@@ -353,6 +345,6 @@ function NotificationDetailsModal({ notification, onClose, getIcon, getTypeStyle
                     </div>
                 </div>
             </div>
-        </div>
+        </ModalPortal>
     );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, GripVertical, Play, Pause, Loader2, Download, AlertCircle, CheckCircle2, Music, MinusCircle, PlusCircle, Trash2 } from "lucide-react";
+import { X, GripVertical, Play, Pause, Loader2, Download, CheckCircle2, Music, PlusCircle, Trash2 } from "lucide-react";
 import { databases } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import { useNotifications } from "@/context/NotificationContext";
@@ -22,6 +22,7 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import ModalPortal from "./ModalPortal";
 
 interface AudioItem {
     id: string;
@@ -69,7 +70,7 @@ function SortableAudioItem({ item, index, onPlay, isPlaying, onRemove }: {
             ref={setNodeRef}
             style={style}
             className={`group flex items-start gap-4 p-4 bg-white dark:bg-zinc-800/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-white/5 rounded-2xl transition-all ${isDragging ? 'shadow-2xl ring-2 ring-primary/50' : 'shadow-sm'
-                }`}
+                } pointer-events-auto`}
         >
             {/* Drag Handle */}
             <div
@@ -116,7 +117,7 @@ function SortableAudioItem({ item, index, onPlay, isPlaying, onRemove }: {
                             className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all shrink-0"
                             title="Sidelined (Exclude from export)"
                         >
-                            <MinusCircle className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
@@ -157,7 +158,6 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
         if (isOpen) {
             fetchAudioItems();
         } else {
-            // Reset excluded items when modal closes
             setExcludedItems([]);
         }
         return () => {
@@ -182,7 +182,7 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
             );
 
             const items: AudioItem[] = response.documents
-                .filter((doc: any) => doc.audioContent) // Only items with audio
+                .filter((doc: any) => doc.audioContent)
                 .map((doc: any) => ({
                     id: doc.$id,
                     text: doc.text,
@@ -207,7 +207,6 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
-
         if (over && active.id !== over.id) {
             setAudioItems((items) => {
                 const oldIndex = items.findIndex((item) => item.id === active.id);
@@ -274,8 +273,6 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
 
         try {
             setExporting(true);
-
-            // Send the ordered audio data to backend for merging
             const response = await fetch('/api/export-audio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -285,9 +282,7 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
                 })
             });
 
-            if (!response.ok) {
-                throw new Error('Export failed');
-            }
+            if (!response.ok) throw new Error('Export failed');
 
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
@@ -318,11 +313,9 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm lg:pl-64 animate-in fade-in duration-200">
-            <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 rounded-3xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 h-full max-h-[92vh] flex flex-col">
+        <ModalPortal isOpen={isOpen} onClose={onClose}>
+            <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 rounded-3xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 h-full max-h-[92vh] flex flex-col pointer-events-auto">
                 {/* Header */}
                 <div className="relative p-6 border-b border-border dark:border-white/5 bg-gradient-to-br from-primary/5 to-transparent">
                     <button
@@ -371,9 +364,6 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
                         </div>
                     ) : (
                         <div className="space-y-4">
-
-
-                            {/* Draggable List */}
                             <DndContext
                                 sensors={sensors}
                                 collisionDetection={closestCenter}
@@ -398,7 +388,6 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
                                 </SortableContext>
                             </DndContext>
 
-                            {/* Sidelined Items */}
                             {excludedItems.length > 0 && (
                                 <div className="mt-12 space-y-4">
                                     <div className="flex items-center gap-3 px-2">
@@ -460,14 +449,6 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
                 {/* Footer */}
                 {(audioItems.length > 0 || excludedItems.length > 0) && (
                     <div className="p-6 border-t border-border dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/50">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className={`w-5 h-5 ${audioItems.length > 0 ? 'text-primary' : 'text-zinc-400'}`} />
-                                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                    {audioItems.length} audio file{audioItems.length !== 1 ? 's' : ''} ready to merge
-                                </span>
-                            </div>
-                        </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={onClose}
@@ -497,6 +478,6 @@ export default function ExportModal({ isOpen, onClose, projectId, projectName }:
                     </div>
                 )}
             </div>
-        </div>
+        </ModalPortal>
     );
 }
