@@ -213,9 +213,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <div className="relative group">
                             <Link
                                 href="/dashboard/ai-writer"
-                                onClick={() => {
+                                onClick={(e) => {
+                                    handleLinkClick(e, '/dashboard/ai-writer');
                                     setIsAiMenuOpen(true);
-                                    if (pathname.includes('/dashboard/ai-writer')) onClose?.();
                                 }}
                                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-all ${pathname.includes('/dashboard/ai-writer') || pathname.includes('ai-history')
                                     ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'

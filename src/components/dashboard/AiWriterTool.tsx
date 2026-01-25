@@ -1,17 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Sparkles, Wand2, Loader2, ArrowRight, Copy, Check, RotateCcw, Folder, ChevronDown, Lock, Cpu, History as HistoryIcon, Zap, Type, FileText, Calendar, CreditCard, Trash2, Info, Clock, AlertTriangle } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { databases } from "@/lib/appwrite";
-import { Query } from "appwrite";
-import Link from "next/link";
-import { format } from "date-fns";
-import { useNotifications } from "@/context/NotificationContext";
+import React, { useState, useRef } from "react";
+import { Sparkles, Wand2, Loader2, Copy, Check, RotateCcw, Lock, Cpu, Zap, Info } from "lucide-react";
 import { useProject } from "@/context/ProjectContext";
+import { useAuth } from "@/context/AuthContext";
 
-const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID = 'ai_history';
+
 
 const OpenAIIcon = ({ className }: { className?: string }) => (
     <svg
@@ -41,24 +35,16 @@ const GPT_MODELS = [
     }
 ];
 
-interface AiHistoryItem {
-    $id: string;
-    $createdAt: string;
-    prompt: string;
-    generatedText: string;
-    charCount: number;
-    creditCost: number;
-    projectId?: string;
-}
+
 
 interface AiWriterToolProps {
     projectId?: string;
 }
 
 export default function AiWriterTool({ projectId }: AiWriterToolProps) {
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const { user, refreshUser } = useAuth();
     const { project, setProject, projects } = useProject();
-    const { addNotification } = useNotifications();
 
     const [prompt, setPrompt] = useState("");
     const [generatedText, setGeneratedText] = useState("");
@@ -67,37 +53,7 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
-    // History State
-    const [history, setHistory] = useState<AiHistoryItem[]>([]);
-    const [historyLoading, setHistoryLoading] = useState(false);
 
-    useEffect(() => {
-        if (user) {
-            fetchHistory();
-        }
-    }, [user, project?.$id]);
-
-
-    const fetchHistory = async () => {
-        if (!user) return;
-        try {
-            setHistoryLoading(true);
-            const response = await databases.listDocuments(
-                DATABASE_ID,
-                COLLECTION_ID,
-                [
-                    Query.equal('userId', user.$id),
-                    Query.orderDesc('$createdAt'),
-                    Query.limit(10)
-                ]
-            );
-            setHistory(response.documents as unknown as AiHistoryItem[]);
-        } catch (error) {
-            console.error("Failed to fetch history:", error);
-        } finally {
-            setHistoryLoading(false);
-        }
-    };
 
     const handleGenerate = async () => {
         if (!prompt.trim() || !user || !project?.$id) return;
@@ -143,7 +99,7 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
             }
 
             await refreshUser();
-            fetchHistory(); // Refresh history after generation
+
 
         } catch (err: any) {
             console.error('AI Generation failed:', err);
@@ -157,27 +113,9 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
         navigator.clipboard.writeText(generatedText);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-        addNotification({
-            title: "Copied",
-            message: "Script copied to clipboard.",
-            type: "success"
-        });
     };
 
-    const restoreHistoryItem = (item: AiHistoryItem) => {
-        setPrompt(item.prompt);
-        setGeneratedText(item.generatedText);
-        if (item.projectId) {
-            const historyProject = projects.find(p => p.$id === item.projectId);
-            if (historyProject) setProject(historyProject);
-        }
 
-        addNotification({
-            title: "Restored",
-            message: "Script restored to editor.",
-            type: "info"
-        });
-    };
 
     const isLocked = !project?.$id;
 
@@ -187,40 +125,43 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
             {/* Content Grid - Following TTSTool proportional layout */}
             <div className="w-full h-full flex flex-col lg:grid lg:grid-cols-12 gap-6 relative z-10">
 
-                {/* Left Side: Main Writing Card (Proportional to Main TTS Card) */}
-                <div className="lg:col-span-8 xl:col-span-9 w-full glass-panel rounded-2xl md:rounded-3xl shadow-xl border border-border dark:border-white/5 flex flex-col lg:h-[calc(100vh-140px)] min-h-[600px] relative overflow-hidden">
+                {/* Main Writing Card */}
+                <div className="lg:col-span-12 w-full glass-panel rounded-2xl md:rounded-3xl shadow-xl border border-border dark:border-white/5 flex flex-col lg:h-[calc(100vh-140px)] min-h-[600px] relative overflow-hidden">
 
                     {/* Editor & Controls Split Area */}
                     <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
 
                         {/* Left: Writing Studio (Prompt Area) */}
-                        <div className="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-col">
-                            <div className="flex items-center gap-3 mb-6 select-none">
+                        <div
+                            className="flex-1 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-col cursor-text"
+                            onClick={() => textAreaRef.current?.focus()}
+                        >
+                            <div className="absolute top-6 left-8 flex items-center gap-3 z-10 select-none pointer-events-none">
                                 <div className="flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 text-[10px] md:text-xs font-mono uppercase tracking-widest opacity-80">
                                     <Sparkles className="w-3 h-3 text-purple-500" />
                                     <span>Creative Studio</span>
                                 </div>
                             </div>
 
-                            <div className="flex-1 relative">
-                                <textarea
-                                    className="w-full h-full bg-transparent border-none outline-none resize-none text-base md:text-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 font-light leading-relaxed scrollbar-hide"
-                                    placeholder={isLocked ? "Connect a project on the right to start writing..." : "Your instructions here... e.g. Write a spooky 30-second intro for a horror podcast about abandoned hospitals. Use a lot of vivid imagery."}
-                                    value={prompt}
-                                    onChange={(e) => setPrompt(e.target.value)}
-                                    disabled={isLocked || isGenerating}
-                                    spellCheck={false}
-                                />
-                                {isLocked && (
-                                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-zinc-50/10 dark:bg-black/10 backdrop-blur-[2px] rounded-3xl">
-                                        <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-border dark:border-white/5 flex flex-col items-center gap-2 max-w-xs text-center">
-                                            <Lock className="w-8 h-8 text-zinc-400" />
-                                            <p className="text-sm font-bold text-zinc-900 dark:text-white">Writer Context Required</p>
-                                            <p className="text-xs text-zinc-500">Pick a project from the configuration panel to unlock the AI writer.</p>
-                                        </div>
+                            <textarea
+                                ref={textAreaRef}
+                                className="w-full h-full bg-transparent border-none outline-none resize-none text-base md:text-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 font-light leading-relaxed scrollbar-hide p-6 md:p-8 pt-16 md:pt-14"
+                                placeholder={isLocked ? "Connect a project below to start writing..." : "Your instructions here... e.g. Write a spooky 30-second intro for a horror podcast about abandoned hospitals. Use a lot of vivid imagery."}
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                disabled={isLocked || isGenerating}
+                                spellCheck={false}
+                            />
+
+                            {isLocked && (
+                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-zinc-50/10 dark:bg-black/10 backdrop-blur-[2px] rounded-3xl">
+                                    <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-border dark:border-white/5 flex flex-col items-center gap-2 max-w-xs text-center">
+                                        <Lock className="w-8 h-8 text-zinc-400" />
+                                        <p className="text-sm font-bold text-zinc-900 dark:text-white">Writer Context Required</p>
+                                        <p className="text-xs text-zinc-500">Pick a project and configure the neural engine below to unlock the writer.</p>
                                     </div>
-                                )}
-                            </div>
+                                </div>
+                            )}
 
                             {/* Character Count like TTS */}
                             <div className="absolute top-6 right-8 text-[10px] font-bold bg-white/90 dark:bg-zinc-800/90 px-3 py-1.5 rounded-xl backdrop-blur-md border border-zinc-200 dark:border-white/10 shadow-lg text-zinc-500 dark:text-zinc-400">
@@ -228,195 +169,124 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                             </div>
                         </div>
 
-                        {/* Right: Configuration Sidebar inside the main card */}
-                        <div className="w-full md:w-72 lg:w-80 bg-white/50 dark:bg-zinc-900/60 p-6 md:p-8 flex flex-col gap-8 backdrop-blur-md border-t md:border-t-0 md:border-l border-border dark:border-white/5 overflow-y-auto">
+                        {/* Right: Result Sidebar (Neural Content Stream) */}
+                        <div className="w-full md:w-[450px] lg:w-[550px] xl:w-[600px] bg-white/90 dark:bg-zinc-950/80 p-0 flex flex-col backdrop-blur-xl border-t md:border-t-0 md:border-l border-border dark:border-white/5 overflow-hidden">
+                            <div className="px-6 py-4 border-b border-border dark:border-white/5 flex items-center justify-between bg-white/50 dark:bg-zinc-900/50">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-primary animate-pulse' : 'bg-emerald-500'}`} />
+                                    <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
+                                        Neural Content Stream
+                                    </h3>
+                                </div>
 
-
-                            {/* Intelligence Section */}
-                            <div className="space-y-4">
-                                <label className="flex items-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
-                                    <Cpu className="w-3 h-3 mr-2 text-primary" />
-                                    Neural Engine
-                                </label>
-                                <div className="space-y-2">
-                                    {GPT_MODELS.map((model) => (
+                                {generatedText && (
+                                    <div className="flex items-center gap-2">
                                         <button
-                                            key={model.id}
-                                            onClick={() => setSelectedModel(model.id)}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${selectedModel === model.id
-                                                ? "bg-white dark:bg-zinc-800 border-primary shadow-lg ring-1 ring-primary/20"
-                                                : "bg-transparent border-transparent hover:bg-zinc-100 dark:hover:bg-white/5"
-                                                }`}
+                                            onClick={copyToClipboard}
+                                            className="p-2 text-zinc-400 hover:text-primary transition-colors bg-zinc-100 dark:bg-white/5 rounded-lg border border-transparent hover:border-primary/20"
+                                            title="Copy Script"
                                         >
-                                            <div className={`p-1.5 rounded-lg transition-colors ${selectedModel === model.id ? 'bg-primary text-white' : 'bg-zinc-100 dark:bg-white/5 text-zinc-400'}`}>
-                                                {model.icon}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className={`text-xs font-bold truncate ${selectedModel === model.id ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>{model.name}</p>
-                                                <p className="text-[10px] text-zinc-400 font-medium truncate">{model.badge}</p>
-                                            </div>
-                                            {selectedModel === model.id && (
-                                                <Check className="w-4 h-4 text-primary shrink-0" />
-                                            )}
+                                            {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                                         </button>
-                                    ))}
+                                        <button
+                                            onClick={() => {
+                                                setGeneratedText("");
+                                                setPrompt("");
+                                            }}
+                                            className="p-2 text-zinc-400 hover:text-red-500 transition-colors bg-zinc-100 dark:bg-white/5 rounded-lg border border-transparent hover:border-red-500/20"
+                                            title="Clear Editor"
+                                        >
+                                            <RotateCcw className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-zinc-50/30 dark:bg-black/20">
+                                {generatedText ? (
+                                    <div className="space-y-4">
+                                        <p className="text-zinc-900 dark:text-zinc-100 text-base md:text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                                            {generatedText}
+                                            {isGenerating && <span className="inline-block w-2 h-5 bg-primary ml-1 animate-pulse rounded-full align-middle" />}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                                        <Wand2 className="w-8 h-8 mb-4 text-zinc-400" />
+                                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest whitespace-nowrap">Awaiting synthesis...</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Configuration Bar (Footer Area - Neural Engine) */}
+                    <div className="h-auto border-t border-border dark:border-white/5 bg-white/50 dark:bg-zinc-900/60 p-4 md:p-6 backdrop-blur-md">
+                        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-8">
+
+                            {/* Neural Engine Models */}
+                            <div className="flex-1 w-full md:w-auto">
+                                <div className="flex flex-col gap-3">
+                                    <label className="flex items-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                                        <Cpu className="w-3 h-3 mr-2 text-primary" />
+                                        Neural Engine
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {GPT_MODELS.map((model) => (
+                                            <button
+                                                key={model.id}
+                                                onClick={() => setSelectedModel(model.id)}
+                                                className={`flex items-center gap-3 px-4 py-2 rounded-xl border transition-all ${selectedModel === model.id
+                                                    ? "bg-white dark:bg-zinc-800 border-primary shadow-lg ring-1 ring-primary/20"
+                                                    : "bg-white/50 dark:bg-white/5 border-transparent hover:bg-zinc-100 dark:hover:bg-white/10"
+                                                    }`}
+                                            >
+                                                <div className={`p-1 rounded-lg transition-colors ${selectedModel === model.id ? 'bg-primary text-white' : 'bg-zinc-100 dark:bg-white/5 text-zinc-400'}`}>
+                                                    {model.icon}
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className={`text-[10px] font-bold ${selectedModel === model.id ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>{model.name}</p>
+                                                </div>
+                                                {selectedModel === model.id && (
+                                                    <Check className="w-3 h-3 text-primary shrink-0" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Summary/Tip Area */}
-                            <div className="mt-auto p-4 bg-primary/5 border border-primary/10 rounded-2xl space-y-2">
-                                <div className="flex items-center gap-2 text-primary">
-                                    <Info className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Pro Tip</span>
-                                </div>
+                            {/* Pro Tip - Hidden on mobile to save space */}
+                            <div className="hidden lg:flex items-start gap-3 p-3 bg-primary/5 border border-primary/10 rounded-2xl max-w-xs">
+                                <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">
-                                    Specify the <span className="text-zinc-900 dark:text-white font-bold">tone</span> and <span className="text-zinc-900 dark:text-white font-bold">target length</span> in your prompt for more accurate neural results.
+                                    Specify <span className="text-zinc-900 dark:text-white font-bold">tone</span> and <span className="text-zinc-900 dark:text-white font-bold">length</span> for better results.
                                 </p>
                             </div>
 
-                            <button
-                                onClick={handleGenerate}
-                                disabled={!prompt.trim() || isGenerating || isLocked}
-                                className={`w-full py-4 rounded-xl flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] transition-all shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${!prompt.trim() || isGenerating || isLocked
-                                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 shadow-none cursor-not-allowed'
-                                    : 'bg-primary text-primary-foreground shadow-primary/25'
-                                    }`}
-                            >
-                                {isGenerating ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Zap className="w-4 h-4 fill-current" />
-                                )}
-                                <span>{isGenerating ? 'Synthesizing' : 'Generate'}</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Result Interface (Footer Area of main card) */}
-                    <div className="h-2/5 md:h-1/2 border-t border-border dark:border-white/5 flex flex-col bg-white/90 dark:bg-zinc-950/80 backdrop-blur-xl">
-                        <div className="px-6 md:px-8 py-4 border-b border-border dark:border-white/5 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-primary animate-pulse' : 'bg-emerald-500'}`} />
-                                <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
-                                    Neural Content Stream
-                                </h3>
+                            {/* Generate Button */}
+                            <div className="w-full md:w-auto shrink-0">
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={!prompt.trim() || isGenerating || isLocked}
+                                    className={`w-full md:w-48 py-4 rounded-xl flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] transition-all shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${!prompt.trim() || isGenerating || isLocked
+                                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 shadow-none cursor-not-allowed'
+                                        : 'bg-primary text-primary-foreground shadow-primary/25'
+                                        }`}
+                                >
+                                    {isGenerating ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Zap className="w-4 h-4 fill-current" />
+                                    )}
+                                    <span>{isGenerating ? 'Running' : 'Generate'}</span>
+                                </button>
                             </div>
-
-                            {generatedText && (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={copyToClipboard}
-                                        className="p-2 text-zinc-400 hover:text-primary transition-colors bg-zinc-100 dark:bg-white/5 rounded-lg border border-transparent hover:border-primary/20"
-                                        title="Copy Script"
-                                    >
-                                        {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setGeneratedText("");
-                                            setPrompt("");
-                                        }}
-                                        className="p-2 text-zinc-400 hover:text-red-500 transition-colors bg-zinc-100 dark:bg-white/5 rounded-lg border border-transparent hover:border-red-500/20"
-                                        title="Clear Editor"
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar">
-                            {generatedText ? (
-                                <div className="max-w-3xl mx-auto">
-                                    <p className="text-zinc-900 dark:text-zinc-100 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-medium">
-                                        {generatedText}
-                                        {isGenerating && <span className="inline-block w-2 h-6 bg-primary ml-1 animate-pulse rounded-full align-middle" />}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
-                                    <Wand2 className="w-10 h-10 mb-4 text-zinc-400" />
-                                    <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Awaiting synthesis...</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* Right Side: Generation History (Proportional to TTS history sidebar) */}
-                <div className="lg:col-span-4 xl:col-span-3 lg:h-[calc(100vh-140px)] flex flex-col">
-                    <div className="glass-panel flex-1 rounded-2xl md:rounded-3xl border border-border dark:border-white/5 bg-white/50 dark:bg-zinc-900/30 overflow-hidden flex flex-col shadow-lg">
-                        <div className="p-4 md:p-5 flex items-center justify-between border-b border-border dark:border-white/5 bg-white/80 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
-                            <div className="flex items-center gap-2">
-                                <HistoryIcon className="w-4 h-4 text-primary" />
-                                <h2 className="font-bold text-xs md:text-sm tracking-wide text-zinc-900 dark:text-white">Recent Scripts</h2>
-                            </div>
-                            <Link href="/dashboard/ai-history" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
-                                View All
-                            </Link>
-                        </div>
 
-                        <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-                            {historyLoading ? (
-                                <div className="py-20 flex flex-col items-center justify-center gap-4 opacity-50">
-                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">Loading...</span>
-                                </div>
-                            ) : history.length === 0 ? (
-                                <div className="py-20 flex flex-col items-center justify-center text-zinc-400 gap-2 opacity-50">
-                                    <Clock className="w-10 h-10" />
-                                    <p className="text-xs font-bold uppercase tracking-widest">No history yet</p>
-                                </div>
-                            ) : (
-                                history.map((item) => (
-                                    <div
-                                        key={item.$id}
-                                        onClick={() => restoreHistoryItem(item)}
-                                        className="group p-4 bg-white dark:bg-zinc-900/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-2xl border border-border dark:border-white/5 shadow-sm hover:border-primary/30 transition-all cursor-pointer"
-                                    >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="flex items-center gap-2 overflow-hidden">
-                                                <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                                    <FileText className="w-3 h-3 text-primary" />
-                                                </div>
-                                                <span className="text-[10px] text-zinc-500 dark:text-zinc-500 font-medium">
-                                                    {format(new Date(item.$createdAt), 'MMM d, h:mm a')}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <p className="text-zinc-600 dark:text-zinc-400 text-xs font-bold line-clamp-2 leading-snug group-hover:text-primary transition-colors mb-3">
-                                            {item.prompt}
-                                        </p>
-
-                                        <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-white/5 opacity-60">
-                                            <div className="flex items-center gap-3 text-[9px] font-black text-zinc-400 uppercase tracking-tighter">
-                                                <div className="flex items-center gap-1">
-                                                    <CreditCard className="w-2.5 h-2.5" />
-                                                    {item.creditCost}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Type className="w-2.5 h-2.5" />
-                                                    {item.charCount}
-                                                </div>
-                                            </div>
-                                            <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <ArrowRight className="w-3 h-3" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        <div className="p-4 bg-zinc-50 dark:bg-zinc-950/40 border-t border-border dark:border-white/5 flex items-start gap-3">
-                            <Info className="w-4 h-4 text-zinc-400 shrink-0" />
-                            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 leading-normal uppercase tracking-wider">
-                                History is synced to your cloud database automatically.
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <style jsx>{`
