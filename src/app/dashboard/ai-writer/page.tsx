@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useProject } from "@/context/ProjectContext";
 import { useAuth } from "@/context/AuthContext";
@@ -11,13 +11,23 @@ export default function AiWriterPage() {
     const { project, projects, loadingProjects, refreshProjects, setProject } = useProject();
     const { user } = useAuth();
     const router = useRouter();
+    const [isChecking, setIsChecking] = useState(true);
+    const fetchAttempted = useRef(false);
 
     useEffect(() => {
         // If projects are not loaded yet and we have a user, trigger a refresh
-        if (user && projects.length === 0 && !loadingProjects) {
+        if (user && projects.length === 0 && !loadingProjects && !fetchAttempted.current) {
             refreshProjects(user.$id);
+            fetchAttempted.current = true;
         }
     }, [user, projects.length, loadingProjects, refreshProjects]);
+
+    useEffect(() => {
+        // Resolve initialization once loading finishes (or if user is not present)
+        if (!loadingProjects) {
+            setIsChecking(false);
+        }
+    }, [loadingProjects]);
 
     useEffect(() => {
         // Redirection logic:
@@ -34,7 +44,7 @@ export default function AiWriterPage() {
     }, [project, projects, loadingProjects, router, setProject]);
 
     // Show loading state while determining the target project
-    if (loadingProjects || (user && projects.length > 0 && !project)) {
+    if (loadingProjects || isChecking || (user && projects.length > 0 && !project)) {
         return (
             <div className="w-full h-full flex items-center justify-center min-h-[500px]">
                 <div className="flex flex-col items-center gap-4">

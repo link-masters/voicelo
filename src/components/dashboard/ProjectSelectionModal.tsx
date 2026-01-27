@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, FolderOpen, AlertCircle, Plus, ChevronRight } from "lucide-react";
+import { X, FolderOpen, Plus, ChevronRight } from "lucide-react";
 import { databases } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import { useAuth } from "@/context/AuthContext";
@@ -127,15 +127,6 @@ export default function ProjectSelectionModal({ isOpen, onClose, voiceId, voiceN
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {/* Info Banner */}
-                            <div className="flex items-start gap-3 p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl mb-4">
-                                <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
-                                    <AlertCircle className="w-4 h-4 text-blue-500" />
-                                </div>
-                                <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-                                    <span className="font-bold">Pro Tip:</span> Organizing generations in projects helps you keep track of your work and manage your audio library efficiently.
-                                </p>
-                            </div>
 
                             {/* Project List */}
                             {projects.map((project) => (
@@ -187,9 +178,7 @@ export default function ProjectSelectionModal({ isOpen, onClose, voiceId, voiceN
                     >
                         Cancel
                     </button>
-                    <p className="text-[10px] text-zinc-400 dark:text-zinc-500 text-center mt-3">
-                        Select a project above to use this voice
-                    </p>
+
                 </div>
             </div>
         </ModalPortal>

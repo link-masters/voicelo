@@ -7,6 +7,7 @@ import { getUserVoices, synthesizeInworldSpeech, toggleCommunityVoiceLike, updat
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import ShareVoiceModal from "@/components/dashboard/ShareVoiceModal";
+import { useVoices } from "@/context/VoiceContext";
 
 interface Voice {
     voiceId: string;
@@ -27,6 +28,7 @@ interface Voice {
 
 export default function MyVoicesPage() {
     const { user } = useAuth();
+    const { refreshVoices } = useVoices();
     const router = useRouter();
     const [voices, setVoices] = useState<Voice[]>([]);
     const [loading, setLoading] = useState(true);
@@ -111,6 +113,8 @@ export default function MyVoicesPage() {
     };
 
     const handlePreview = async (voice: Voice) => {
+        if (isPreviewLoading) return;
+
         if (playingVoiceId === voice.voiceId) {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -168,6 +172,7 @@ export default function MyVoicesPage() {
 
         try {
             await updateVoicePrivacy(voice.docId, newStatus);
+            await refreshVoices(true);
         } catch (error) {
             console.error("Privacy update failed", error);
             setVoices(prev => prev.map(v => v.docId === voice.docId ? { ...v, isPublic: !newStatus } : v));
@@ -195,6 +200,7 @@ export default function MyVoicesPage() {
 
         try {
             await deleteUserVoice(voiceToDelete.docId, voiceToDelete.voiceId);
+            await refreshVoices(true);
             closeDeleteModal();
         } catch (error) {
             console.error("Delete failed", error);
@@ -405,6 +411,7 @@ export default function MyVoicesPage() {
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     <button
                                                         onClick={() => handlePreview(voice)}
+                                                        disabled={!!isPreviewLoading}
                                                         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all
                                                             ${playingVoiceId === voice.voiceId
                                                                 ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
@@ -487,6 +494,7 @@ export default function MyVoicesPage() {
                                     </div>
                                     <button
                                         onClick={() => handlePreview(voice)}
+                                        disabled={!!isPreviewLoading}
                                         className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all shrink-0
                                             ${playingVoiceId === voice.voiceId
                                                 ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/30'
@@ -670,18 +678,18 @@ export default function MyVoicesPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-between">
                             <button
                                 onClick={closeDeleteModal}
                                 disabled={isDeleting}
-                                className="flex-1 py-3.5 px-6 rounded-2xl font-black text-xs uppercase tracking-widest bg-zinc-100 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/20 transition-colors disabled:opacity-50"
+                                className="px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest bg-zinc-100 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/20 transition-colors disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={confirmDeleteVoice}
                                 disabled={isDeleting}
-                                className="flex-1 py-3.5 px-6 rounded-2xl font-black text-xs uppercase tracking-widest bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {isDeleting ? (
                                     <>

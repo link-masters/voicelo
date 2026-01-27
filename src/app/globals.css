@@ -52,6 +52,59 @@
   input,
   textarea {
     caret-color: var(--primary) !important;
+    cursor: text !important;
+  }
+
+  /* Global UI Refinement: Ensure text cursor only appears in inputs */
+  html,
+  body {
+    cursor: default;
+  }
+
+  label,
+  button,
+  nav,
+  aside,
+  header,
+  footer,
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  label {
+    cursor: default;
+  }
+
+  a,
+  button,
+  [role="button"],
+  .cursor-pointer {
+    cursor: pointer !important;
+  }
+
+  /* Allow text selection only where it makes sense (like generated content) */
+  .selectable {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
+
+  /* Modal Specific: Ensure no blinking caret or text cursor on modal content */
+  [role="dialog"],
+  .modal-content,
+  #modal-root {
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+
+  /* But allow it for inputs inside modals */
+  [role="dialog"] input,
+  [role="dialog"] textarea,
+  .modal-content input,
+  .modal-content textarea {
+    cursor: text !important;
+    user-select: text !important;
   }
 
   html {

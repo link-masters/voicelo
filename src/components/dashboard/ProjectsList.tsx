@@ -173,7 +173,7 @@ export default function ProjectsList() {
     }
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+        <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-8 select-none">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -188,6 +188,7 @@ export default function ProjectsList() {
                         rounded-full font-semibold shadow-lg shadow-zinc-500/20 dark:shadow-white/10 
                         hover:shadow-xl hover:shadow-zinc-500/30 dark:hover:shadow-white/20 
                         hover:-translate-y-0.5 transition-all duration-300
+                        cursor-pointer
                     "
                 >
                     <span className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -203,7 +204,7 @@ export default function ProjectsList() {
                         <Link
                             href={`/dashboard/projects/${project.$id}`}
                             key={project.$id}
-                            className="group relative bg-white dark:bg-zinc-900 border border-border dark:border-white/5 rounded-2xl p-6 hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/5 flex flex-col h-full"
+                            className="group relative bg-white dark:bg-zinc-900 border border-border dark:border-white/5 rounded-2xl p-6 hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/5 flex flex-col h-full cursor-pointer"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -304,9 +305,15 @@ export default function ProjectsList() {
                                 onChange={(e) => setNewProjectDesc(e.target.value)}
                                 placeholder="Brief description of your project..."
                                 className="w-full px-4 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all resize-none h-24"
+                                maxLength={100}
                             />
+                            <div className="flex justify-end">
+                                <span className={`text-[10px] font-medium ${newProjectDesc.length >= 100 ? 'text-red-500' : 'text-zinc-400'}`}>
+                                    {newProjectDesc.length}/100 characters
+                                </span>
+                            </div>
                         </div>
-                        <div className="pt-4 flex justify-end gap-3">
+                        <div className="pt-4 flex justify-between">
                             <button
                                 type="button"
                                 onClick={() => setIsCreateModalOpen(false)}
@@ -341,7 +348,7 @@ export default function ProjectsList() {
                             This action cannot be undone. All generations and data associated with this project will be permanently deleted.
                         </p>
                     </div>
-                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-border dark:border-white/5 flex gap-3 justify-end">
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-border dark:border-white/5 flex justify-between">
                         <button
                             onClick={() => setIsDeleteModalOpen(false)}
                             disabled={deleting}

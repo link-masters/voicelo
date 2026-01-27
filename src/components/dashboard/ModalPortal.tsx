@@ -29,10 +29,14 @@ export default function ModalPortal({ children, onClose, isOpen }: ModalPortalPr
     if (!mounted || !isOpen) return null;
 
     return createPortal(
-        <div className="fixed top-0 right-0 bottom-0 left-0 lg:left-64 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
+        <div
+            className="fixed top-0 right-0 bottom-0 left-0 lg:left-64 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300"
+            role="dialog"
+            aria-modal="true"
+        >
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-md cursor-pointer"
+                className="absolute inset-0 bg-black/60 backdrop-blur-md cursor-default"
                 onClick={onClose}
             />
 

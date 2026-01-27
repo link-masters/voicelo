@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getInworldVoices, getCommunityVoices, getUserVoices, toggleCommunityVoiceLike } from '@/app/actions';
 import { useAuth } from './AuthContext';
 
@@ -14,6 +14,7 @@ interface Voice {
     isCommunity?: boolean;
     isPublic?: boolean;
     creator?: string;
+    creatorId?: string;
     gender?: string;
     likes?: number;
     likedBy?: string[];
@@ -36,13 +37,18 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     const [communityVoices, setCommunityVoices] = useState<Voice[]>([]);
     const [loading, setLoading] = useState(true);
     const [lastFetched, setLastFetched] = useState<number>(0);
+    const lastUserIdRef = useRef<string | null>(user?.$id || null);
 
     const refreshVoices = useCallback(async (force = false) => {
-        // Only fetch if forced or if it's been more than 5 minutes since last fetch
+        // Force refresh if user changed (login/logout)
+        const userChanged = user?.$id !== lastUserIdRef.current;
+
+        // Only fetch if forced, user changed, or if it's been more than 5 minutes since last fetch
         const now = Date.now();
-        if (!force && lastFetched !== 0 && now - lastFetched < 5 * 60 * 1000) return;
+        if (!force && !userChanged && lastFetched !== 0 && now - lastFetched < 5 * 60 * 1000) return;
 
         setLoading(true);
+        lastUserIdRef.current = user?.$id || null;
         try {
             const [official, community] = await Promise.all([
                 getInworldVoices(),
@@ -64,7 +70,23 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
 
             // Filter community voices to only true clones/shared voices
             // (Official voices bookmarked by users have creatorName 'Inworld AI')
-            const trueCommunity = community.filter((v: any) => v.creator !== 'Inworld AI');
+            let trueCommunity = community.filter((v: any) => v.creator !== 'Inworld AI');
+
+            // Also fetch private voices if user is logged in
+            if (user?.$id) {
+                try {
+                    const userVoices = await getUserVoices(user.$id);
+                    if (userVoices && userVoices.length > 0) {
+                        userVoices.forEach(uv => {
+                            if (!trueCommunity.some(cv => cv.voiceId === uv.voiceId)) {
+                                trueCommunity.push(uv);
+                            }
+                        });
+                    }
+                } catch (userVoicesError) {
+                    console.error("Failed to fetch private voices:", userVoicesError);
+                }
+            }
 
             setOfficialVoices(mergedOfficial);
             setCommunityVoices(trueCommunity);
@@ -74,45 +96,9 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    }, [lastFetched]);
+    }, [lastFetched, user?.$id]);
 
-    // Separate effect to fetch private voices only on the client when user is available
-    useEffect(() => {
-        if (user?.$id) {
-            const fetchPrivateVoices = async () => {
-                try {
-                    const userVoices = await getUserVoices(user.$id);
-                    if (userVoices && userVoices.length > 0) {
-                        setCommunityVoices(prev => {
-                            const combined = [...prev];
-                            userVoices.forEach(uv => {
-                                if (!combined.some(cv => cv.voiceId === uv.voiceId)) {
-                                    combined.push(uv);
-                                }
-                            });
-                            return combined;
-                        });
 
-                        // Also update official voices with user-specific shadow info if any
-                        setOfficialVoices(prev => prev.map(offVoice => {
-                            const shadow = userVoices.find(uv => uv.voiceId === offVoice.voiceId);
-                            if (shadow) {
-                                return {
-                                    ...offVoice,
-                                    likes: shadow.likes || 0,
-                                    likedBy: shadow.likedBy || []
-                                };
-                            }
-                            return offVoice;
-                        }));
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch private voices:", error);
-                }
-            };
-            fetchPrivateVoices();
-        }
-    }, [user?.$id]);
 
     const toggleVoiceLike = async (voiceId: string, userId: string) => {
         // 1. Find if it's in community OR official voices

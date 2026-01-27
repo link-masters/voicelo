@@ -1,37 +1,70 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Sparkles, Wand2, Loader2, Copy, Check, RotateCcw, Lock, Cpu, Zap, Info } from "lucide-react";
+import { Sparkles, Wand2, Loader2, Copy, Check, RotateCcw, Lock, Cpu, Zap, Info, ArrowRight } from "lucide-react";
 import { useProject } from "@/context/ProjectContext";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 
 
 const OpenAIIcon = ({ className }: { className?: string }) => (
     <svg
-        viewBox="0 0 721 721"
+        viewBox="0 0 318 320"
+        className={className}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path
+            fill="currentColor"
+            d="M297.06 130.97C304.32 109.18 301.82 85.31 290.21 65.49C272.75 35.09 237.65 19.45 203.37 26.81C188.12 9.62999 166.21 -0.140011 143.24 -1.11288e-05C108.2 -0.0800111 77.1101 22.48 66.3301 55.82C43.8201 60.43 24.3901 74.52 13.0201 94.49C-4.56991 124.81 -0.559916 163.03 22.9401 189.03C15.6801 210.82 18.1801 234.69 29.7901 254.51C47.2501 284.91 82.3501 300.55 116.63 293.19C131.87 310.37 153.79 320.14 176.76 319.99C211.82 320.08 242.92 297.5 253.7 264.13C276.21 259.52 295.64 245.43 307.01 225.46C324.58 195.14 320.56 156.95 297.07 130.95L297.06 130.97ZM176.78 299.08C162.75 299.1 149.16 294.19 138.39 285.2C138.88 284.94 139.73 284.47 140.28 284.13L204 247.33C207.26 245.48 209.26 242.01 209.24 238.26V148.43L236.17 163.98C236.46 164.12 236.65 164.4 236.69 164.72V239.11C236.65 272.19 209.86 299.01 176.78 299.08ZM47.9401 244.05C40.9101 231.91 38.3801 217.68 40.7901 203.87C41.2601 204.15 42.0901 204.66 42.6801 205L106.4 241.8C109.63 243.69 113.63 243.69 116.87 241.8L194.66 196.88V227.98C194.68 228.3 194.53 228.61 194.28 228.81L129.87 266C101.18 282.52 64.5401 272.7 47.9501 244.05H47.9401ZM31.1701 104.96C38.1701 92.8 49.2201 83.5 62.3801 78.67C62.3801 79.22 62.3501 80.19 62.3501 80.87V154.48C62.3301 158.22 64.3301 161.69 67.5801 163.54L145.37 208.45L118.44 224C118.17 224.18 117.83 224.21 117.53 224.08L53.1101 186.86C24.4801 170.28 14.6601 133.65 31.1601 104.97L31.1701 104.96ZM252.43 156.45L174.64 111.53L201.57 95.99C201.84 95.81 202.18 95.78 202.48 95.91L266.9 133.1C295.58 149.67 305.41 186.36 288.84 215.04C281.83 227.18 270.79 236.48 257.64 241.32V165.51C257.67 161.77 255.68 158.31 252.44 156.45H252.43ZM279.23 116.11C278.76 115.82 277.93 115.32 277.34 114.98L213.62 78.18C210.39 76.29 206.39 76.29 203.15 78.18L125.36 123.1V92C125.34 91.68 125.49 91.37 125.74 91.17L190.15 54.01C218.84 37.46 255.52 47.31 272.06 76.01C279.05 88.13 281.58 102.32 279.21 116.11H279.23ZM110.72 171.54L83.7801 155.99C83.4901 155.85 83.3001 155.57 83.2601 155.25V80.86C83.2801 47.74 110.15 20.9 143.27 20.92C157.28 20.92 170.84 25.84 181.61 34.8C181.12 35.06 180.28 35.53 179.72 35.87L116 72.67C112.74 74.52 110.74 77.98 110.76 81.73L110.72 171.52V171.54ZM125.35 140L160 119.99L194.65 139.99V180L160 200L125.35 180V140Z"
+        />
+    </svg>
+);
+
+const GeminiIcon = ({ className }: { className?: string }) => (
+    <svg
+        viewBox="0 0 24 24"
         className={className}
         fill="currentColor"
         xmlns="http://www.w3.org/2000/svg"
     >
-        <path d="M304.246 294.611V249.028C304.246 245.189 305.687 242.309 309.044 240.392L400.692 187.612C413.167 180.415 428.042 177.058 443.394 177.058C500.971 177.058 537.44 221.682 537.44 269.182C537.44 272.54 537.44 276.379 536.959 280.218L441.954 224.558C436.197 221.201 430.437 221.201 424.68 224.558L304.246 294.611ZM518.245 472.145V363.224C518.245 356.505 515.364 351.707 509.608 348.349L389.174 278.296L428.519 255.743C431.877 253.826 434.757 253.826 438.115 255.743L529.762 308.523C556.154 323.879 573.905 356.505 573.905 388.171C573.905 424.636 552.315 458.225 518.245 472.141V472.145ZM275.937 376.182L236.592 353.152C233.235 351.235 231.794 348.354 231.794 344.515V238.956C231.794 187.617 271.139 148.749 324.4 148.749C344.555 148.749 363.264 155.468 379.102 167.463L284.578 222.164C278.822 225.521 275.942 230.319 275.942 237.039V376.186L275.937 376.182ZM360.626 425.122L304.246 393.455V326.283L360.626 294.616L417.002 326.283V393.455L360.626 425.122ZM396.852 570.989C376.698 570.989 357.989 564.27 342.151 552.276L436.674 497.574C442.431 494.217 445.311 489.419 445.311 482.699V343.552L485.138 366.582C488.495 368.499 489.936 371.379 489.936 375.219V480.778C489.936 532.117 450.109 570.985 396.852 570.985V570.989ZM283.134 463.99L191.486 411.211C165.094 395.854 147.343 363.229 147.343 331.562C147.343 294.616 169.415 261.509 203.48 247.593V356.991C203.48 363.71 206.361 368.508 212.117 371.866L332.074 441.437L292.729 463.99C289.372 465.907 286.491 465.907 283.134 463.99ZM277.859 542.68C223.639 542.68 183.813 501.895 183.813 451.514C183.813 447.675 184.294 443.836 184.771 439.997L279.295 494.698C285.051 498.056 290.812 498.056 296.568 494.698L417.002 425.127V470.71C417.002 474.549 415.562 477.429 412.204 479.346L320.557 532.126C308.081 539.323 293.206 542.68 277.854 542.68H277.859ZM396.852 599.776C454.911 599.776 503.37 558.513 514.41 503.812C568.149 489.896 602.696 439.515 602.696 388.176C602.696 354.587 588.303 321.962 562.392 298.45C564.791 288.373 566.231 278.296 566.231 268.224C566.231 199.611 510.571 148.267 446.274 148.267C433.322 148.267 420.846 150.184 408.37 154.505C386.775 133.392 357.026 119.958 324.4 119.958C266.342 119.958 217.883 161.22 206.843 215.921C153.104 229.837 118.557 280.218 118.557 331.557C118.557 365.146 132.95 397.771 158.861 421.283C156.462 431.36 155.022 441.437 155.022 451.51C155.022 520.123 210.682 571.466 274.978 571.466C287.931 571.466 300.407 569.549 312.883 565.228C334.473 586.341 364.222 599.776 396.852 599.776Z" />
+        <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
     </svg>
 );
 
-const GPT_MODELS = [
+const WRITER_MODELS = [
     {
         id: "gpt-4o-mini",
         name: "GPT-4o Mini",
         description: "Optimal for production-ready voice scripts with balanced creativity.",
-        icon: <OpenAIIcon className="w-5 h-5" />,
-        badge: "Stable"
+        icon: <OpenAIIcon className="w-4 h-4" />,
+        badge: "Stable",
+        brandColor: "bg-white border border-zinc-200 shadow-sm"
     },
     {
-        id: "gpt-5-nano",
-        name: "GPT-5 Nano",
+        id: "gpt-4.1-nano",
+        name: "GPT 4.1 Nano",
         description: "Cutting-edge intelligence for professional-grade creative direction.",
-        icon: <OpenAIIcon className="w-5 h-5" />,
-        badge: "Next Gen"
+        icon: <OpenAIIcon className="w-4 h-4" />,
+        badge: "Stable",
+        brandColor: "bg-white border border-zinc-200 shadow-sm"
+    },
+    {
+        id: "gemini-2.0-flash",
+        name: "Gemini 2.0 Flash",
+        description: "Next-gen speed and efficiency for instant script drafts.",
+        icon: <GeminiIcon className="w-5 h-5" />,
+        badge: "Fast",
+        brandColor: "bg-[#1a73e8]"
+    },
+    {
+        id: "gemini-2.5-flash",
+        name: "Gemini 2.5 Flash",
+        description: "State-of-the-art multimodal intelligence for complex directions.",
+        icon: <GeminiIcon className="w-5 h-5" />,
+        badge: "GA",
+        brandColor: "bg-[#1a73e8]"
     }
 ];
 
@@ -45,11 +78,12 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const { user, refreshUser } = useAuth();
     const { project, setProject, projects } = useProject();
+    const router = useRouter();
 
     const [prompt, setPrompt] = useState("");
     const [generatedText, setGeneratedText] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
-    const [selectedModel, setSelectedModel] = useState(GPT_MODELS[0].id);
+    const [selectedModel, setSelectedModel] = useState(WRITER_MODELS[0].id);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
@@ -115,6 +149,17 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleUseNow = () => {
+        if (!generatedText) return;
+        sessionStorage.setItem('pending_tts_text', generatedText);
+
+        if (project?.$id) {
+            router.push(`/dashboard/projects/${project.$id}`);
+        } else {
+            router.push('/dashboard/text-to-speech');
+        }
+    };
+
 
 
     const isLocked = !project?.$id;
@@ -133,8 +178,7 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
 
                         {/* Left: Writing Studio (Prompt Area) */}
                         <div
-                            className="flex-1 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-col cursor-text"
-                            onClick={() => textAreaRef.current?.focus()}
+                            className="flex-1 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-col"
                         >
                             <div className="absolute top-6 left-8 flex items-center gap-3 z-10 select-none pointer-events-none">
                                 <div className="flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 text-[10px] md:text-xs font-mono uppercase tracking-widest opacity-80">
@@ -157,7 +201,7 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-zinc-50/10 dark:bg-black/10 backdrop-blur-[2px] rounded-3xl">
                                     <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-border dark:border-white/5 flex flex-col items-center gap-2 max-w-xs text-center">
                                         <Lock className="w-8 h-8 text-zinc-400" />
-                                        <p className="text-sm font-bold text-zinc-900 dark:text-white">Writer Context Required</p>
+                                        <p className="text-sm font-bold text-zinc-900 dark:text-white">Project Not Found</p>
                                         <p className="text-xs text-zinc-500">Pick a project and configure the neural engine below to unlock the writer.</p>
                                     </div>
                                 </div>
@@ -175,12 +219,26 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                                 <div className="flex items-center gap-3">
                                     <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-primary animate-pulse' : 'bg-emerald-500'}`} />
                                     <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
-                                        Neural Content Stream
+                                        Generation Output
                                     </h3>
                                 </div>
 
                                 {generatedText && (
                                     <div className="flex items-center gap-2">
+                                        {!isGenerating && (
+                                            <>
+                                                <button
+                                                    onClick={handleUseNow}
+                                                    className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl border border-primary/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 group shadow-sm shadow-primary/5"
+                                                >
+                                                    <span className="text-[10px] md:text-xs font-black uppercase tracking-wider">Use Now</span>
+                                                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                                </button>
+
+                                                <div className="h-8 w-px bg-border dark:bg-white/5 mx-1" />
+                                            </>
+                                        )}
+
                                         <button
                                             onClick={copyToClipboard}
                                             className="p-2 text-zinc-400 hover:text-primary transition-colors bg-zinc-100 dark:bg-white/5 rounded-lg border border-transparent hover:border-primary/20"
@@ -205,7 +263,7 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                             <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-zinc-50/30 dark:bg-black/20">
                                 {generatedText ? (
                                     <div className="space-y-4">
-                                        <p className="text-zinc-900 dark:text-zinc-100 text-base md:text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                                        <p className="text-zinc-900 dark:text-zinc-100 text-base md:text-lg leading-relaxed whitespace-pre-wrap font-medium selectable">
                                             {generatedText}
                                             {isGenerating && <span className="inline-block w-2 h-5 bg-primary ml-1 animate-pulse rounded-full align-middle" />}
                                         </p>
@@ -222,17 +280,16 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
 
                     {/* Configuration Bar (Footer Area - Neural Engine) */}
                     <div className="h-auto border-t border-border dark:border-white/5 bg-white/50 dark:bg-zinc-900/60 p-4 md:p-6 backdrop-blur-md">
-                        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                        <div className="max-w-7xl mx-auto flex flex-col gap-3">
+                            <label className="text-[10px] font-black text-black dark:text-white uppercase tracking-[0.2em]">
+                                Choose model
+                            </label>
 
-                            {/* Neural Engine Models */}
-                            <div className="flex-1 w-full md:w-auto">
-                                <div className="flex flex-col gap-3">
-                                    <label className="flex items-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
-                                        <Cpu className="w-3 h-3 mr-2 text-primary" />
-                                        Neural Engine
-                                    </label>
+                            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                                {/* Neural Engine Models */}
+                                <div className="flex-1 w-full md:w-auto">
                                     <div className="flex flex-wrap gap-2">
-                                        {GPT_MODELS.map((model) => (
+                                        {WRITER_MODELS.map((model) => (
                                             <button
                                                 key={model.id}
                                                 onClick={() => setSelectedModel(model.id)}
@@ -241,8 +298,10 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                                                     : "bg-white/50 dark:bg-white/5 border-transparent hover:bg-zinc-100 dark:hover:bg-white/10"
                                                     }`}
                                             >
-                                                <div className={`p-1 rounded-lg transition-colors ${selectedModel === model.id ? 'bg-primary text-white' : 'bg-zinc-100 dark:bg-white/5 text-zinc-400'}`}>
-                                                    {model.icon}
+                                                <div className={`w-8 h-8 flex items-center justify-center rounded-lg shrink-0 ${model.brandColor}`}>
+                                                    {React.cloneElement(model.icon as React.ReactElement<any>, {
+                                                        className: `${(model.icon as React.ReactElement<any>).props.className} ${model.id.startsWith('gpt') ? 'text-black' : 'text-white'}`
+                                                    })}
                                                 </div>
                                                 <div className="text-left">
                                                     <p className={`text-[10px] font-bold ${selectedModel === model.id ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>{model.name}</p>
@@ -254,33 +313,33 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                                         ))}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Pro Tip - Hidden on mobile to save space */}
-                            <div className="hidden lg:flex items-start gap-3 p-3 bg-primary/5 border border-primary/10 rounded-2xl max-w-xs">
-                                <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">
-                                    Specify <span className="text-zinc-900 dark:text-white font-bold">tone</span> and <span className="text-zinc-900 dark:text-white font-bold">length</span> for better results.
-                                </p>
-                            </div>
+                                {/* Pro Tip - Hidden on mobile to save space */}
+                                <div className="hidden lg:flex items-center gap-3 p-3 bg-primary/5 border border-primary/10 rounded-2xl max-w-xs">
+                                    <Info className="w-4 h-4 text-primary shrink-0" />
+                                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">
+                                        Specify <span className="text-zinc-900 dark:text-white font-bold">tone</span> and <span className="text-zinc-900 dark:text-white font-bold">length</span> for better results.
+                                    </p>
+                                </div>
 
-                            {/* Generate Button */}
-                            <div className="w-full md:w-auto shrink-0">
-                                <button
-                                    onClick={handleGenerate}
-                                    disabled={!prompt.trim() || isGenerating || isLocked}
-                                    className={`w-full md:w-48 py-4 rounded-xl flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] transition-all shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${!prompt.trim() || isGenerating || isLocked
-                                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 shadow-none cursor-not-allowed'
-                                        : 'bg-primary text-primary-foreground shadow-primary/25'
-                                        }`}
-                                >
-                                    {isGenerating ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <Zap className="w-4 h-4 fill-current" />
-                                    )}
-                                    <span>{isGenerating ? 'Running' : 'Generate'}</span>
-                                </button>
+                                {/* Generate Button */}
+                                <div className="w-full md:w-auto shrink-0">
+                                    <button
+                                        onClick={handleGenerate}
+                                        disabled={!prompt.trim() || isGenerating || isLocked}
+                                        className={`w-full md:w-48 py-4 rounded-xl flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] transition-all shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${!prompt.trim() || isGenerating || isLocked
+                                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 shadow-none cursor-not-allowed'
+                                            : 'bg-primary text-primary-foreground shadow-primary/25'
+                                            }`}
+                                    >
+                                        {isGenerating ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <Zap className="w-4 h-4 fill-current" />
+                                        )}
+                                        <span>{isGenerating ? 'Running' : 'Generate'}</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

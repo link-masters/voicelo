@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Copy, Check, Share2, Globe, Twitter, Facebook } from "lucide-react";
+import { X, Copy, Check, Share2, Globe, Facebook } from "lucide-react";
 import ModalPortal from "./ModalPortal";
 
 interface ShareVoiceModalProps {
@@ -84,31 +84,23 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                                 href={`https://twitter.com/intent/tweet?text=Check out this awesome AI voice ${voiceName} on VoiceLo!&url=${encodeURIComponent(shareUrl)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-3 p-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-white/5 hover:bg-zinc-50 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 transition-all group"
+                                className="flex items-center justify-center p-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-white/5 hover:bg-zinc-50 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 transition-all group"
                             >
-                                <Twitter className="w-5 h-5 text-[#1DA1F2] group-hover:scale-110 transition-transform" />
-                                <span className="text-xs font-bold uppercase tracking-widest">Twitter</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true" className="w-5 h-5 fill-zinc-900 dark:fill-white group-hover:scale-110 transition-transform">
+                                    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.932zm-1.294 19.497h2.039L6.486 3.24H4.298l13.31 17.41z" />
+                                </svg>
                             </a>
                             <a
                                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-3 p-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-white/5 hover:bg-zinc-50 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 transition-all group"
+                                className="flex items-center justify-center p-4 rounded-2xl border border-zinc-200 dark:border-white/5 bg-white dark:bg-white/5 hover:bg-zinc-50 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 transition-all group"
                             >
                                 <Facebook className="w-5 h-5 text-[#1877F2] group-hover:scale-110 transition-transform" />
-                                <span className="text-xs font-bold uppercase tracking-widest">Facebook</span>
                             </a>
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-white/5">
-                        <div className="flex items-center gap-2 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 text-amber-600 dark:text-amber-500/80">
-                            <Globe className="w-4 h-4 shrink-0" />
-                            <p className="text-[10px] font-bold uppercase tracking-wider leading-relaxed">
-                                Professional link including voice preview is now live for this voice.
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </ModalPortal>

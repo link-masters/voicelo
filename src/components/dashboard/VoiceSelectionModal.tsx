@@ -12,6 +12,7 @@ interface VoiceOption {
     gender?: string;
     likedBy?: string[];
     creator?: string;
+    creatorId?: string;
     isFavorite?: boolean;
 }
 
@@ -36,7 +37,7 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
 
     // My Voices: Voices created by the user (clones)
     const myVoices = voices.filter(v =>
-        v.isCommunity && userName && v.creator === userName
+        v.isCommunity && userId && v.creatorId === userId
     );
 
     // Favorites: Voices bookmarked/liked by the user

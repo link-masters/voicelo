@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X, User, AlertTriangle, Info, Sparkles } from "lucide-react";
+import { Play, Pause, Download, Volume2, Type, RefreshCw, Wand2, Settings2, History, Clock, Loader2, RotateCcw, Trash2, Copy, Check, VolumeX, ChevronDown, X, User, AlertTriangle, Info, Sparkles, FileText, Upload, FolderOpen } from "lucide-react";
 import VoiceSelectionModal from "./VoiceSelectionModal";
 import AiWriterModal from "./AiWriterModal";
 import PricingModal from "./PricingModal";
 import PaymentAlertModal, { AlertType } from "./PaymentAlertModal";
+import ProjectSelectionModal from "./ProjectSelectionModal";
+import ProjectScriptsModal from "./ProjectScriptsModal";
 import { getInworldVoices, getCommunityVoices, synthesizeInworldSpeech } from "@/app/actions";
 import { useAuth } from "@/context/AuthContext";
 import { useVoices } from "@/context/VoiceContext";
@@ -24,6 +26,7 @@ interface VoiceOption {
     gender?: string;
     likedBy?: string[];
     creator?: string;
+    creatorId?: string;
 }
 
 interface HistoryItem {
@@ -77,12 +80,15 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
 
     const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+    const [isImportMenuOpen, setIsImportMenuOpen] = useState(false);
+    const [isProjectScriptsModalOpen, setIsProjectScriptsModalOpen] = useState(false);
 
     const isBillingEnded = (user?.prefs as any)?.isBillingEnded === true;
 
     // Refs
     const synth = useRef<SpeechSynthesis | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [generationHistory, setGenerationHistory] = useState<HistoryItem[]>(() => {
         if (typeof window !== 'undefined') {
@@ -102,7 +108,7 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
         const formattedVoices: VoiceOption[] = inworldList
             .filter((v: any) => {
                 if (v.isCommunity) {
-                    return v.isPublic || (user?.name && v.creator === user.name);
+                    return v.isPublic || (user?.$id && v.creatorId === user.$id);
                 }
                 return true;
             })
@@ -116,7 +122,8 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                     isCommunity: v.isCommunity || v.voiceId.includes('__'),
                     gender: v.gender?.toUpperCase(),
                     likedBy: v.likedBy || [],
-                    creator: v.creator
+                    creator: v.creator,
+                    creatorId: v.creatorId
                 };
             });
 
@@ -140,9 +147,23 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                 console.error("Failed to parse settings", e);
             }
         }
-    }, []);
+
+        // Check for pending text from AI Writer
+        const pendingText = sessionStorage.getItem('pending_tts_text');
+        if (pendingText) {
+            setText(pendingText);
+            sessionStorage.removeItem('pending_tts_text');
+        }
+    }, [addNotification]);
 
     // Load Project History
+    useEffect(() => {
+        return () => {
+            if (audioUrl) {
+                URL.revokeObjectURL(audioUrl);
+            }
+        };
+    }, [audioUrl]);
     // Load Project History
     useEffect(() => {
         if (projectId && user) {
@@ -183,12 +204,25 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
         }
     }, [projectId, user]);
 
-    // Save History to SessionStorage (only if not in project mode)
-    // Save History to SessionStorage
+    // Save History to SessionStorage with quota handling
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const key = projectId ? `tts_history_${projectId}` : 'tts_history';
-            sessionStorage.setItem(key, JSON.stringify(generationHistory));
+            try {
+                sessionStorage.setItem(key, JSON.stringify(generationHistory));
+            } catch (error) {
+                // If quota exceeded, try to save without the large audio data
+                if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+                    console.warn("Session storage quota exceeded, saving history metadata only");
+                    try {
+                        const metadataOnly = generationHistory.map(({ audioData, ...rest }) => rest);
+                        sessionStorage.setItem(key, JSON.stringify(metadataOnly));
+                    } catch (e) {
+                        // If even metadata is too big, clear it
+                        sessionStorage.removeItem(key);
+                    }
+                }
+            }
         }
     }, [generationHistory, projectId]);
 
@@ -197,7 +231,10 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
         if (voices.length > 0) {
             if (voiceParam) {
                 // Try to find voice by name (case-insensitive)
-                const preSelected = voices.find(v => v.name.toLowerCase() === voiceParam.toLowerCase());
+                const preSelected = voices.find(v =>
+                    v.name.toLowerCase() === voiceParam.toLowerCase() ||
+                    v.id === voiceParam
+                );
                 if (preSelected) {
                     setSelectedVoice(preSelected);
                 } else if (!selectedVoice) {
@@ -404,6 +441,74 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
         }
     };
 
+    const handleImportScript = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const proLimit = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000);
+        const charLimit = (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
+
+        const filesArray = Array.from(files);
+        // Reset input immediately to help garbage collection
+        e.target.value = '';
+
+        let newCombinedContent = "";
+        let currentTotalLength = text.length;
+        let limitReached = false;
+
+        // Process files sequentially to keep memory usage low and respect limits early
+        for (const file of filesArray) {
+            if (currentTotalLength >= charLimit) {
+                limitReached = true;
+                break;
+            }
+
+            try {
+                const content = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => resolve(event.target?.result as string || "");
+                    reader.onerror = () => resolve("");
+                    reader.readAsText(file);
+                });
+
+                if (!content.trim()) continue;
+
+                const separator = (text.trim() || newCombinedContent.trim()) ? "\n\n" : "";
+                const segment = content.trim();
+
+                if (currentTotalLength + separator.length + segment.length > charLimit) {
+                    const roomLeft = charLimit - currentTotalLength - separator.length;
+                    if (roomLeft > 0) {
+                        newCombinedContent += separator + segment.slice(0, roomLeft);
+                    }
+                    currentTotalLength = charLimit;
+                    limitReached = true;
+                    break;
+                } else {
+                    newCombinedContent += separator + segment;
+                    currentTotalLength += separator.length + segment.length;
+                }
+            } catch (err) {
+                console.error("Error reading file:", file.name, err);
+            }
+        }
+
+        if (newCombinedContent) {
+            setText(prev => {
+                const updated = prev.trim() ? `${prev.trim()}${newCombinedContent}` : newCombinedContent;
+                return updated.slice(0, charLimit);
+            });
+
+            if (limitReached) {
+                addNotification({
+                    title: "Character Limit Reached",
+                    message: `Content was truncated to fit your ${charLimit.toLocaleString()} character limit.`,
+                    type: "warning"
+                });
+            }
+        }
+    };
+
     const restoreHistoryItem = (item: HistoryItem) => {
         const proLimit = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000);
         const charLimit = (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
@@ -452,11 +557,36 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
-    const playHistoryItem = (e: React.MouseEvent, item: HistoryItem) => {
+    const playHistoryItem = async (e: React.MouseEvent, item: HistoryItem) => {
         e.stopPropagation();
-        if (item.audioData) {
+
+        let audioData = item.audioData;
+
+        // If audio data is missing (pruned from cache), try to fetch it from Appwrite
+        if (!audioData && projectId) {
             try {
-                const binaryString = window.atob(item.audioData);
+                const doc = await databases.getDocument(
+                    process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+                    'generations',
+                    item.id
+                );
+                audioData = doc.audioContent;
+                // Cache it back in memory state
+                setGenerationHistory(prev => prev.map(h => h.id === item.id ? { ...h, audioData } : h));
+            } catch (err) {
+                console.error("Failed to fetch audio for playback:", err);
+                addNotification({
+                    title: "Playback Failed",
+                    message: "Could not retrieve audio from server.",
+                    type: "error"
+                });
+                return;
+            }
+        }
+
+        if (audioData) {
+            try {
+                const binaryString = window.atob(audioData);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let i = 0; i < binaryString.length; i++) {
                     bytes[i] = binaryString.charCodeAt(i);
@@ -477,19 +607,43 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                 console.error("Playback failed:", err);
                 addNotification({
                     title: "Playback Failed",
-                    message: "Failed to play audio.",
+                    message: "Failed to play audio data.",
                     type: "error"
                 });
             }
+        } else {
+            addNotification({
+                title: "Audio Unavailable",
+                message: "No audio data found for this item.",
+                type: "warning"
+            });
         }
     };
 
-    const downloadHistoryItem = (e: React.MouseEvent, item: HistoryItem) => {
+    const downloadHistoryItem = async (e: React.MouseEvent, item: HistoryItem) => {
         e.stopPropagation();
-        if (item.audioData) {
+
+        let audioData = item.audioData;
+
+        if (!audioData && projectId) {
+            try {
+                const doc = await databases.getDocument(
+                    process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+                    'generations',
+                    item.id
+                );
+                audioData = doc.audioContent;
+                // Cache it back in memory state
+                setGenerationHistory(prev => prev.map(h => h.id === item.id ? { ...h, audioData } : h));
+            } catch (err) {
+                console.error("Failed to fetch audio for download:", err);
+            }
+        }
+
+        if (audioData) {
             try {
                 // Convert base64 to blob
-                const binaryString = window.atob(item.audioData);
+                const binaryString = window.atob(audioData);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let i = 0; i < binaryString.length; i++) {
                     bytes[i] = binaryString.charCodeAt(i);
@@ -504,8 +658,8 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                 a.click();
                 document.body.removeChild(a);
 
-                // Clean up the blob URL
-                URL.revokeObjectURL(url);
+                // Clean up the blob URL (use setTimeout to ensure download starts)
+                setTimeout(() => URL.revokeObjectURL(url), 100);
 
                 addNotification({
                     title: "Download Started",
@@ -516,14 +670,14 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                 console.error("Download failed:", err);
                 addNotification({
                     title: "Download Failed",
-                    message: "Failed to download audio. Please try regenerating.",
+                    message: "Failed to download audio data.",
                     type: "error"
                 });
             }
         } else {
             addNotification({
                 title: "Audio Not Available",
-                message: "This history item doesn't have audio saved. Please regenerate it.",
+                message: "This history item doesn't have audio saved.",
                 type: "warning"
             });
         }
@@ -552,6 +706,32 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                 onClose={() => setIsAiModalOpen(false)}
                 onGenerate={(newText) => setText(newText)}
             />
+
+            {projectId && (
+                <ProjectScriptsModal
+                    isOpen={isProjectScriptsModalOpen}
+                    onClose={() => setIsProjectScriptsModalOpen(false)}
+                    projectId={projectId}
+                    onSelect={(selectedText) => {
+                        const proLimit = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000);
+                        const charLimit = (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
+
+                        setText(prev => {
+                            const updated = prev.trim() ? `${prev.trim()}\n\n${selectedText}` : selectedText;
+
+                            if (updated.length > charLimit) {
+                                addNotification({
+                                    title: "Character Limit Reached",
+                                    message: `Appending this script exceeds your ${charLimit.toLocaleString()} character limit. Content has been truncated.`,
+                                    type: "warning"
+                                });
+                            }
+
+                            return updated.slice(0, charLimit);
+                        });
+                    }}
+                />
+            )}
 
             <PaymentAlertModal
                 isOpen={isPaymentModalOpen}
@@ -610,7 +790,10 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                     <div className="flex flex-col md:flex-row flex-1 overflow-visible">
 
                         {/* Left: Input */}
-                        <div className="flex-1 p-4 md:p-6 lg:p-8 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative group bg-zinc-50/50 dark:bg-zinc-900/40 min-h-[300px] md:min-h-0 rounded-t-2xl md:rounded-t-0 md:rounded-tl-3xl">
+                        <div
+                            className="flex-1 p-4 md:p-6 lg:p-8 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative group bg-zinc-50/50 dark:bg-zinc-900/40 min-h-[300px] md:min-h-0 rounded-t-2xl md:rounded-t-0 md:rounded-tl-3xl select-none cursor-default"
+                            style={{ caretColor: 'transparent' }}
+                        >
                             {(() => {
                                 const proLimit = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000);
                                 const charLimit = (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
@@ -621,27 +804,86 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                                                 <Type className="w-3 h-3" />
                                                 <span>Text Input</span>
                                             </div>
-                                            <button
-                                                onClick={() => setIsAiModalOpen(true)}
-                                                className="flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors border border-purple-500/20 backdrop-blur-sm"
-                                            >
-                                                <Sparkles className="w-3 h-3 fill-current" />
-                                                <span>AI Writer</span>
-                                            </button>
+
                                         </div>
                                         <textarea
-                                            className="w-full h-full bg-transparent border-none outline-none resize-none text-base md:text-lg lg:text-xl text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 font-light leading-relaxed mt-8 md:mt-6 scrollbar-hide"
+                                            className="w-full h-full bg-transparent border-none outline-none resize-none text-base md:text-lg lg:text-xl text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 font-light leading-relaxed mt-8 md:mt-6 scrollbar-hide select-text"
                                             placeholder="Type something amazing here..."
                                             value={text}
                                             onChange={(e) => setText(e.target.value)}
                                             maxLength={charLimit}
                                             spellCheck={false}
                                         />
-                                        <div className="absolute top-3 md:top-5 right-4 md:right-8 text-[10px] md:text-xs text-zinc-600 dark:text-zinc-300 font-bold bg-white/90 dark:bg-zinc-800/90 px-3 py-1.5 rounded-full backdrop-blur-md border border-zinc-200 dark:border-white/10 shadow-lg flex items-center gap-1 z-10">
-                                            <span className={text.length >= charLimit ? "text-red-500" : "text-primary dark:text-primary"}>
-                                                {text.length.toLocaleString()}
-                                            </span>
-                                            <span className="text-zinc-400 dark:text-zinc-500 font-medium">/ {charLimit.toLocaleString()} chars</span>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleImportScript}
+                                            accept=".txt"
+                                            multiple
+                                            className="hidden"
+                                        />
+                                        <div className="absolute top-3 md:top-5 right-4 md:right-8 flex items-center gap-2 z-10">
+                                            <button
+                                                onClick={() => setText("")}
+                                                className="w-[65px] h-[30px] text-[10px] md:text-xs text-zinc-600 dark:text-zinc-300 font-bold bg-white/90 dark:bg-zinc-800/90 rounded-full backdrop-blur-md border border-zinc-200 dark:border-white/10 shadow-lg flex items-center justify-center gap-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all active:scale-95 group shrink-0"
+                                                title="Clear all text"
+                                            >
+                                                <Trash2 className="w-3 h-3 group-hover:scale-110 transition-transform" />
+                                                <span>Clear</span>
+                                            </button>
+
+                                            <div className="relative shrink-0">
+                                                <button
+                                                    onClick={() => setIsImportMenuOpen(!isImportMenuOpen)}
+                                                    className="w-[125px] h-[30px] text-[10px] md:text-xs text-zinc-600 dark:text-zinc-300 font-bold bg-white/90 dark:bg-zinc-800/90 rounded-full backdrop-blur-md border border-zinc-200 dark:border-white/10 shadow-lg flex items-center justify-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all active:scale-95 group"
+                                                >
+                                                    <FileText className="w-3 h-3 text-primary group-hover:scale-110 transition-transform" />
+                                                    <span className="truncate">Import Script</span>
+                                                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 shrink-0 ${isImportMenuOpen ? 'rotate-180' : ''}`} />
+                                                </button>
+
+                                                {isImportMenuOpen && (
+                                                    <>
+                                                        <div
+                                                            className="fixed inset-0 z-40"
+                                                            onClick={() => setIsImportMenuOpen(false)}
+                                                        />
+                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-800 border border-border dark:border-white/5 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                                            <button
+                                                                onClick={() => {
+                                                                    fileInputRef.current?.click();
+                                                                    setIsImportMenuOpen(false);
+                                                                }}
+                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors"
+                                                            >
+                                                                <Upload className="w-3.5 h-3.5 text-primary" />
+                                                                <span>From local</span>
+                                                            </button>
+                                                            {projectId && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setIsProjectScriptsModalOpen(true);
+                                                                        setIsImportMenuOpen(false);
+                                                                    }}
+                                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors"
+                                                                >
+                                                                    <FolderOpen className="w-3.5 h-3.5 text-indigo-500" />
+                                                                    <span>From this project</span>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            <div className="w-[115px] h-[30px] text-[10px] md:text-xs text-zinc-600 dark:text-zinc-300 font-bold bg-white/90 dark:bg-zinc-800/90 rounded-full backdrop-blur-md border border-zinc-200 dark:border-white/10 shadow-lg flex items-center justify-center gap-1 shrink-0">
+                                                <div className="flex items-center gap-1">
+                                                    <span className={text.length >= charLimit ? "text-red-500" : "text-primary dark:text-primary"}>
+                                                        {text.length.toLocaleString()}
+                                                    </span>
+                                                    <span className="text-zinc-400 dark:text-zinc-500 font-medium tracking-tight">/ {charLimit.toLocaleString()}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </>
                                 );
@@ -1037,7 +1279,7 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
                                             </div>
 
                                             <div className="flex items-center gap-1">
-                                                {item.audioData && (
+                                                {(item.audioData || projectId) && (
                                                     <>
                                                         <button
                                                             onClick={(e) => playHistoryItem(e, item)}

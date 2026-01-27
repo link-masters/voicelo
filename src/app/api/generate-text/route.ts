@@ -66,7 +66,7 @@ export async function POST(request: Request) {
                 servingId: {
                     modelId: {
                         model: modelId || 'gpt-4o-mini',
-                        serviceProvider: 'SERVICE_PROVIDER_OPENAI'
+                        serviceProvider: (modelId || '').startsWith('gemini') ? 'SERVICE_PROVIDER_GOOGLE' : 'SERVICE_PROVIDER_OPENAI'
                     },
                     userId: 'voicelo-user'
                 },
@@ -82,8 +82,8 @@ export async function POST(request: Request) {
                 ],
                 textGenerationConfig: {
                     maxTokens: 3000,
-                    // Modern reasoning models like GPT-5/o1 often only support the default temperature (1.0)
-                    temperature: modelId === 'gpt-5-nano' ? 1.0 : 0.8,
+                    // Modern reasoning models like GPT-4.1/o1 often only support the default temperature (1.0)
+                    temperature: modelId === 'gpt-4.1-nano' ? 1.0 : 0.8,
                     stream: true
                 }
             })

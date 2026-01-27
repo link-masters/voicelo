@@ -27,8 +27,11 @@ const LANGUAGES = [
     { code: "NL_NL", label: "Dutch - Netherlands" },
 ];
 
+import { useVoices } from "@/context/VoiceContext";
+
 export default function VoiceClonePage() {
     const { user, refreshUser } = useAuth();
+    const { refreshVoices } = useVoices();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -190,6 +193,7 @@ export default function VoiceClonePage() {
             setProgress(100);
             setSuccess(true);
             await refreshUser();
+            await refreshVoices(true);
 
             // Extract voice ID from result
             const voiceId = result?.voice?.voiceId || result?.voiceId || null;
@@ -446,14 +450,8 @@ export default function VoiceClonePage() {
                                         <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${formData.isPublic ? 'left-6' : 'left-1'}`} />
                                     </button>
                                 </div>
-                                {formData.isPublic && (
-                                    <div className="p-3 bg-white/50 dark:bg-black/20 rounded-xl border border-primary/10">
-                                        <p className="text-[10px] leading-relaxed text-primary/80 italic text-center">
-                                            "Public voices appear in the Community Shared tab for all users to discover and use."
-                                        </p>
-                                    </div>
-                                )}
                             </div>
+
                         </div>
 
                         {error && (
@@ -608,22 +606,41 @@ export default function VoiceClonePage() {
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting || !formData.audioData || !formData.displayName || !hasAgreed || !formData.langCode}
-                        className={`w-full sm:w-fit mx-auto group relative h-12 md:h-14 flex items-center justify-center gap-3 px-8 rounded-2xl md:rounded-[1.5rem] text-xs font-bold uppercase tracking-widest overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${isSubmitting ? 'bg-primary text-primary-foreground' : 'bg-primary text-primary-foreground shadow-xl shadow-primary/25'
+                        className={`w-full sm:w-fit mx-auto group relative h-12 md:h-13 flex items-center justify-center gap-3 px-8 rounded-full text-[11px] font-black uppercase tracking-[0.15em] overflow-hidden transition-all duration-500 active:scale-[0.95] disabled:opacity-40 disabled:grayscale disabled:pointer-events-none
+                            ${isSubmitting
+                                ? 'bg-zinc-100 dark:bg-white/5 text-zinc-400'
+                                : 'bg-primary text-primary-foreground shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_10px_30px_-10px_rgba(255,255,255,0.1)] hover:-translate-y-0.5'
                             }`}
                     >
+                        {/* Shine effect */}
+                        {!isSubmitting && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                        )}
+
                         {isSubmitting ? (
-                            <>
-                                <Loader2 className="w-6 h-6 animate-spin shrink-0" />
-                                <span className="text-xs">Processing Neural Model... {progress}%</span>
-                                <div
-                                    className="absolute bottom-0 left-0 h-1.5 bg-white/30 transition-all duration-300"
-                                    style={{ width: `${progress}%` }}
-                                />
-                            </>
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+                                </div>
+                                <span className="text-zinc-600 dark:text-zinc-300">Cloning... {progress}%</span>
+
+                                {/* Minimalist Progress Indicator */}
+                                <div className="absolute bottom-0 left-0 w-full h-1 bg-zinc-200 dark:bg-white/5">
+                                    <div
+                                        className="h-full bg-primary transition-all duration-500 ease-out"
+                                        style={{ width: `${progress}%` }}
+                                    />
+                                </div>
+                            </div>
                         ) : (
                             <>
-                                <Mic className="w-4 h-4 group-hover:scale-110 transition-transform shrink-0" />
-                                <span>Initialize Voice Clone</span>
+                                <div className="relative">
+                                    <Mic className="w-5 h-5 group-hover:scale-110 transition-transform duration-500" />
+                                    <div className="absolute inset-0 bg-white/20 blur-lg rounded-full scale-0 group-hover:scale-150 transition-transform duration-500" />
+                                </div>
+                                <span className="relative z-10">Initialize Voice Clone</span>
+                                <ArrowRight className="w-5 h-5 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 ease-out" />
                             </>
                         )}
                     </button>
