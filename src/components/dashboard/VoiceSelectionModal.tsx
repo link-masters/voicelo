@@ -66,13 +66,14 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                         <h2 className="text-lg md:text-xl font-bold text-zinc-900 dark:text-white">Select a Voice</h2>
                         <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Choose the perfect voice for your content</p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-white/5 rounded-xl transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
                 </div>
+
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border border-border dark:border-white/10"
+                >
+                    <X className="w-6 h-6" />
+                </button>
 
                 {/* Tabs */}
                 <div className="flex-shrink-0 flex items-center px-4 md:px-6 overflow-x-auto scrollbar-hide gap-4 md:gap-8 border-b border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -132,7 +133,7 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/30">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/30 custom-scrollbar-alt">
                     {filteredVoices.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-zinc-400 dark:text-zinc-500">
                             <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-white/5 flex items-center justify-center mb-4">
@@ -196,7 +197,26 @@ export default function VoiceSelectionModal({ isOpen, onClose, onSelectVoice, vo
                     )}
                 </div>
 
-
+                <style jsx>{`
+                    .custom-scrollbar-alt::-webkit-scrollbar {
+                        width: 10px;
+                    }
+                    .custom-scrollbar-alt::-webkit-scrollbar-track {
+                        background: transparent;
+                        margin: 10px 4px;
+                    }
+                    .custom-scrollbar-alt::-webkit-scrollbar-thumb {
+                        background: rgba(161, 161, 170, 0.2);
+                        border-radius: 20px;
+                        border: 3px solid transparent;
+                        background-clip: content-box;
+                    }
+                    .custom-scrollbar-alt::-webkit-scrollbar-thumb:hover {
+                        background: rgba(161, 161, 170, 0.5);
+                        border: 3px solid transparent;
+                        background-clip: content-box;
+                    }
+                `}</style>
             </div>
         </ModalPortal>
     );

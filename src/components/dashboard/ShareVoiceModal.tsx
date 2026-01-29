@@ -38,6 +38,13 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                 {/* Header Decoration */}
                 <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border border-border dark:border-white/10"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+
                 <div className="p-8 relative">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
@@ -49,12 +56,6 @@ export default function ShareVoiceModal({ isOpen, onClose, voiceName, shareUrl }
                                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Spread the word about {voiceName}</p>
                             </div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-400 dark:text-zinc-500 transition-colors"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
                     </div>
 
                     <div className="space-y-6">

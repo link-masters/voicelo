@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // but for initialization we can use currentUser. 
             // To be safe against other background updates (like broadcasts), 
             // we should ideally fetch again if we are about to update.
-            const prefs = currentUser.prefs as any;
+            let prefs = currentUser.prefs as any;
             const updates: any = {};
 
             // Initialize essential keys if they don't exist OR are null
@@ -63,6 +63,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         // Re-fetch the user to get the NEW prefs from the server immediately
                         const latestUser = await account.get();
                         currentUser = latestUser;
+                        // IMPORTANT: Update the prefs variable to use the new prefs with creditsTotal
+                        prefs = latestUser.prefs as any;
                         setUser(latestUser);
 
                         if ((res as any).awarded) {
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             }
 
+            // Only set creditsUsed if it's not already defined (avoid resetting to 0)
             if (prefs.creditsUsed === undefined || prefs.creditsUsed === null) {
                 updates.creditsUsed = 0;
             }
@@ -91,6 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             if (prefs.welcomeEmailSent === undefined || prefs.welcomeEmailSent === null) {
                 updates.welcomeEmailSent = false;
+            }
+            // AI Writer request limits - initialize to 0, will be set based on pack purchased
+            if (prefs.aiWriterRequestsTotal === undefined || prefs.aiWriterRequestsTotal === null) {
+                updates.aiWriterRequestsTotal = 0;
+            }
+            if (prefs.aiWriterRequestsUsed === undefined || prefs.aiWriterRequestsUsed === null) {
+                updates.aiWriterRequestsUsed = 0;
             }
 
             let finalUser = currentUser;
@@ -211,9 +221,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function logout() {
         try {
             await account.deleteSession("current");
-            setUser(null);
         } catch (error: any) {
-            throw new Error(error.message || "Failed to logout");
+            console.warn("Logout session deletion failed (user might be already deleted):", error.message);
+        } finally {
+            setUser(null);
         }
     }
 

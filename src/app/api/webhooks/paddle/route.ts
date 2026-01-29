@@ -139,6 +139,12 @@ export async function POST(req: Request) {
                 // Determine transaction status based on paddle status if available, or default "active"
                 const status = data.status || "active";
 
+                // Determine AI Writer request limits based on pack type
+                const starterAiWriterRequests = Number(process.env.NEXT_PUBLIC_AI_WRITER_STARTER_REQUESTS) || 300;
+                const plusAiWriterRequests = Number(process.env.NEXT_PUBLIC_AI_WRITER_PLUS_REQUESTS) || 500;
+                const aiWriterRequestsForPack = packageDisplayName === "plus_pack" ? plusAiWriterRequests : starterAiWriterRequests;
+                const currentAiWriterTotal = Number(user.prefs?.aiWriterRequestsTotal) || 0;
+
                 await users.updatePrefs(user.$id, {
                     ...user.prefs,
                     plan: "Pro User",
@@ -149,6 +155,9 @@ export async function POST(req: Request) {
                     paymentProvider: "paddle",
                     isBillingEnded: false,
                     billingCycleExpired: false,
+                    // AI Writer request limits
+                    aiWriterRequestsTotal: currentAiWriterTotal + aiWriterRequestsForPack,
+                    aiWriterRequestsUsed: Number(user.prefs?.aiWriterRequestsUsed) || 0, // Preserve existing count
                 });
 
                 // Create Transaction Record in new Table

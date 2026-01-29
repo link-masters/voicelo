@@ -1,17 +1,50 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { CreditCard, Zap, Calendar, Shield, Crown, Clock, Info } from "lucide-react";
-import { useState, Suspense, useEffect } from "react";
+import { CreditCard, Zap, Calendar, Shield, Crown, Clock, Info, CheckCircle } from "lucide-react";
+import { useState, Suspense, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import PricingModal from "@/components/dashboard/PricingModal";
+import Toast, { ToastType } from "@/components/dashboard/Toast";
 import { databases } from "@/lib/appwrite";
 import { Query } from "appwrite";
+
+// Separate component to handle checkout success URL cleanup
+function CheckoutHandler({ onSuccess }: { onSuccess: () => void }) {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const hasHandled = useRef(false);
+
+    useEffect(() => {
+        const checkoutStatus = searchParams.get('checkout');
+
+        if (checkoutStatus === 'success' && !hasHandled.current) {
+            hasHandled.current = true;
+
+            // Show success toast via callback
+            onSuccess();
+
+            // Clean up the URL by removing query parameters
+            router.replace('/dashboard/billing', { scroll: false });
+        }
+    }, [searchParams, router, onSuccess]);
+
+    return null; // This component doesn't render anything
+}
 
 export default function BillingPage() {
     const { user } = useAuth();
     const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
     const [dbTransactions, setDbTransactions] = useState<any[]>([]);
     const [loadingTx, setLoadingTx] = useState(true);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+    const handleCheckoutSuccess = useCallback(() => {
+        setToast({
+            message: "Payment successful! Your credits have been added to your account.",
+            type: "success"
+        });
+    }, []);
 
     // Dynamic data from user preferences
     const plan = (user?.prefs as any)?.plan || "Free Plan";
@@ -96,9 +129,23 @@ export default function BillingPage() {
                 <PricingModal isOpen={isPricingModalOpen} onClose={() => setIsPricingModalOpen(false)} />
             </Suspense>
 
+            {/* Handle checkout success URL cleanup */}
+            <Suspense fallback={null}>
+                <CheckoutHandler onSuccess={handleCheckoutSuccess} />
+            </Suspense>
+
+            {/* Toast notification */}
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">Billing & Subscription</h1>
+                <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">Billing & Plan</h1>
                 <p className="text-zinc-500 dark:text-zinc-400">View your current plan and transaction history.</p>
             </div>
 

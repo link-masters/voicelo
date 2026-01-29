@@ -36,7 +36,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     const [officialVoices, setOfficialVoices] = useState<Voice[]>([]);
     const [communityVoices, setCommunityVoices] = useState<Voice[]>([]);
     const [loading, setLoading] = useState(true);
-    const [lastFetched, setLastFetched] = useState<number>(0);
+    const lastFetchedRef = useRef<number>(0);
     const lastUserIdRef = useRef<string | null>(user?.$id || null);
 
     const refreshVoices = useCallback(async (force = false) => {
@@ -45,7 +45,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
 
         // Only fetch if forced, user changed, or if it's been more than 5 minutes since last fetch
         const now = Date.now();
-        if (!force && !userChanged && lastFetched !== 0 && now - lastFetched < 5 * 60 * 1000) return;
+        if (!force && !userChanged && lastFetchedRef.current !== 0 && now - lastFetchedRef.current < 5 * 60 * 1000) return;
 
         setLoading(true);
         lastUserIdRef.current = user?.$id || null;
@@ -54,7 +54,6 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
                 getInworldVoices(),
                 getCommunityVoices()
             ]);
-
             // Merge shadow info into official voices
             const mergedOfficial = official.map((offVoice: Voice) => {
                 const shadow = community.find((commVoice: Voice) => commVoice.voiceId === offVoice.voiceId);
@@ -90,13 +89,13 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
 
             setOfficialVoices(mergedOfficial);
             setCommunityVoices(trueCommunity);
-            setLastFetched(now);
+            lastFetchedRef.current = now;
         } catch (error) {
             console.error("Failed to fetch voices in context:", error);
         } finally {
             setLoading(false);
         }
-    }, [lastFetched, user?.$id]);
+    }, [user?.$id]);
 
 
 

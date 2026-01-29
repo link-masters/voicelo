@@ -44,6 +44,18 @@ export async function POST(request: Request) {
             );
         }
 
+        // 2. AI Writer Request Limit Check
+        const aiWriterRequestsTotal = Number(user.prefs.aiWriterRequestsTotal || 0);
+        const aiWriterRequestsUsed = Number(user.prefs.aiWriterRequestsUsed || 0);
+        const aiWriterRequestsRemaining = aiWriterRequestsTotal - aiWriterRequestsUsed;
+
+        if (aiWriterRequestsRemaining <= 0) {
+            return NextResponse.json(
+                { error: 'You have reached your AI Writer request limit. Please upgrade your pack to continue.' },
+                { status: 403 }
+            );
+        }
+
         const apiKey = process.env.INWORLD_KEY;
         const apiSecret = process.env.INWORLD_SECRET;
 
@@ -81,7 +93,7 @@ export async function POST(request: Request) {
                     }
                 ],
                 textGenerationConfig: {
-                    maxTokens: 3000,
+                    maxTokens: Number(process.env.AI_WRITER_MAX_TOKENS) || 3000,
                     // Modern reasoning models like GPT-4.1/o1 often only support the default temperature (1.0)
                     temperature: modelId === 'gpt-4.1-nano' ? 1.0 : 0.8,
                     stream: true
@@ -144,15 +156,17 @@ export async function POST(request: Request) {
                     }
                 }
 
-                // 2. Deduct Credits and Save History at the end of the stream
+                // 2. Deduct Credits, Increment AI Request Count, and Save History at the end of the stream
                 try {
                     const creditsPer1k = Number(process.env.AI_WRITER_CREDITS_PER_1000_CHARACTERS) || 10;
                     const creditCost = Math.max(1, Math.round((totalCharsGenerated / 1000) * creditsPer1k));
 
                     // Sequential updates to ensure data integrity
+                    // Increment both creditsUsed AND aiWriterRequestsUsed
                     await adminClient.users.updatePrefs(userId, {
                         ...user.prefs,
-                        creditsUsed: creditsUsed + creditCost
+                        creditsUsed: creditsUsed + creditCost,
+                        aiWriterRequestsUsed: aiWriterRequestsUsed + 1
                     });
 
                     // Save to History

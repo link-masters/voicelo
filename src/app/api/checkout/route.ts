@@ -35,7 +35,7 @@ export async function POST(req: Request) {
                         discount: true,
                     },
                     productOptions: {
-                        redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/profile?checkout=success`,
+                        redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/billing?checkout=success`,
                     },
                 }
             );
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
                     email: userEmail,
                     ...(userName && { name: userName }),
                 },
-                successUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/profile?checkout=success`,
+                successUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/billing?checkout=success`,
                 ...(discountCode && { discountCode }),
             });
         }
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
                     metadata: {
                         userId: userId,
                     },
-                    success_url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/profile?checkout=success`,
+                    success_url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/dashboard/billing?checkout=success`,
                     ...(discountCode && { discount_code: discountCode }),
                 }),
             });

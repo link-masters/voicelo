@@ -54,9 +54,9 @@ export default function PaymentAlertModal({
             <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 pointer-events-auto">
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-10 text-zinc-500"
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border border-border dark:border-white/10"
                 >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                 </button>
 
                 <div className="p-10 text-center">

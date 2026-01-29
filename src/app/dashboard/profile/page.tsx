@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { Mail, Shield, Zap, CreditCard, User, Edit2, Calendar, CheckCircle2, AlertCircle, Camera, Crown, MoreVertical, Copy } from "lucide-react";
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import PricingModal from "@/components/dashboard/PricingModal";
 import Toast, { ToastType } from "@/components/dashboard/Toast";
 
@@ -52,7 +53,7 @@ export default function ProfilePage() {
             <div className="relative mb-20">
                 {/* Cover Image */}
                 <div className="h-64 w-full rounded-[2.5rem] overflow-hidden relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </div>
                 </div>
@@ -106,10 +107,6 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="flex items-center gap-3 w-full md:w-auto">
-                            <button className="flex flex-1 md:flex-none items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95">
-                                <Edit2 className="w-4 h-4" />
-                                <span>Edit Profile</span>
-                            </button>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -205,8 +202,9 @@ export default function ProfilePage() {
                                     <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 ml-1">Display Name</label>
                                     <input
                                         type="text"
+                                        readOnly
                                         defaultValue={user?.name || ""}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-white/10 rounded-xl px-5 py-3.5 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all font-medium"
+                                        className="w-full bg-zinc-100/50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-white/5 rounded-xl px-5 py-3.5 text-zinc-500 dark:text-zinc-400 cursor-not-allowed font-medium"
                                         placeholder="Enter your name"
                                     />
                                 </div>
@@ -226,23 +224,8 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end pt-4">
-                                <button className="px-8 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 active:scale-95">
-                                    Save Changes
-                                </button>
-                            </div>
                         </div>
 
-                        {/* Danger Zone */}
-                        <div className="bg-red-50/50 dark:bg-red-500/5 px-8 py-6 border-t border-red-100 dark:border-red-500/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div>
-                                <h3 className="text-red-900 dark:text-red-200 font-semibold mb-1">Delete Account</h3>
-                                <p className="text-sm text-red-600/70 dark:text-red-300/60">Permanently delete your account and all data</p>
-                            </div>
-                            <button className="whitespace-nowrap px-6 py-2.5 rounded-xl border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/10 text-sm font-medium transition-colors">
-                                Delete Account
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -250,7 +233,7 @@ export default function ProfilePage() {
                 <div className="lg:col-span-4 space-y-6">
                     {/* Pro / Credits Card */}
                     {(user?.prefs as any)?.plan !== 'Free Plan' ? (
-                        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl">
+                        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-sky-500 text-white shadow-xl">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                             <div className="relative p-8 text-center">
                                 <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-6 backdrop-blur-md mx-auto">
@@ -262,7 +245,7 @@ export default function ProfilePage() {
                                 </p>
                                 <button
                                     onClick={() => setIsPricingModalOpen(true)}
-                                    className="w-full py-4 rounded-xl bg-white text-violet-600 font-bold hover:bg-violet-50 transition-colors shadow-lg"
+                                    className="w-full py-4 rounded-xl bg-white text-blue-600 font-bold hover:bg-blue-50 transition-colors shadow-lg"
                                 >
                                     Top Up Credits
                                 </button>
@@ -298,9 +281,9 @@ export default function ProfilePage() {
                         </div>
                         <h3 className="font-bold text-zinc-900 dark:text-white mb-2">Need Support?</h3>
                         <p className="text-sm text-zinc-500 mb-6">Our team is here to help you with any issues you might face.</p>
-                        <button className="px-6 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm">
+                        <Link href="/contact" className="inline-block px-6 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm">
                             Contact Support
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

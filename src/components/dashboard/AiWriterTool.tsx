@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Sparkles, Wand2, Loader2, Copy, Check, RotateCcw, Lock, Cpu, Zap, Info, ArrowRight } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Sparkles, Wand2, Loader2, Copy, Check, RotateCcw, Lock, Cpu, Zap, Info, ArrowRight, Type, Eraser } from "lucide-react";
 import { useProject } from "@/context/ProjectContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import AiWriterQuotaModal from "./AiWriterQuotaModal";
 
 
 
@@ -59,8 +60,8 @@ const WRITER_MODELS = [
         brandColor: "bg-[#1a73e8]"
     },
     {
-        id: "gemini-2.5-flash",
-        name: "Gemini 2.5 Flash",
+        id: "gemini-2.5-flash-lite",
+        name: "Gemini 2.5 Flash Lite",
         description: "State-of-the-art multimodal intelligence for complex directions.",
         icon: <GeminiIcon className="w-5 h-5" />,
         badge: "GA",
@@ -79,6 +80,8 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
     const { user, refreshUser } = useAuth();
     const { project, setProject, projects } = useProject();
     const router = useRouter();
+    const promptLimit = Number(process.env.NEXT_PUBLIC_AI_WRITER_PROMPT_LIMIT || 1000);
+
 
     const [prompt, setPrompt] = useState("");
     const [generatedText, setGeneratedText] = useState("");
@@ -86,11 +89,30 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
     const [selectedModel, setSelectedModel] = useState(WRITER_MODELS[0].id);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [showQuotaModal, setShowQuotaModal] = useState(false);
+
+    // Hoist prefs parsing
+    const aiWriterRequestsTotal = Number((user?.prefs as any)?.aiWriterRequestsTotal || 0);
+    const realAiWriterRequestsUsed = Number((user?.prefs as any)?.aiWriterRequestsUsed || 0);
+
+    // Optimistic state for instant feedback
+    const [optimisticRequestsUsed, setOptimisticRequestsUsed] = useState(realAiWriterRequestsUsed);
+
+    useEffect(() => {
+        setOptimisticRequestsUsed(realAiWriterRequestsUsed);
+    }, [realAiWriterRequestsUsed]);
 
 
 
     const handleGenerate = async () => {
         if (!prompt.trim() || !user || !project?.$id) return;
+
+        // Quota check before starting
+        const remaining = Math.max(0, aiWriterRequestsTotal - optimisticRequestsUsed);
+        if (remaining <= 0) {
+            setShowQuotaModal(true);
+            return;
+        }
 
         setIsGenerating(true);
         setGeneratedText("");
@@ -132,12 +154,20 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                 setGeneratedText(accumulatedText);
             }
 
+            // Optimistically update the UI instantly (deduct one request)
+            setOptimisticRequestsUsed(prev => prev + 1);
+
             await refreshUser();
 
 
         } catch (err: any) {
             console.error('AI Generation failed:', err);
-            setError(err.message || "Something went wrong. Please try again.");
+            const errorMessage = err.message || "";
+            if (errorMessage.toLowerCase().includes("quota") || errorMessage.toLowerCase().includes("limit")) {
+                setShowQuotaModal(true);
+            } else {
+                setError(errorMessage || "Something went wrong. Please try again.");
+            }
         } finally {
             setIsGenerating(false);
         }
@@ -171,28 +201,123 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
             <div className="w-full h-full flex flex-col lg:grid lg:grid-cols-12 gap-6 relative z-10">
 
                 {/* Main Writing Card */}
-                <div className="lg:col-span-12 w-full glass-panel rounded-2xl md:rounded-3xl shadow-xl border border-border dark:border-white/5 flex flex-col lg:h-[calc(100vh-140px)] min-h-[600px] relative overflow-hidden">
+                <div className="lg:col-span-12 w-full glass-panel rounded-2xl md:rounded-3xl shadow-xl border border-border dark:border-white/5 flex flex-col lg:h-[calc(100vh-140px)] min-h-[600px] relative">
 
                     {/* Editor & Controls Split Area */}
-                    <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+                    <div className="flex flex-col md:flex-row flex-1">
 
                         {/* Left: Writing Studio (Prompt Area) */}
                         <div
                             className="flex-1 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-col"
                         >
-                            <div className="absolute top-6 left-8 flex items-center gap-3 z-10 select-none pointer-events-none">
-                                <div className="flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 text-[10px] md:text-xs font-mono uppercase tracking-widest opacity-80">
-                                    <Sparkles className="w-3 h-3 text-purple-500" />
-                                    <span>Creative Studio</span>
+                            {/* Writing Studio Header - Matching Layout */}
+                            <div className="px-6 py-2 border-b border-border dark:border-white/5 flex items-center justify-between bg-white/50 dark:bg-zinc-900/50 min-h-[52px]">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                                    <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
+                                        Creative Studio
+                                    </h3>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    {/* Clear Button */}
+                                    <button
+                                        onClick={() => setPrompt("")}
+                                        className="h-8 px-3 text-[10px] md:text-xs text-zinc-600 dark:text-zinc-300 font-bold bg-white/50 dark:bg-zinc-800/50 rounded-full backdrop-blur-sm border border-zinc-200/50 dark:border-white/5 shadow-sm flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all active:scale-95 group"
+                                        title="Clear all text"
+                                        disabled={isGenerating || isLocked}
+                                    >
+                                        <Eraser className="w-3 h-3 group-hover:scale-110 transition-transform" />
+                                        <span>Clear</span>
+                                    </button>
+
+                                    <div className="hidden sm:block w-px h-4 bg-zinc-200 dark:bg-white/10 mx-1" />
+
+                                    {/* Character Counter */}
+                                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white/50 dark:bg-zinc-800/50 border border-zinc-200/50 dark:border-white/5 rounded-full backdrop-blur-sm shadow-sm">
+                                        <Type className="w-3 h-3 text-zinc-400" />
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={`text-xs font-bold tabular-nums ${prompt.length >= promptLimit ? 'text-red-500' : 'text-zinc-700 dark:text-zinc-200'}`}>
+                                                {prompt.length.toLocaleString()}
+                                            </span>
+                                            <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                                                / {promptLimit.toLocaleString()} Chars
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Centered Dot Separator */}
+                                    <div className="hidden sm:block w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-600/60 flex-shrink-0 shadow-inner" />
+
+                                    {/* Remaining Requests Counter */}
+                                    {(() => {
+                                        const remaining = Math.max(0, aiWriterRequestsTotal - optimisticRequestsUsed);
+                                        const usagePercent = aiWriterRequestsTotal > 0 ? (optimisticRequestsUsed / aiWriterRequestsTotal) * 100 : 0;
+                                        const isLow = remaining > 0 && remaining <= 20;
+                                        const isEmpty = remaining === 0;
+
+                                        return (
+                                            <div className={`relative group flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-sm border shadow-sm transition-all duration-300 ${isEmpty
+                                                ? 'bg-red-50/50 dark:bg-red-950/30 border-red-200/30 dark:border-red-500/20'
+                                                : 'bg-white/50 dark:bg-zinc-800/50 border-zinc-200/50 dark:border-white/5'
+                                                }`}>
+                                                {/* Hover Info Message */}
+                                                <div className="absolute top-full right-0 mt-2 w-48 p-2 bg-zinc-900 dark:bg-zinc-800 text-white rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none border border-white/5">
+                                                    <div className="flex items-start gap-2">
+                                                        <Info className="w-3.5 h-3.5 text-primary mt-0.5" />
+                                                        <div className="flex flex-col gap-1">
+                                                            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Request Balance</p>
+                                                            <p className="text-[11px] leading-relaxed text-zinc-300">
+                                                                Number of AI writing requests remaining in your current pack.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="absolute bottom-full right-6 w-2 h-2 bg-zinc-900 dark:bg-zinc-800 rotate-45 -mb-1" />
+                                                </div>
+
+                                                <div className="relative w-3 h-3 shrink-0">
+                                                    <svg className="w-3 h-3 -rotate-90" viewBox="0 0 36 36">
+                                                        <circle
+                                                            className={`${isEmpty ? 'stroke-red-200/50 dark:stroke-red-900/50' : 'stroke-zinc-200/50 dark:stroke-zinc-700/50'}`}
+                                                            strokeWidth="4"
+                                                            fill="transparent"
+                                                            r="16"
+                                                            cx="18"
+                                                            cy="18"
+                                                        />
+                                                        <circle
+                                                            className={`transition-all duration-500 ${isEmpty ? 'stroke-red-500' : isLow ? 'stroke-amber-500' : 'stroke-primary'}`}
+                                                            strokeWidth="4"
+                                                            strokeLinecap="round"
+                                                            fill="transparent"
+                                                            r="16"
+                                                            cx="18"
+                                                            cy="18"
+                                                            strokeDasharray={`${((100 - usagePercent) / 100) * 100} 100`}
+                                                        />
+                                                    </svg>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={`text-xs font-bold tabular-nums ${isEmpty ? 'text-red-500' : isLow ? 'text-amber-500' : 'text-zinc-700 dark:text-zinc-200'}`}>
+                                                        {remaining.toLocaleString()}
+                                                    </span>
+                                                    <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                                                        / {aiWriterRequestsTotal.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 
                             <textarea
                                 ref={textAreaRef}
-                                className="w-full h-full bg-transparent border-none outline-none resize-none text-base md:text-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 font-light leading-relaxed scrollbar-hide p-6 md:p-8 pt-16 md:pt-14"
+                                className="w-full h-full bg-transparent border-none outline-none resize-none text-base md:text-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 font-light leading-relaxed scrollbar-hide px-6 py-4 md:px-8 md:pt-4"
                                 placeholder={isLocked ? "Connect a project below to start writing..." : "Your instructions here... e.g. Write a spooky 30-second intro for a horror podcast about abandoned hospitals. Use a lot of vivid imagery."}
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
+                                maxLength={promptLimit}
                                 disabled={isLocked || isGenerating}
                                 spellCheck={false}
                             />
@@ -207,15 +332,12 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                                 </div>
                             )}
 
-                            {/* Character Count like TTS */}
-                            <div className="absolute top-6 right-8 text-[10px] font-bold bg-white/90 dark:bg-zinc-800/90 px-3 py-1.5 rounded-xl backdrop-blur-md border border-zinc-200 dark:border-white/10 shadow-lg text-zinc-500 dark:text-zinc-400">
-                                {prompt.length.toLocaleString()} Chars
-                            </div>
+
                         </div>
 
                         {/* Right: Result Sidebar (Neural Content Stream) */}
                         <div className="w-full md:w-[450px] lg:w-[550px] xl:w-[600px] bg-white/90 dark:bg-zinc-950/80 p-0 flex flex-col backdrop-blur-xl border-t md:border-t-0 md:border-l border-border dark:border-white/5 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-border dark:border-white/5 flex items-center justify-between bg-white/50 dark:bg-zinc-900/50">
+                            <div className="px-6 py-2 border-b border-border dark:border-white/5 flex items-center justify-between bg-white/50 dark:bg-zinc-900/50 min-h-[52px]">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-primary animate-pulse' : 'bg-emerald-500'}`} />
                                     <h3 className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em]">
@@ -363,6 +485,12 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                     background: rgba(161, 161, 170, 0.4);
                 }
             `}</style>
+
+            <AiWriterQuotaModal
+                isOpen={showQuotaModal}
+                onClose={() => setShowQuotaModal(false)}
+                onUpgrade={() => router.push("/dashboard/billing")}
+            />
         </div>
     );
 }

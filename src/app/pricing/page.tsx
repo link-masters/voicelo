@@ -425,12 +425,14 @@ function PricingContent() {
                         </p>
 
                         {activeDiscount && (
-                            <DiscountCountdown
-                                expiryDate={activeDiscount.expiry_date}
-                                discountCode={activeDiscount.code}
-                                percentage={activeDiscount.percentage}
-                                discountName={activeDiscount.name}
-                            />
+                            <div className="hidden md:block">
+                                <DiscountCountdown
+                                    expiryDate={activeDiscount.expiry_date}
+                                    discountCode={activeDiscount.code}
+                                    percentage={activeDiscount.percentage}
+                                    discountName={activeDiscount.name}
+                                />
+                            </div>
                         )}
                     </div>
 
@@ -496,7 +498,7 @@ function PricingContent() {
 
                                     <div className="flex justify-center mb-8 h-8">
                                         {plan.description ? (
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/80 border border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                            <span className="inline-flex items-center px-2 md:px-3 py-1 rounded-full bg-secondary/80 border border-border text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                                 {plan.description}
                                             </span>
                                         ) : <div className="h-full" />}

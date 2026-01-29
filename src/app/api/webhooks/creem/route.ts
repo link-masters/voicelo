@@ -84,6 +84,12 @@ export const POST = Webhook({
                     const thirtyDaysFromNow = new Date();
                     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
+                    // Determine AI Writer request limits based on pack type
+                    const starterAiWriterRequests = Number(process.env.NEXT_PUBLIC_AI_WRITER_STARTER_REQUESTS) || 300;
+                    const plusAiWriterRequests = Number(process.env.NEXT_PUBLIC_AI_WRITER_PLUS_REQUESTS) || 500;
+                    const aiWriterRequestsForPack = packageDisplayName === "plus_pack" ? plusAiWriterRequests : starterAiWriterRequests;
+                    const currentAiWriterTotal = Number(user.prefs?.aiWriterRequestsTotal) || 0;
+
                     // 1. Update User Credits
                     await users.updatePrefs(user.$id, {
                         ...user.prefs,
@@ -92,6 +98,9 @@ export const POST = Webhook({
                         lastPurchaseId: checkoutId,
                         isBillingEnded: false,
                         billingCycleExpired: false,
+                        // AI Writer request limits
+                        aiWriterRequestsTotal: currentAiWriterTotal + aiWriterRequestsForPack,
+                        aiWriterRequestsUsed: Number(user.prefs?.aiWriterRequestsUsed) || 0, // Preserve existing count
                     });
 
                     // 2. Create Transaction Record in new Table

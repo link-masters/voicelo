@@ -11,6 +11,8 @@ import ModalPortal from "./ModalPortal";
 
 const STARTER_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 100000;
 const PLUS_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 200000;
+const STARTER_AI_REQUESTS = Number(process.env.NEXT_PUBLIC_AI_WRITER_STARTER_REQUESTS) || 300;
+const PLUS_AI_REQUESTS = Number(process.env.NEXT_PUBLIC_AI_WRITER_PLUS_REQUESTS) || 500;
 
 interface PricingPlan {
     name: string;
@@ -46,6 +48,7 @@ const planConfigs: Record<string, any> = {
         color: "amber",
         features: [
             `${STARTER_CREDITS.toLocaleString()} Credits`,
+            `${STARTER_AI_REQUESTS.toLocaleString()} AI Writer Requests`,
             "Enhanced Quality Audio",
             "10 Instant Voice Clones",
             "Commercial rights",
@@ -60,6 +63,7 @@ const planConfigs: Record<string, any> = {
         popular: true,
         features: [
             `${PLUS_CREDITS.toLocaleString()} Credits`,
+            `${PLUS_AI_REQUESTS.toLocaleString()} AI Writer Requests`,
             "Studio Quality Audio",
             "Unlimited Voice Clones",
             "Commercial rights",
@@ -311,117 +315,140 @@ export default function PricingModal({ isOpen, onClose }: { isOpen: boolean; onC
 
     return (
         <ModalPortal isOpen={isOpen} onClose={onClose}>
-            <div className="relative w-full max-w-7xl bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto pointer-events-auto">
+            <div className="relative w-full max-w-7xl bg-zinc-50 dark:bg-zinc-950 rounded-[3rem] border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col pointer-events-auto">
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-10 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border border-border dark:border-white/10"
                 >
                     <X className="w-6 h-6" />
                 </button>
 
-                <div className="p-8 md:p-12">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-extrabold text-zinc-900 dark:text-white mb-4">Choose Your Pack</h2>
-                        {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && (
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4 border border-primary/20">
-                                <Zap className="w-3 h-3" />
-                                Special Offer Applied: {urlDiscount}
-                            </div>
-                        )}
-                        <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto">
-                            Unlock the full potential of VoiceLo. Higher limits, premium voices, and priority synthesis.
-                        </p>
-                    </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar-alt">
+                    <div className="p-8 md:p-12">
+                        <div className="text-center mb-12">
+                            <h2 className="text-4xl font-extrabold text-zinc-900 dark:text-white mb-4">Choose Your Pack</h2>
+                            {urlDiscount && plans.some(p => p.discountCode === urlDiscount) && (
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4 border border-primary/20">
+                                    <Zap className="w-3 h-3" />
+                                    Special Offer Applied: {urlDiscount}
+                                </div>
+                            )}
+                            <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto">
+                                Unlock the full potential of VoiceLo. Higher limits, premium voices, and priority synthesis.
+                            </p>
+                        </div>
 
-                    <div className="flex flex-wrap justify-center gap-8">
-                        {fetching ? (
-                            <div className="w-full flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                            </div>
-                        ) : plans.length === 0 ? (
-                            <div className="w-full text-center py-20">
-                                <p className="text-zinc-500">No plans available at the moment.</p>
-                            </div>
-                        ) : (
-                            plans.map((plan) => (
-                                <div
-                                    key={plan.name}
-                                    className={`relative group p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-md rounded-[2.5rem] bg-white dark:bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:translate-y-[-8px] ${plan.popular
-                                        ? "border-primary/30 dark:border-primary/50 shadow-2xl shadow-primary/10"
-                                        : "border-border hover:border-zinc-300 dark:hover:border-border/80"
-                                        }`}
-                                >
-                                    {plan.popular && (
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase shadow-xl shadow-primary/40 z-20">
-                                            Best Value
-                                        </div>
-                                    )}
-
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 mx-auto border ${colorStyles[plan.color] || colorStyles.primary}`}>
-                                        <plan.icon className="w-7 h-7" />
-                                    </div>
-
-                                    <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">{plan.name}</h3>
-
-                                    <div className="flex flex-col items-center mb-6 text-center">
-                                        {plan.discountPercent && (
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-500 text-sm font-bold uppercase tracking-wide">
-                                                    {plan.discountPercent}% OFF
-                                                </span>
-                                            </div>
-                                        )}
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-5xl font-extrabold text-foreground">{plan.price}</span>
-                                            {plan.originalPrice && (
-                                                <span className="text-zinc-500 text-xl font-medium line-through decoration-zinc-600/50 ml-2">
-                                                    {plan.originalPrice}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-center mb-8 h-8">
-                                        {plan.description ? (
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/80 border border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                                {plan.description}
-                                            </span>
-                                        ) : <div className="h-full" />}
-                                    </div>
-
-                                    <div className="space-y-4 mb-10">
-                                        {plan.features.map((feature) => (
-                                            <div key={feature} className="flex items-center gap-3">
-                                                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
-                                                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-500" />
-                                                </div>
-                                                <span className="text-sm text-zinc-600 dark:text-zinc-400">{feature}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        onClick={() => plan.variantId !== "free" && handleSubscribe(plan)}
-                                        disabled={loading !== null || plan.variantId === "free"}
-                                        className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group/btn ${plan.variantId === "free"
-                                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-border dark:border-zinc-700"
-                                            : plan.popular
-                                                ? "bg-primary hover:opacity-90 text-primary-foreground shadow-xl shadow-primary/30"
-                                                : "bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white"
+                        <div className="flex flex-wrap justify-center gap-8">
+                            {fetching ? (
+                                <div className="w-full flex justify-center py-20">
+                                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                                </div>
+                            ) : plans.length === 0 ? (
+                                <div className="w-full text-center py-20">
+                                    <p className="text-zinc-500">No plans available at the moment.</p>
+                                </div>
+                            ) : (
+                                plans.map((plan) => (
+                                    <div
+                                        key={plan.name}
+                                        className={`relative group p-8 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1.5rem)] max-w-md rounded-[2.5rem] bg-white dark:bg-zinc-900/40 backdrop-blur-xl border transition-all duration-500 hover:translate-y-[-8px] ${plan.popular
+                                            ? "border-primary/30 dark:border-primary/50 shadow-2xl shadow-primary/10"
+                                            : "border-border hover:border-zinc-300 dark:hover:border-border/80"
                                             }`}
                                     >
-                                        {loading === plan.variantId ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            plan.variantId === "free" ? "Default Pack" : "Buy Credits"
+                                        {plan.popular && (
+                                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full tracking-wider uppercase shadow-xl shadow-primary/40 z-20">
+                                                Best Value
+                                            </div>
                                         )}
-                                    </button>
-                                </div>
-                            ))
-                        )}
+
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 mx-auto border ${colorStyles[plan.color] || colorStyles.primary}`}>
+                                            <plan.icon className="w-7 h-7" />
+                                        </div>
+
+                                        <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">{plan.name}</h3>
+
+                                        <div className="flex flex-col items-center mb-6 text-center">
+                                            {plan.discountPercent && (
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-500 text-sm font-bold uppercase tracking-wide">
+                                                        {plan.discountPercent}% OFF
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-5xl font-extrabold text-foreground">{plan.price}</span>
+                                                {plan.originalPrice && (
+                                                    <span className="text-zinc-500 text-xl font-medium line-through decoration-zinc-600/50 ml-2">
+                                                        {plan.originalPrice}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-center mb-8 h-8">
+                                            {plan.description ? (
+                                                <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/80 border border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                                    {plan.description}
+                                                </span>
+                                            ) : <div className="h-full" />}
+                                        </div>
+
+                                        <div className="space-y-4 mb-10">
+                                            {plan.features.map((feature) => (
+                                                <div key={feature} className="flex items-center gap-3">
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+                                                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-500" />
+                                                    </div>
+                                                    <span className="text-sm text-zinc-600 dark:text-zinc-400">{feature}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            onClick={() => plan.variantId !== "free" && handleSubscribe(plan)}
+                                            disabled={loading !== null || plan.variantId === "free"}
+                                            className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group/btn ${plan.variantId === "free"
+                                                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-border dark:border-zinc-700"
+                                                : plan.popular
+                                                    ? "bg-primary hover:opacity-90 text-primary-foreground shadow-xl shadow-primary/30"
+                                                    : "bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white"
+                                                }`}
+                                        >
+                                            {loading === plan.variantId ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                plan.variantId === "free" ? "Default Pack" : "Buy Credits"
+                                            )}
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <style jsx>{`
+                .custom-scrollbar-alt::-webkit-scrollbar {
+                    width: 10px;
+                }
+                .custom-scrollbar-alt::-webkit-scrollbar-track {
+                    background: transparent;
+                    margin: 30px 4px;
+                }
+                .custom-scrollbar-alt::-webkit-scrollbar-thumb {
+                    background: rgba(161, 161, 170, 0.2);
+                    border-radius: 20px;
+                    border: 3px solid transparent;
+                    background-clip: content-box;
+                }
+                .custom-scrollbar-alt::-webkit-scrollbar-thumb:hover {
+                    background: rgba(161, 161, 170, 0.5);
+                    border: 3px solid transparent;
+                    background-clip: content-box;
+                }
+            `}</style>
         </ModalPortal>
     );
 }

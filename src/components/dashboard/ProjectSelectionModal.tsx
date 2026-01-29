@@ -67,15 +67,16 @@ export default function ProjectSelectionModal({ isOpen, onClose, voiceId, voiceN
 
     return (
         <ModalPortal isOpen={isOpen} onClose={onClose}>
-            <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 pointer-events-auto">
+            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl border border-border dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 pointer-events-auto">
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border border-border dark:border-white/10"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+
                 {/* Header */}
                 <div className="relative p-6 border-b border-border dark:border-white/5 bg-gradient-to-br from-primary/5 to-transparent">
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10 rounded-xl transition-all"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
 
                     <div className="flex items-start gap-4 pr-12">
                         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 ring-4 ring-primary/5">

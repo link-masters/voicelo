@@ -23,7 +23,11 @@ function AuthErrorWatcher({ setIsBlockedModalOpen }: { setIsBlockedModalOpen: (v
         const errorObj = JSON.parse(error);
         if (errorObj?.type === "user_blocked") {
           setIsBlockedModalOpen(true);
-          router.replace("/", { scroll: false });
+          // Clear params once to prevent loop
+          const params = new URLSearchParams(window.location.search);
+          params.delete("error");
+          const newUrl = params.toString() ? `/?${params.toString()}` : "/";
+          router.replace(newUrl, { scroll: false });
         }
       } catch (e) {
         console.error("Error parsing auth error params:", e);

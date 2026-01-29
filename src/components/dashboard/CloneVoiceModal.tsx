@@ -149,14 +149,15 @@ export default function CloneVoiceModal({ isOpen, onClose, onSuccess }: CloneVoi
                         </h2>
                         <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">Create a custom neural voice from a short sample.</p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        className="p-2 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-full transition-colors"
-                    >
-                        <X className="w-6 h-6 text-zinc-400" />
-                    </button>
                 </div>
+
+                <button
+                    onClick={onClose}
+                    disabled={isSubmitting}
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border border-border dark:border-white/10"
+                >
+                    <X className="w-6 h-6" />
+                </button>
 
                 {/* Content */}
                 <div className="p-8">

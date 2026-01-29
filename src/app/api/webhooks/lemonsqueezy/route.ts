@@ -94,6 +94,14 @@ export async function POST(req: Request) {
                     ? variantName
                     : (productName !== "Unknown" ? productName : "Standard Pack");
 
+                // Determine AI Writer request limits based on pack type
+                const starterAiWriterRequests = Number(process.env.NEXT_PUBLIC_AI_WRITER_STARTER_REQUESTS) || 300;
+                const plusAiWriterRequests = Number(process.env.NEXT_PUBLIC_AI_WRITER_PLUS_REQUESTS) || 500;
+                const aiWriterRequestsForPack = searchStr.includes("plus") || searchStr.includes("turbo") || searchStr.includes("pro")
+                    ? plusAiWriterRequests
+                    : starterAiWriterRequests;
+                const currentAiWriterTotal = Number(user.prefs?.aiWriterRequestsTotal) || 0;
+
                 await users.updatePrefs(userId, {
                     ...user.prefs,
                     plan: "Pro User",
@@ -103,6 +111,9 @@ export async function POST(req: Request) {
                     billingCycleEnd: thirtyDaysFromNow.toISOString(),
                     isBillingEnded: false,
                     billingCycleExpired: false,
+                    // AI Writer request limits
+                    aiWriterRequestsTotal: currentAiWriterTotal + aiWriterRequestsForPack,
+                    aiWriterRequestsUsed: Number(user.prefs?.aiWriterRequestsUsed) || 0, // Preserve existing count
                 });
 
                 // Record Transaction

@@ -65,13 +65,15 @@ export default function AiWriterModal({ isOpen, onClose, onGenerate }: AiWriterM
                             <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Generate creative text for your voiceover</p>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-white/5 rounded-xl transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
                 </div>
+
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors z-20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-md border border-border dark:border-white/10"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+
 
                 {/* Content */}
                 <div className="p-6 space-y-4">
@@ -126,6 +128,6 @@ export default function AiWriterModal({ isOpen, onClose, onGenerate }: AiWriterM
                 </div>
 
             </div>
-        </ModalPortal>
+        </ModalPortal >
     );
 }

@@ -21,7 +21,7 @@ const WELCOME_CREDITS = Number(process.env.NEXT_PUBLIC_WELCOME_CREDITS) || 1000;
 // --- Long Form TTS Constants ---
 const MIN_CHUNK_SIZE = 500;
 const MAX_CHUNK_SIZE = 1900; // Inworld Max is 2000, using 1900 for safety
-const MAX_CONCURRENT_REQUESTS = 2; // Keep it low to avoid rate limits
+const MAX_CONCURRENT_REQUESTS = 1; // Keep it low to avoid rate limits
 const SPLICE_BREAK_MS = 300; // Small silence between chunks in ms
 
 interface TextChunk {
@@ -895,5 +895,219 @@ export async function ensureInitialCreditsAwarded(userId: string) {
     } catch (error: any) {
         console.error("ensureInitialCreditsAwarded error:", error);
         return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Clears all generation history (TTS and AI Writer) for a user from the database.
+ */
+export async function clearAllHistory(userId: string) {
+    try {
+        if (!userId) throw new Error("User ID is required");
+        const { databases } = createAdminClient();
+
+        // Collections to clear
+        const collections = ['generations', 'ai_history', 'ai_history_versions'];
+
+        for (const collectionId of collections) {
+            console.log(`Clearing collection: ${collectionId} for user: ${userId}`);
+            let hasMore = true;
+            let deletedCount = 0;
+
+            while (hasMore) {
+                const response = await databases.listDocuments(
+                    APPWRITE_DATABASE_ID,
+                    collectionId,
+                    [
+                        Query.equal('userId', userId),
+                        Query.limit(100)
+                    ]
+                );
+
+                if (response.documents.length === 0) {
+                    hasMore = false;
+                    break;
+                }
+
+                // Delete batch
+                await Promise.all(
+                    response.documents.map(doc =>
+                        databases.deleteDocument(APPWRITE_DATABASE_ID, collectionId, doc.$id)
+                    )
+                );
+
+                deletedCount += response.documents.length;
+
+                // If we got fewer than 100, we're likely done
+                if (response.documents.length < 100) {
+                    hasMore = false;
+                }
+            }
+            console.log(`Successfully deleted ${deletedCount} documents from ${collectionId}`);
+        }
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("clearAllHistory error:", error);
+        return { success: false, error: error.message || "Failed to clear history" };
+    }
+}
+
+/**
+ * Permanently deletes a user account and all associated data.
+ */
+export async function deleteUserAccountEntirely(userId: string) {
+    try {
+        if (!userId) throw new Error("User ID is required");
+
+        const { databases, users } = createAdminClient();
+
+        // 1. Clear history (TTS and AI Writer)
+        await clearAllHistory(userId);
+
+        // 2. Clear user voices (both Appwrite and Inworld)
+        console.log(`Deleting voices for user: ${userId}`);
+        let hasMoreVoices = true;
+        while (hasMoreVoices) {
+            const response = await databases.listDocuments(
+                APPWRITE_DATABASE_ID,
+                APPWRITE_VOICES_TABLE_ID,
+                [
+                    Query.equal('creatorId', userId),
+                    Query.limit(100)
+                ]
+            );
+
+            if (response.documents.length === 0) {
+                hasMoreVoices = false;
+                break;
+            }
+
+            await Promise.allSettled(
+                response.documents.map(doc =>
+                    deleteUserVoice(doc.$id, (doc as any).voiceId)
+                )
+            );
+
+            if (response.documents.length < 100) {
+                hasMoreVoices = false;
+            }
+        }
+
+        // 3. Delete user notifications
+        console.log(`Deleting notifications for user: ${userId}`);
+        let hasMoreNotifs = true;
+        while (hasMoreNotifs) {
+            const response = await databases.listDocuments(
+                APPWRITE_DATABASE_ID,
+                APPWRITE_USER_NOTIFICATIONS_ID,
+                [
+                    Query.equal('userId', userId),
+                    Query.limit(100)
+                ]
+            );
+
+            if (response.documents.length === 0) {
+                hasMoreNotifs = false;
+                break;
+            }
+
+            await Promise.all(
+                response.documents.map(doc =>
+                    databases.deleteDocument(APPWRITE_DATABASE_ID, APPWRITE_USER_NOTIFICATIONS_ID, doc.$id)
+                )
+            );
+
+            if (response.documents.length < 100) {
+                hasMoreNotifs = false;
+            }
+        }
+
+        // 4. Delete user transactions
+        console.log(`Deleting transactions for user: ${userId}`);
+        let hasMoreTx = true;
+        while (hasMoreTx) {
+            const response = await databases.listDocuments(
+                APPWRITE_DATABASE_ID,
+                APPWRITE_TRANSACTIONS_COLLECTION_ID,
+                [
+                    Query.equal('userId', userId),
+                    Query.limit(100)
+                ]
+            );
+
+            if (response.documents.length === 0) {
+                hasMoreTx = false;
+                break;
+            }
+
+            await Promise.all(
+                response.documents.map(doc =>
+                    databases.deleteDocument(APPWRITE_DATABASE_ID, APPWRITE_TRANSACTIONS_COLLECTION_ID, doc.$id)
+                )
+            );
+
+            if (response.documents.length < 100) {
+                hasMoreTx = false;
+            }
+        }
+
+        // 5. Delete projects
+        console.log(`Deleting projects for user: ${userId}`);
+        let hasMoreProjects = true;
+        while (hasMoreProjects) {
+            const response = await databases.listDocuments(
+                APPWRITE_DATABASE_ID,
+                'projects',
+                [
+                    Query.equal('userId', userId),
+                    Query.limit(100)
+                ]
+            );
+
+            if (response.documents.length === 0) {
+                hasMoreProjects = false;
+                break;
+            }
+
+            await Promise.all(
+                response.documents.map(doc =>
+                    databases.deleteDocument(APPWRITE_DATABASE_ID, 'projects', doc.$id)
+                )
+            );
+
+            if (response.documents.length < 100) {
+                hasMoreProjects = false;
+            }
+        }
+
+        // 6. Delete user record from Appwrite Auth (Mandatory last step)
+        try {
+            console.log(`Deleting user record from Auth: ${userId}`);
+            await users.delete(userId);
+        } catch (authError: any) {
+            console.error("Failed to delete user from Auth (might be already gone):", authError);
+            // If they are gone from auth, we consider this a success overall
+        }
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("deleteUserAccountEntirely error:", error);
+        return { success: false, error: error.message || "Failed to delete account" };
+    }
+}
+
+export async function updateUserName(userId: string, name: string) {
+    try {
+        if (!userId) throw new Error("User ID is required");
+        if (!name) throw new Error("Name is required");
+
+        const { users } = createAdminClient();
+        await users.updateName(userId, name);
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("updateUserName error:", error);
+        return { success: false, error: error.message || "Failed to update name" };
     }
 }

@@ -7,6 +7,7 @@ import { getUserVoices, synthesizeInworldSpeech, toggleCommunityVoiceLike, updat
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import ShareVoiceModal from "@/components/dashboard/ShareVoiceModal";
+import ProjectSelectionModal from "@/components/dashboard/ProjectSelectionModal";
 import { useVoices } from "@/context/VoiceContext";
 
 interface Voice {
@@ -51,6 +52,10 @@ export default function MyVoicesPage() {
     // Delete Confirmation Modal State
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [voiceToDelete, setVoiceToDelete] = useState<Voice | null>(null);
+
+    // Project Selection Modal State
+    const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+    const [selectedVoiceForProject, setSelectedVoiceForProject] = useState<{ id: string, name: string } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchUserVoices = async () => {
@@ -162,6 +167,11 @@ export default function MyVoicesPage() {
         const url = `${window.location.origin}/share/voice/${shareId}`;
         setSharingVoice({ name: voice.displayName, url });
         setIsShareModalOpen(true);
+    };
+
+    const handleUseVoice = (voice: Voice) => {
+        setSelectedVoiceForProject({ id: voice.voiceId, name: voice.displayName });
+        setIsProjectModalOpen(true);
     };
 
     const handleTogglePrivacy = async (voice: Voice) => {
@@ -431,12 +441,12 @@ export default function MyVoicesPage() {
                                                     >
                                                         <Share2 className="w-4 h-4" />
                                                     </button>
-                                                    <Link
-                                                        href={`/dashboard/text-to-speech?voice=${encodeURIComponent(voice.displayName)}`}
+                                                    <button
+                                                        onClick={() => handleUseVoice(voice)}
                                                         className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md shadow-primary/20"
                                                     >
                                                         <Zap className="w-4 h-4 fill-current" />
-                                                    </Link>
+                                                    </button>
                                                     <div className="relative menu-container">
                                                         <button
                                                             onClick={(e) => {
@@ -547,12 +557,12 @@ export default function MyVoicesPage() {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Link
-                                            href={`/dashboard/text-to-speech?voice=${encodeURIComponent(voice.displayName)}`}
+                                        <button
+                                            onClick={() => handleUseVoice(voice)}
                                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95"
                                         >
                                             <Zap className="w-4 h-4 fill-current" />
-                                        </Link>
+                                        </button>
                                         <button
                                             onClick={() => openDeleteModal(voice)}
                                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 border border-red-100 dark:border-red-500/20 active:scale-95 transition-all"
@@ -622,6 +632,15 @@ export default function MyVoicesPage() {
                     onClose={() => setIsShareModalOpen(false)}
                     voiceName={sharingVoice.name}
                     shareUrl={sharingVoice.url}
+                />
+            )}
+
+            {selectedVoiceForProject && (
+                <ProjectSelectionModal
+                    isOpen={isProjectModalOpen}
+                    onClose={() => setIsProjectModalOpen(false)}
+                    voiceId={selectedVoiceForProject.id}
+                    voiceName={selectedVoiceForProject.name}
                 />
             )}
 
