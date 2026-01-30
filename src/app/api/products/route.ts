@@ -588,9 +588,20 @@ export async function GET(req: Request) {
 
                     if (codeToApply) {
                         console.log(`[Pricing API] Checking Creem discount: ${codeToApply}`);
-                        activeDiscount = await fetchCreemDiscount(codeToApply);
-                        if (activeDiscount) {
-                            console.log(`[Pricing API] Found active discount: ${activeDiscount.code} (${activeDiscount.type === 'percentage' ? activeDiscount.percentage + '%' : '$' + (activeDiscount.amount / 100)})`);
+                        const discount = await fetchCreemDiscount(codeToApply);
+
+                        if (discount) {
+                            // Validate discount status and expiry
+                            const now = new Date();
+                            const isExpired = discount.expiry_date && new Date(discount.expiry_date) < now;
+                            const isActive = discount.status === 'active';
+
+                            if (isActive && !isExpired) {
+                                activeDiscount = discount;
+                                console.log(`[Pricing API] Found active discount: ${activeDiscount.code} (${activeDiscount.type === 'percentage' ? activeDiscount.percentage + '%' : '$' + (activeDiscount.amount / 100)})`);
+                            } else {
+                                console.log(`[Pricing API] Discount ${discount.code} is invalid (Status: ${discount.status}, Expired: ${isExpired})`);
+                            }
                         }
                     }
 

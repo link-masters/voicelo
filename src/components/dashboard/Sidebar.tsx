@@ -122,7 +122,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     {/* Home Section */}
                     <div className="space-y-2">
                         <div className="px-4 mb-3">
-                            <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                            <h2 className="text-xs font-bold text-black dark:text-white uppercase tracking-[0.2em]">
                                 Home
                             </h2>
                         </div>
@@ -205,7 +205,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     {/* Creative Studio Section */}
                     <div className="space-y-1">
                         <div className="px-4 mb-3">
-                            <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                            <h2 className="text-xs font-bold text-black dark:text-white uppercase tracking-[0.2em]">
                                 Creative Studio
                             </h2>
                         </div>
@@ -266,7 +266,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     {/* Clone Voice Section - Multi-level */}
                     <div className="space-y-1">
                         <div className="px-4 mb-3">
-                            <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                            <h2 className="text-xs font-bold text-black dark:text-white uppercase tracking-[0.2em]">
                                 Custom Voices
                             </h2>
                         </div>
@@ -403,7 +403,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     {((user?.prefs as any)?.isAdmin === true || (user?.prefs as any)?.isAdmin === "true") && (
                         <div className="space-y-2">
                             <div className="px-4 mb-3">
-                                <h2 className="text-[10px] font-bold text-red-500 uppercase tracking-[0.2em]">
+                                <h2 className="text-xs font-bold text-red-500 uppercase tracking-[0.2em]">
                                     Administration
                                 </h2>
                             </div>
@@ -421,7 +421,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                     )}
 
-                    <div className="pt-6 border-t border-border dark:border-white/5">
+                    {/* Settings Menu - Temporarily Hidden */}
+                    {/* <div className="pt-6 border-t border-border dark:border-white/5">
                         <Link
                             href="/dashboard/settings"
                             onClick={(e) => handleLinkClick(e, '/dashboard/settings')}
@@ -433,12 +434,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <Settings className={`w-5 h-5 transition-transform ${isActive('/dashboard/settings') ? 'rotate-90' : 'group-hover:rotate-90'}`} />
                             <span>Settings</span>
                         </Link>
-                    </div>
+                    </div> */}
                 </nav>
 
                 <div className="p-4 border-t border-border dark:border-white/5 bg-secondary/50 dark:bg-black/20 space-y-1 shrink-0">
                     <div className="px-4 mb-2">
-                        <h2 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                        <h2 className="text-xs font-bold text-black dark:text-white uppercase tracking-[0.2em]">
                             Preferences
                         </h2>
                     </div>

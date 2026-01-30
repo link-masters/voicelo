@@ -201,10 +201,10 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
             <div className="w-full h-full flex flex-col lg:grid lg:grid-cols-12 gap-6 relative z-10">
 
                 {/* Main Writing Card */}
-                <div className="lg:col-span-12 w-full glass-panel rounded-2xl md:rounded-3xl shadow-xl border border-border dark:border-white/5 flex flex-col lg:h-[calc(100vh-140px)] min-h-[600px] relative">
+                <div className="lg:col-span-12 w-full glass-panel rounded-2xl md:rounded-3xl shadow-xl border border-border dark:border-white/5 flex flex-col h-[calc(100dvh-120px)] lg:h-[calc(100vh-140px)] min-h-[400px] relative">
 
                     {/* Editor & Controls Split Area */}
-                    <div className="flex flex-col md:flex-row flex-1">
+                    <div className="flex flex-col md:flex-row flex-1 min-h-0">
 
                         {/* Left: Writing Studio (Prompt Area) */}
                         <div
@@ -336,7 +336,7 @@ export default function AiWriterTool({ projectId }: AiWriterToolProps) {
                         </div>
 
                         {/* Right: Result Sidebar (Neural Content Stream) */}
-                        <div className="w-full md:w-[450px] lg:w-[550px] xl:w-[600px] bg-white/90 dark:bg-zinc-950/80 p-0 flex flex-col backdrop-blur-xl border-t md:border-t-0 md:border-l border-border dark:border-white/5 overflow-hidden">
+                        <div className="flex-1 md:flex-none w-full md:w-[450px] lg:w-[550px] xl:w-[600px] bg-white/90 dark:bg-zinc-950/80 p-0 flex flex-col backdrop-blur-xl border-t md:border-t-0 md:border-l border-border dark:border-white/5 overflow-hidden">
                             <div className="px-6 py-2 border-b border-border dark:border-white/5 flex items-center justify-between bg-white/50 dark:bg-zinc-900/50 min-h-[52px]">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-primary animate-pulse' : 'bg-emerald-500'}`} />
