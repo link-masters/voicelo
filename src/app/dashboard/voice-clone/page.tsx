@@ -316,7 +316,7 @@ export default function VoiceClonePage() {
                     Voice Cloning
                 </h1>
                 <p className="text-sm md:text-base text-zinc-500 dark:text-zinc-400">
-                    Create a digital twin of any voice with high-fidelity neural processing. Our engine captures nuances, tone, and inflection.
+                    Create a clone of any voice with high-fidelity neural processing. Our engine captures nuances, tone, and inflection.
                 </p>
             </div>
 
@@ -477,7 +477,7 @@ export default function VoiceClonePage() {
                             <div className="space-y-0.5">
                                 <h4 className="text-xs md:text-sm font-bold text-zinc-900 dark:text-white">Quality Tip</h4>
                                 <p className="text-[10px] md:text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                                    High-quality audio (10-15s) results in a better digital twin.
+                                    High-quality audio (10-15s) results in a better clone.
                                 </p>
                             </div>
                         </div>
