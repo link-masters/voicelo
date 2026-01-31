@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
                     <div className="space-y-16">
                         <header className="space-y-4">
                             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground">Privacy Policy</h1>
-                            <p className="text-muted-foreground text-lg">Last Updated: December 28, 2025</p>
+                            <p className="text-muted-foreground text-lg">Last Updated: January 31, 2026</p>
                         </header>
 
                         <div className="space-y-12">
@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
                                     </li>
                                     <li className="flex gap-3">
                                         <span className="font-bold text-foreground mt-0.5">(c)</span>
-                                        <span><strong className="text-foreground">Usage Data:</strong> Information about how you use our service, including the text provided for speech synthesis.</span>
+                                        <span><strong className="text-foreground">Usage Data:</strong> Information about how you use our service, including text provided for speech synthesis, AI writing prompts, and generated content history.</span>
                                     </li>
                                 </ul>
                             </section>
@@ -76,14 +76,14 @@ export default function PrivacyPolicy() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground">4. Input Text</h2>
                                 <p className="text-muted-foreground">
-                                    The text you input for speech synthesis is processed to generate the audio. We do not store your input text on our servers or cloud.
+                                    The text you input for speech synthesis and prompts for AI writing are processed to generate content. We securely store your input text, AI prompts, and generated outcomes on our servers (Appwrite Cloud) to provide history features and allow you to manage your projects. You can delete this history at any time.
                                 </p>
                             </section>
 
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground">5. Generated Audio Files</h2>
                                 <p className="text-muted-foreground">
-                                    The audio files generated from your input text are not stored on our cloud servers. They are only available locally on your device during your session and will be cleared once you close your browser tab or window. You retain full ownership of the generated audio files.
+                                    The audio files generated from your input text are stored securely on our cloud servers (Appwrite Cloud) to enable history access across your devices. You retain full ownership of the generated audio files and can delete them from your history at any time.
                                 </p>
                             </section>
 
@@ -117,7 +117,7 @@ export default function PrivacyPolicy() {
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground">8. Data Sharing</h2>
                                 <p className="text-muted-foreground">
-                                    We will not share any data with third parties for any purpose, including training models, except for the specific data required for our core service: the input text you provide is sent to our Text-to-Speech API provider solely for the purpose of audio generation.
+                                    We will not share any data with third parties for any purpose, including training models, except for the specific data required for our core service: input text sent to our Text-to-Speech API provider (Inworld AI) and prompts sent to our AI Writing providers (Google Gemini, OpenAI) solely for the purpose of content generation.
                                 </p>
                             </section>
 
@@ -143,6 +143,18 @@ export default function PrivacyPolicy() {
                                         <span className="text-primary">•</span>
                                         <span>
                                             <strong><a href="https://inworld.ai/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Inworld AI</a>:</strong> Text to speech generation via their API.
+                                        </span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <span className="text-primary">•</span>
+                                        <span>
+                                            <strong><a href="https://ai.google.dev/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Gemini</a>:</strong> AI text generation services.
+                                        </span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <span className="text-primary">•</span>
+                                        <span>
+                                            <strong><a href="https://openai.com/policies/terms-of-use" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">OpenAI</a>:</strong> AI text generation services.
                                         </span>
                                     </li>
                                 </ul>

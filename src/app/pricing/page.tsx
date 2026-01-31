@@ -33,6 +33,9 @@ interface PricingPlan {
 
 const STARTER_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_STARTER_PACK) || 50000;
 const PLUS_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 100000;
+const STARTER_CLONE_LIMIT = Number(process.env.NEXT_PUBLIC_VOICE_CLONE_LIMIT_STARTER) || 20;
+const PLUS_CLONE_LIMIT = Number(process.env.NEXT_PUBLIC_VOICE_CLONE_LIMIT_PLUS) || 50;
+const PRO_CHAR_LIMIT = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT) || 5000;
 
 const planConfigs: Record<string, any> = {
     "free_plan": {
@@ -52,9 +55,10 @@ const planConfigs: Record<string, any> = {
         features: [
             `${STARTER_CREDITS.toLocaleString()} Credits`,
             "Enhanced Quality Audio",
-            "20 Instant Voice Clones",
+            "Instant Voice Clones",
+            `${STARTER_CLONE_LIMIT} Voice Cloning Slots`,
             "Commercial rights",
-            "5,000 char input limit",
+            `${PRO_CHAR_LIMIT.toLocaleString()} char input limit`,
             "Standard Support",
         ],
         description: "One-time Payment · No Auto Renewal",
@@ -66,9 +70,10 @@ const planConfigs: Record<string, any> = {
         features: [
             `${PLUS_CREDITS.toLocaleString()} Credits`,
             "Studio Quality Audio",
-            "50 Instant Voice Clones",
+            "Instant Voice Clones",
+            `${PLUS_CLONE_LIMIT} Voice Cloning Slots`,
             "Commercial rights",
-            "15,000 input length",
+            `${PRO_CHAR_LIMIT.toLocaleString()} char input limit`,
             "Priority Support",
         ],
         description: "One-time Payment · No Auto Renewal",
@@ -100,7 +105,7 @@ function PricingContent() {
         },
         {
             q: "Do you offer refunds?",
-            a: "We offer refunds for unused credits if requested within 14 days of purchase. However, once credits are partially used for speech generation, the transaction becomes non-refundable."
+            a: "We offer refunds for unused credits if requested within 7 days of purchase. However, once credits are partially used for speech generation, the transaction becomes non-refundable."
         },
 
         {
@@ -125,8 +130,9 @@ function PricingContent() {
     const comparisonFeatures = [
         { name: "Number of credits", free: "1,000", starter: STARTER_CREDITS.toLocaleString(), plus: PLUS_CREDITS.toLocaleString() },
         { name: "Audio quality", free: "Standard", starter: "Enhanced", plus: "Studio" },
-        { name: "Instant voice clones", free: false, starter: "20 Slots", plus: "50 Slots" },
-        { name: "Text input length", free: "1,000 chars", starter: "5,000 chars", plus: "15,000 chars" },
+        { name: "Instant voice clones", free: false, starter: true, plus: true },
+        { name: "Voice cloning slots", free: false, starter: `${STARTER_CLONE_LIMIT} Slots`, plus: `${PLUS_CLONE_LIMIT} Slots` },
+        { name: "Text input length", free: "1,000 chars", starter: `${PRO_CHAR_LIMIT.toLocaleString()} chars`, plus: `${PRO_CHAR_LIMIT.toLocaleString()} chars` },
         { name: "Support included", free: true, starter: true, plus: true },
         { name: "Commercial use", free: false, starter: true, plus: true },
     ];

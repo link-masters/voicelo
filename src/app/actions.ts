@@ -17,6 +17,8 @@ const APPWRITE_BROADCASTS_ID = process.env.NEXT_PUBLIC_APPWRITE_BROADCASTS_ID ||
 const APPWRITE_USER_NOTIFICATIONS_ID = process.env.NEXT_PUBLIC_APPWRITE_USER_NOTIFICATIONS_ID || 'user_notifications';
 const APPWRITE_TRANSACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_TRANSACTIONS_COLLECTION_ID || 'user_transactions';
 const WELCOME_CREDITS = Number(process.env.NEXT_PUBLIC_WELCOME_CREDITS) || 1000;
+const STARTER_CLONE_LIMIT = Number(process.env.NEXT_PUBLIC_VOICE_CLONE_LIMIT_STARTER) || 20;
+const PLUS_CLONE_LIMIT = Number(process.env.NEXT_PUBLIC_VOICE_CLONE_LIMIT_PLUS) || 50;
 
 // --- Long Form TTS Constants ---
 const MIN_CHUNK_SIZE = 500;
@@ -485,9 +487,9 @@ export async function getVoiceCloneLimit(userId: string) {
 
         for (const doc of response.documents) {
             if (doc.packageName === 'plus_pack') {
-                limit = Math.max(limit, 50);
+                limit = Math.max(limit, PLUS_CLONE_LIMIT);
             } else if (doc.packageName === 'starter_pack') {
-                limit = Math.max(limit, 20);
+                limit = Math.max(limit, STARTER_CLONE_LIMIT);
             }
         }
 

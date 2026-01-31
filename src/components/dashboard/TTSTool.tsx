@@ -518,7 +518,7 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
     if (!files || files.length === 0) return;
 
     const proLimit = Number(
-      process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000,
+      process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 5000,
     );
     const charLimit =
       (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
@@ -593,7 +593,7 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
 
   const restoreHistoryItem = (item: HistoryItem) => {
     const proLimit = Number(
-      process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000,
+      process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 5000,
     );
     const charLimit =
       (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
@@ -807,7 +807,7 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
           projectId={projectId}
           onSelect={(selectedText) => {
             const proLimit = Number(
-              process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000,
+              process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 5000,
             );
             const charLimit =
               (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
@@ -892,7 +892,7 @@ export default function TTSTool({ projectId, projectName }: TTSToolProps = {}) {
             <div className="flex-1 border-b md:border-b-0 md:border-r border-border dark:border-white/5 relative bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-col">
               {(() => {
                 const proLimit = Number(
-                  process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 25000,
+                  process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT || 5000,
                 );
                 const charLimit =
                   (user?.prefs as any)?.plan === "Pro User" ? proLimit : 1000;
