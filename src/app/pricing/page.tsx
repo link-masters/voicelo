@@ -36,15 +36,17 @@ const PLUS_CREDITS = Number(process.env.NEXT_PUBLIC_CREDITS_PLUS_PACK) || 100000
 const STARTER_CLONE_LIMIT = Number(process.env.NEXT_PUBLIC_VOICE_CLONE_LIMIT_STARTER) || 20;
 const PLUS_CLONE_LIMIT = Number(process.env.NEXT_PUBLIC_VOICE_CLONE_LIMIT_PLUS) || 50;
 const PRO_CHAR_LIMIT = Number(process.env.NEXT_PUBLIC_PRO_USER_CHAR_LIMIT) || 5000;
+const STARTER_AI_REQUESTS = Number(process.env.NEXT_PUBLIC_AI_WRITER_STARTER_REQUESTS) || 150;
+const PLUS_AI_REQUESTS = Number(process.env.NEXT_PUBLIC_AI_WRITER_PLUS_REQUESTS) || 300;
 
 const planConfigs: Record<string, any> = {
     "free_plan": {
         icon: User,
         color: "zinc",
         features: [
-            "1,000 Credits",
+            "1,000 Credits for TTS",
+            "1,000 Text Char Input Limit",
             "Standard Quality Audio",
-            "1,000 char input limit",
             "Community Support",
             "Personal Use Only",
         ],
@@ -53,12 +55,13 @@ const planConfigs: Record<string, any> = {
         icon: Zap,
         color: "amber",
         features: [
-            `${STARTER_CREDITS.toLocaleString()} Credits`,
+            `${STARTER_CREDITS.toLocaleString()} Credits for TTS`,
+            `${STARTER_CLONE_LIMIT} Voice Cloning Slots`,
+            `${PRO_CHAR_LIMIT.toLocaleString()} Text Char Input Limit`,
+            `${STARTER_AI_REQUESTS} AI Writer Requests`,
+            "Commercial Rights",
             "Enhanced Quality Audio",
             "Instant Voice Clones",
-            `${STARTER_CLONE_LIMIT} Voice Cloning Slots`,
-            "Commercial rights",
-            `${PRO_CHAR_LIMIT.toLocaleString()} char input limit`,
             "Standard Support",
         ],
         description: "One-time Payment · No Auto Renewal",
@@ -68,16 +71,35 @@ const planConfigs: Record<string, any> = {
         color: "primary",
         popular: true,
         features: [
-            `${PLUS_CREDITS.toLocaleString()} Credits`,
+            `${PLUS_CREDITS.toLocaleString()} Credits for TTS`,
+            `${PLUS_CLONE_LIMIT} Voice Cloning Slots`,
+            `${PRO_CHAR_LIMIT.toLocaleString()} Text Char Input Limit`,
+            `${PLUS_AI_REQUESTS} AI Writer Requests`,
+            "Commercial Rights",
             "Studio Quality Audio",
             "Instant Voice Clones",
-            `${PLUS_CLONE_LIMIT} Voice Cloning Slots`,
-            "Commercial rights",
-            `${PRO_CHAR_LIMIT.toLocaleString()} char input limit`,
             "Priority Support",
         ],
         description: "One-time Payment · No Auto Renewal",
     },
+};
+
+const formatFeature = (text: string) => {
+    const parts = text.split(/([\d,]+)/g);
+    return (
+        <>
+            {parts.map((part, index) => {
+                if (/^[\d,]+$/.test(part) && /\d/.test(part)) {
+                    return (
+                        <span key={index} className="border-b-2 border-dashed border-black/60 dark:border-white/60 text-foreground font-medium pb-0.5">
+                            {part}
+                        </span>
+                    );
+                }
+                return <span key={index}>{part}</span>;
+            })}
+        </>
+    );
 };
 
 function PricingContent() {
@@ -132,6 +154,7 @@ function PricingContent() {
         { name: "Audio quality", free: "Standard", starter: "Enhanced", plus: "Studio" },
         { name: "Instant voice clones", free: false, starter: true, plus: true },
         { name: "Voice cloning slots", free: false, starter: `${STARTER_CLONE_LIMIT} Slots`, plus: `${PLUS_CLONE_LIMIT} Slots` },
+        { name: "AI Writer requests", free: false, starter: `${STARTER_AI_REQUESTS} Requests`, plus: `${PLUS_AI_REQUESTS} Requests` },
         { name: "Text input length", free: "1,000 chars", starter: `${PRO_CHAR_LIMIT.toLocaleString()} chars`, plus: `${PRO_CHAR_LIMIT.toLocaleString()} chars` },
         { name: "Support included", free: true, starter: true, plus: true },
         { name: "Commercial use", free: false, starter: true, plus: true },
@@ -149,7 +172,6 @@ function PricingContent() {
             return;
         }
 
-        // initializePaddle handles singleton initialization - safe to call multiple times
         initializePaddle({
             environment: environment as 'sandbox' | 'production',
             token: clientToken,
@@ -157,11 +179,9 @@ function PricingContent() {
                 console.log('[Paddle Event]:', event.name, event);
                 switch (event.name) {
                     case 'checkout.completed':
-                        // Close the checkout modal first, then redirect after a short delay
-                        // This prevents the success message from sticking on screen
                         setTimeout(() => {
                             router.push('/dashboard/profile?checkout=success');
-                        }, 1500); // Wait 1.5 seconds to show success briefly
+                        }, 1500);
                         break;
                     case 'checkout.closed':
                         setLoading(null);
@@ -181,6 +201,15 @@ function PricingContent() {
             console.error('[PricingPage] Paddle init error:', error);
         });
     }, [router]);
+
+    // Reset loading state when returning from external checkout (e.g. back button)
+    useEffect(() => {
+        const handlePageShow = () => {
+            setLoading(null);
+        };
+        window.addEventListener('pageshow', handlePageShow);
+        return () => window.removeEventListener('pageshow', handlePageShow);
+    }, []);
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -516,7 +545,7 @@ function PricingContent() {
                                                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
                                                     <Check className="w-3 h-3 text-emerald-500" />
                                                 </div>
-                                                <span className="text-muted-foreground text-sm">{feature}</span>
+                                                <span className="text-muted-foreground text-sm">{formatFeature(feature)}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -583,7 +612,7 @@ function PricingContent() {
                                                 </td>
                                                 <td className="py-6 px-6 text-center">
                                                     {typeof feature.free === 'string' ? (
-                                                        <span className="font-bold text-foreground text-sm">{feature.free}</span>
+                                                        <span className="font-bold text-foreground text-sm">{formatFeature(feature.free)}</span>
                                                     ) : feature.free ? (
                                                         <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
                                                             <Check className="w-4 h-4 text-emerald-500" />
@@ -594,7 +623,7 @@ function PricingContent() {
                                                 </td>
                                                 <td className="py-6 px-6 text-center">
                                                     {typeof feature.starter === 'string' ? (
-                                                        <span className="font-bold text-foreground text-sm">{feature.starter}</span>
+                                                        <span className="font-bold text-foreground text-sm">{formatFeature(feature.starter)}</span>
                                                     ) : feature.starter ? (
                                                         <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
                                                             <Check className="w-4 h-4 text-amber-500" />
@@ -605,7 +634,7 @@ function PricingContent() {
                                                 </td>
                                                 <td className="py-6 px-6 text-center">
                                                     {typeof feature.plus === 'string' ? (
-                                                        <span className="font-bold text-foreground text-sm">{feature.plus}</span>
+                                                        <span className="font-bold text-foreground text-sm">{formatFeature(feature.plus)}</span>
                                                     ) : feature.plus ? (
                                                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                                                             <Check className="w-4 h-4 text-primary" />
