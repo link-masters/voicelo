@@ -1,7 +1,13 @@
 import React from "react";
+import { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getActiveProviderName } from "@/config/payment";
+
+export const metadata: Metadata = {
+    title: "Cookie Policy | VoiceLo",
+    description: "Information about how we use cookies on the VoiceLo platform.",
+};
 
 export default function CookiePolicy() {
     return (

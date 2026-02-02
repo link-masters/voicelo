@@ -1,7 +1,13 @@
 import React from "react";
+import { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getActiveProviderName } from "@/config/payment";
+
+export const metadata: Metadata = {
+    title: "Privacy Policy | VoiceLo",
+    description: "Learn how VoiceLo protects your privacy and handles your personal data.",
+};
 
 export default function PrivacyPolicy() {
     return (
